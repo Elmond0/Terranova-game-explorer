@@ -18,7 +18,8 @@
 
 **C# con ASP.NET Core Web API (.NET 10)**
 
-> **Motivazione:** _da completare_
+> **Motivazione:**
+Stack consigliato da Terranova, inoltre C# è uno dei linguaggi più veloci nella gestione di chiamate API REST. ASP.NET framework .NET per web app.
 
 ## 2. Frontend
 
