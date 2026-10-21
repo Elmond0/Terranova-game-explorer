@@ -1,0 +1,12 @@
+namespace GameExplorer.Shared.Models;
+
+class SearchFilter
+{
+	public string? Text { get; set; }
+	public List<Genre>? Genres { get; set; }
+	public List<Platform>? Platforms { get; set; }
+	public int? FromYear { get; set; }
+	public int? ToYear { get; set; }
+	public int? MinMetacritic { get; set; }
+	public Studio? 
+}

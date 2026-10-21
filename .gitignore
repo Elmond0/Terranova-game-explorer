@@ -8,6 +8,9 @@
 .env.*
 !.env.example
 
+#appunti
+piano-backend.md
+
 # Override locali di Docker
 docker-compose.override.yml
 
