@@ -8,5 +8,7 @@ class SearchFilter
 	public int? FromYear { get; set; }
 	public int? ToYear { get; set; }
 	public int? MinMetacritic { get; set; }
-	public Studio? 
+	public List<Studio>? Developers { get; set; }
+	public List<Studio>? Publishers { get; set; }
+	public List<Store>? Stores { get; set; }
 }
