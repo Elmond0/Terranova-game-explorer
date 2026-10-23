@@ -9,6 +9,4 @@ public class GameDetails : Game
 	public List<Studio> Developers { get; set; } = [];
 	public List<Studio> Publishers { get; set; } = [];
 	public List<Store> WhereToBuy { get; set; } = [];
-	public string AgeRating { get; set; } = "Not Rated";
-
 }
