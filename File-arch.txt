@@ -1,0 +1,152 @@
+C:.
+|   .env.example
+|   .gitignore
+|   docker-compose.yml
+|   GameExplorer.slnx
+|   piano-backend.md
+|   README.md
+|
++---be
+|   |   .gitkeep
+|   |
+|   \---GameExplorer.Api
+|       |   appsettings.Development.json
+|       |   appsettings.json
+|       |   GameExplorer.Api.csproj
+|       |   GameExplorer.Api.http
+|       |   Program.cs
+|       |   WeatherForecast.cs
+|       |
+|       +---bin
+|       |   \---Debug
+|       |       \---net10.0
+|       |               appsettings.Development.json
+|       |               appsettings.json
+|       |               GameExplorer.Api.deps.json
+|       |               GameExplorer.Api.dll
+|       |               GameExplorer.Api.exe
+|       |               GameExplorer.Api.pdb
+|       |               GameExplorer.Api.runtimeconfig.json
+|       |               GameExplorer.Api.staticwebassets.endpoints.json
+|       |               GameExplorer.Shared.dll
+|       |               GameExplorer.Shared.pdb
+|       |               Microsoft.AspNetCore.OpenApi.dll
+|       |               Microsoft.OpenApi.dll
+|       |
+|       +---Controllers
+|       |       WeatherForecastController.cs
+|       |
+|       +---obj
+|       |   |   GameExplorer.Api.csproj.nuget.dgspec.json
+|       |   |   GameExplorer.Api.csproj.nuget.g.props
+|       |   |   GameExplorer.Api.csproj.nuget.g.targets
+|       |   |   project.assets.json
+|       |   |   project.nuget.cache
+|       |   |
+|       |   \---Debug
+|       |       \---net10.0
+|       |           |   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+|       |           |   apphost.exe
+|       |           |   GameExpl.768F3750.Up2Date
+|       |           |   GameExplorer.Api.AssemblyInfo.cs
+|       |           |   GameExplorer.Api.AssemblyInfoInputs.cache
+|       |           |   GameExplorer.Api.assets.cache
+|       |           |   GameExplorer.Api.csproj.AssemblyReference.cache
+|       |           |   GameExplorer.Api.csproj.CoreCompileInputs.cache
+|       |           |   GameExplorer.Api.csproj.FileListAbsolute.txt
+|       |           |   GameExplorer.Api.dll
+|       |           |   GameExplorer.Api.GeneratedMSBuildEditorConfig.editorconfig
+|       |           |   GameExplorer.Api.genruntimeconfig.cache
+|       |           |   GameExplorer.Api.GlobalUsings.g.cs
+|       |           |   GameExplorer.Api.MvcApplicationPartsAssemblyInfo.cache
+|       |           |   GameExplorer.Api.MvcApplicationPartsAssemblyInfo.cs
+|       |           |   GameExplorer.Api.pdb
+|       |           |   GameExplorer.Api.sourcelink.json
+|       |           |   rjsmcshtml.dswa.cache.json
+|       |           |   rjsmrazor.dswa.cache.json
+|       |           |   rpswa.dswa.cache.json
+|       |           |   staticwebassets.build.endpoints.json
+|       |           |   staticwebassets.build.json
+|       |           |   staticwebassets.build.json.cache
+|       |           |   swae.build.ex.cache
+|       |           |
+|       |           +---ref
+|       |           |       GameExplorer.Api.dll
+|       |           |
+|       |           +---refint
+|       |           |       GameExplorer.Api.dll
+|       |           |
+|       |           \---staticwebassets
+|       \---Properties
+|               launchSettings.json
+|
++---db
+|       .gitkeep
+|
++---DOCS
+|   |   .gitkeep
+|   |   come_lavoriamo.md
+|   |   IDEE.md
+|   |   rawg-api.md
+|   |
+|   +---adr
+|   |       adr-01-stack.md
+|   |
+|   \---subject
+|           en.game_explorer.pdf
+|           it.game_explorer.pdf
+|           SUBJECT.md
+|
++---fe
+|       .gitkeep
+|
++---post-man
+|       .gitkeep
+|
+\---shared
+    \---GameExplorer.Shared
+        |   GameExplorer.Shared.csproj
+        |
+        +---bin
+        |   \---Debug
+        |       \---net10.0
+        |               GameExplorer.Shared.deps.json
+        |               GameExplorer.Shared.dll
+        |               GameExplorer.Shared.pdb
+        |
+        +---models
+        |       Game.cs
+        |       GameDetails.cs
+        |       Genre.cs
+        |       PagedResult.cs
+        |       Platform.cs
+        |       SearchFilter.cs
+        |       Store.cs
+        |       Studio.cs
+        |
+        \---obj
+            |   GameExplorer.Shared.csproj.nuget.dgspec.json
+            |   GameExplorer.Shared.csproj.nuget.g.props
+            |   GameExplorer.Shared.csproj.nuget.g.targets
+            |   project.assets.json
+            |   project.nuget.cache
+            |
+            \---Debug
+                \---net10.0
+                    |   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+                    |   GameExplorer.Shared.AssemblyInfo.cs
+                    |   GameExplorer.Shared.AssemblyInfoInputs.cache
+                    |   GameExplorer.Shared.assets.cache
+                    |   GameExplorer.Shared.csproj.CoreCompileInputs.cache
+                    |   GameExplorer.Shared.csproj.FileListAbsolute.txt
+                    |   GameExplorer.Shared.dll
+                    |   GameExplorer.Shared.GeneratedMSBuildEditorConfig.editorconfig
+                    |   GameExplorer.Shared.GlobalUsings.g.cs
+                    |   GameExplorer.Shared.pdb
+                    |   GameExplorer.Shared.sourcelink.json
+                    |
+                    +---ref
+                    |       GameExplorer.Shared.dll
+                    |
+                    \---refint
+                            GameExplorer.Shared.dll
