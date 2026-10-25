@@ -5,6 +5,7 @@ services:
     restart: unless-stopped
     stop_grace_period: 30s
     shm_size: 256mb
+    command: ["postgres", "-c", "log_min_duration_statement=200"]
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-terranova}
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env (see .env.example)}"
@@ -15,6 +16,7 @@ services:
       - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql
+      - ./db/init:/docker-entrypoint-initdb.d:ro
     networks:
       - backend
     healthcheck:
