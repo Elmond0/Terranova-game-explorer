@@ -1,0 +1,154 @@
+# Database checks (owner: elmondo). Runs on PRs and on main when the database setup changes.
+name: database
+
+on:
+  pull_request:
+    # Only when the database setup changes (this file included, so it checks itself)
+    paths:
+      - "docker-compose.yml"
+      - ".env.example"
+      - ".gitattributes"
+      - "db/**"
+      - ".github/workflows/database.yml"
+  push:
+    # Check main again after every merge
+    branches: [main]
+    paths:
+      - "docker-compose.yml"
+      - ".env.example"
+      - ".gitattributes"
+      - "db/**"
+      - ".github/workflows/database.yml"
+  # "Run workflow" button in the Actions tab
+  workflow_dispatch:
+
+# Read-only token: these jobs never write to the repository
+permissions:
+  contents: read
+
+# A new push to the same PR cancels the run still in progress
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# The four jobs run in parallel, each on a fresh virtual machine
+jobs:
+  # Is docker-compose.yml valid?
+  config:
+    name: compose config
+    runs-on: ubuntu-24.04          # pinned: ubuntu-latest changes over time
+    timeout-minutes: 5             # default would be 360
+    steps:
+      # Pinned by commit SHA (a tag can be moved); Dependabot keeps it up to date
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false   # no git token left on disk
+      - name: Validate docker-compose.yml
+        # No .env in CI: the required passwords come from here
+        env:
+          POSTGRES_PASSWORD: ci
+          APP_DB_PASSWORD: ci
+        run: docker compose config --quiet
+
+  # Common mistakes in shell scripts and in workflow files
+  lint:
+    name: lint scripts and workflows
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: shellcheck (db scripts)
+        run: shellcheck db/init/*.sh db/scripts/*.sh
+      - name: actionlint (workflow files)
+        run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 -color
+
+  # The clean-clone test of the README, automated: start, check users, backup, restore, persistence
+  smoke:
+    name: start, backup, restore
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Create .env like a new teammate (random passwords)
+        run: |
+          cp .env.example .env
+          pg_pw="$(openssl rand -hex 24)"
+          app_pw="$(openssl rand -hex 24)"
+          # Hide the passwords in the (public) logs
+          echo "::add-mask::$pg_pw"
+          echo "::add-mask::$app_pw"
+          sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$pg_pw/; s/^APP_DB_PASSWORD=.*/APP_DB_PASSWORD=$app_pw/" .env
+
+      # Fresh VM = empty volume, so the db/init scripts run
+      - name: First start on an empty volume
+        run: docker compose up -d --wait
+
+      # -T: no terminal in CI. -tA: print only the value
+      - name: Backend user is not a superuser and owns the database
+        run: |
+          result="$(docker compose exec -T db psql -U terranova -d terranova -tAc \
+            "select r.rolsuper::text || ' ' || pg_get_userbyid(d.datdba)
+             from pg_roles r, pg_database d
+             where r.rolname = 'terranova_app' and d.datname = 'terranova'")"
+          echo "$result"
+          test "$result" = "false terranova_app"
+
+      - name: Backup, then restore as the backend user
+        run: |
+          docker compose exec -T db psql -U terranova_app -d terranova \
+            -c 'create table ci_check(x int); insert into ci_check values (42)'
+          ./db/scripts/backup.sh
+          docker compose exec -T db psql -U terranova_app -d terranova -c 'drop table ci_check'
+          # Only one backup exists here
+          backups=(db/backups/*.sql)
+          docker compose exec -T db sh -c \
+            'psql -q -v ON_ERROR_STOP=1 -U "$APP_DB_USER" -d "$POSTGRES_DB"' < "${backups[0]}"
+          test "$(docker compose exec -T db psql -U terranova -d terranova -tAc 'select x from ci_check')" = "42"
+
+      # down without -v keeps the volume
+      - name: Data survives down + up
+        run: |
+          docker compose down
+          docker compose up -d --wait
+          test "$(docker compose exec -T db psql -U terranova -d terranova -tAc 'select x from ci_check')" = "42"
+
+      - name: Database logs (only if something failed)
+        if: failure()
+        run: docker compose logs db
+
+      - name: Clean up
+        if: always()
+        run: docker compose down -v
+
+  # A teammate on Windows must not get CRLF scripts (they would break the container)
+  windows:
+    name: Windows checkout (line endings)
+    runs-on: windows-2025
+    timeout-minutes: 5
+    steps:
+      # Same setting as a teammate on Windows with Git defaults
+      - name: Enable core.autocrlf
+        run: git config --global core.autocrlf true
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Shell scripts keep LF line endings (.gitattributes)
+        shell: bash
+        run: |
+          if grep -rlI $'\r' --include='*.sh' db/; then
+            echo "::error::CRLF line endings in the files above: check .gitattributes"
+            exit 1
+          fi
+          echo "All .sh files use LF"
+      # Only config: Windows runners cannot start Linux containers
+      - name: Validate docker-compose.yml on Windows
+        shell: bash
+        env:
+          POSTGRES_PASSWORD: ci
+          APP_DB_PASSWORD: ci
+        run: docker compose config --quiet
