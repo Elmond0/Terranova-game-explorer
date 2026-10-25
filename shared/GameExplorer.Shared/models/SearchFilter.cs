@@ -1,6 +1,6 @@
 namespace GameExplorer.Shared.Models;
 
-class SearchFilter
+public class SearchFilter
 {
 	public string? Text { get; set; }
 	public List<Genre>? Genres { get; set; }

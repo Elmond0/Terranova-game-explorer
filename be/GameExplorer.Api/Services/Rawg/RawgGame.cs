@@ -23,7 +23,7 @@ internal class RawgGame
 	public DateOnly? Released { get; set; }
 
 	[JsonPropertyName("metacritic")]
-	public int Metacritic { get; set; }
+	public int? Metacritic { get; set; }
 
 	[JsonPropertyName("platforms")]
 	public List<RawgPlatformWrapper>? Platforms { get; set; }
