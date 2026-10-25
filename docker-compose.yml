@@ -8,6 +8,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-terranova}
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env (see .env.example)}"
+      POSTGRES_DB: ${POSTGRES_DB:-terranova}
       APP_DB_USER: ${APP_DB_USER:-terranova_app}
       APP_DB_PASSWORD: "${APP_DB_PASSWORD:?set APP_DB_PASSWORD in .env (see .env.example)}"
     ports:
