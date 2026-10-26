@@ -1,6 +1,6 @@
 # ADR-04 — Login: cookie o token
 
-- **Stato:** Proposto <!-- Proposto → Accettato -->
+- **Stato:** Accettato <!-- Proposto → Accettato -->
 - **Data:** <!-- gg/mm/aaaa della decisione -->
 - **Decisori:** Elmond0, K0ff33Blu3, fmartini02
 
@@ -15,7 +15,8 @@ Preferiti, wishlist e tier list appartengono a un utente. Con ASP.NET Core Ident
 
 ## Decisione
 
-<!-- Opzione scelta e perché, in una o due righe. -->
+- **A. Cookie `HttpOnly`**: il browser lo conserva e lo rimanda da solo; JavaScript non può leggerlo. Servono CORS con `AllowCredentials` (Web API) e un `CookieHandler` (client).
+	Il token nel localStorage può essere letto da uno script malevolo (XSS), il cookie HttpOnly no; è la strada della guida Microsoft per Blazor WebAssembly.
 
 ### Conseguenze
 
