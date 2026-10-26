@@ -15,7 +15,7 @@ public class GamesController : ControllerBase
 	}
 
 	[HttpGet("{id:int}")]
-	public async Task<ActionResult<GameDetails>> GetById( int id, CancellationToken ct )
+	public async Task<ActionResult<GameDetails>> GetGameDetails( int id, CancellationToken ct )
 	{
 		GameDetails? gd = await _rawg.GetGameDetailsAsync(id, ct);
 		if (gd is null)
