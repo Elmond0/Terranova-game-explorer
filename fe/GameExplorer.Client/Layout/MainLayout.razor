@@ -1,16 +1,30 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<MudThemeProvider @bind-IsDarkMode="_isDarkMode"/>
+<MudPopoverProvider/>
+<MudDialogProvider />
+<MudSnackbarProvider/>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
+<MudLayout>
+    <MudAppBar  Elevation="1">
+        <MudLink Href="/" Typo="Typo.h6" Color="Color.Inherit" Underline="Underline.None">
+            Game Explorer
+        </MudLink>
+        <MudSpacer />
+        <MudToggleIconButton
+            @bind-Toggled="_isDarkMode"
+            Icon="@Icons.Material.Filled.DarkMode"
+            ToggledIcon="@Icons.Material.Filled.LightMode"
+            Color="Color.Inherit"
+            aria-label="Cambia tema"
+        />
+    </MudAppBar>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="py-6">
             @Body
-        </article>
-    </main>
-</div>
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code{
+    private bool    _isDarkMode = true;
+}
