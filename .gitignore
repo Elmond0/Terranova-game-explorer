@@ -11,6 +11,9 @@ db/backups/
 .env.*
 !.env.example
 
+# chiave API
+API-key.txt
+
 #appunti
 piano-backend.md
 
