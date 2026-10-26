@@ -77,7 +77,7 @@ public class FakeGameApiClient: IGameApiClient
 			Image = D,
 			ReleaseDate = new DateOnly(2026, 10, 20),
 			Metacritic = 78,
-			Platforms = [ps5, XboxSeries, pc],
+			Platforms = [Ps5, XboxSeries, Pc],
 		},
 		new Game
 		{
@@ -107,7 +107,7 @@ public class FakeGameApiClient: IGameApiClient
 			Image = null,
 			ReleaseDate = new DateOnly(2026, 09, 30),
 			Metacritic = 70,
-			Platforms = [pc],
+			Platforms = [Pc],
 		}
 	];
 
@@ -121,7 +121,7 @@ public class FakeGameApiClient: IGameApiClient
 			Rating = 0,
 			Image = D,
 			ReleaseDate = new DateOnly(2026, 11, 14),
-			Platforms = [ps5, XboxSeries],
+			Platforms = [Ps5, XboxSeries],
 		},
 		new Game
 		{
@@ -131,7 +131,7 @@ public class FakeGameApiClient: IGameApiClient
 			Rating = 0,
 			Image = F,
 			ReleaseDate = new DateOnly(2027, 03, 02),
-			Platforms = [pc, ps5],
+			Platforms = [Pc, Ps5],
 		},
 		new Game
 		{
@@ -140,7 +140,7 @@ public class FakeGameApiClient: IGameApiClient
 			Slug = "ombre-su-venezia",
 			Rating = 0,
 			Image = null,
-			Platforms = [pc],
+			Platforms = [Pc],
 		},
 		new Game
 		{
