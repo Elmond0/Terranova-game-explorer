@@ -1,0 +1,43 @@
+# Dependabot: weekly PRs that update the pinned versions (owner of these entries: elmondo).
+# Nothing changes without a merge: each PR is tested by the "database" workflow first.
+# One file per repository: teammates add their own entries (e.g. nuget for be/).
+version: 2
+updates:
+  # Actions used in .github/workflows (commit SHAs + "# vX.Y.Z" comments)
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "08:00"
+      timezone: Europe/Rome
+    # Wait a week before proposing a new release: a compromised one is usually pulled by then
+    cooldown:
+      default-days: 7
+    # All action updates in a single PR
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "ci(db)"
+    labels: ["DB"]
+    assignees: ["Elmond0"]
+
+  # Images in docker-compose.yml (postgres, adminer): one PR per image
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "08:00"
+      timezone: Europe/Rome
+    cooldown:
+      default-days: 7
+    ignore:
+      # A new PostgreSQL major (18 -> 19) needs a data migration: done by hand, never by a bot
+      - dependency-name: postgres
+        update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "chore(db)"
+    labels: ["DB"]
+    assignees: ["Elmond0"]
