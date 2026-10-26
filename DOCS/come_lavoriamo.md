@@ -8,7 +8,7 @@
 |---|---|---|---|
 | **Dev A — backend** | [`@K0ff33Blu3`](https://github.com/K0ff33Blu3) | `be/` · `shared/` · `post-man/` · `GameExplorer.slnx` | `BE` · `API` |
 | **Dev B — frontend** | [`@fmartini02`](https://github.com/fmartini02) | `fe/` | `FE` |
-| **Dev C — database** | [`@Elmond0`](https://github.com/Elmond0) | `db/` · `be/GameExplorer.Api.Data` · `fe/Pages/Account` · `fe/Services/auth` · `compose.yaml` · `.env.example` · `.github/workflows/database.yml` | `DB` |
+| **Dev C — database** | [`@Elmond0`](https://github.com/Elmond0) | `db/` · `be/GameExplorer.Api/Data` · `fe/Pages/Account` · `fe/Services/Auth` · `compose.yaml` · `.env.example` · `.github/workflows/database.yml` | `DB` |
 | **tutti** | | `DOCS/` · `README.md` · `.gitignore`: modifiche piccole, avvisando gli altri | |
 
 Repository: [`Elmond0/Terranova-game-explorer`](https://github.com/Elmond0/Terranova-game-explorer) · chi fa cosa: [`Suddivisione del lavoro`](Suddivisione%20del%20lavoro.md) · stack: [`adr/adr-01-stack.md`](adr/adr-01-stack.md)
@@ -32,7 +32,7 @@ Repository: [`Elmond0/Terranova-game-explorer`](https://github.com/Elmond0/Terra
 
 ## 1. Il giro completo di una scheda
 
-Un lavoro vero, da quando prendi la scheda a quando la chiudi. Negli esempi sei `@Elmond0` e lavori sulla scheda **#21** "tabella game_cache"; la PR che ne esce è la **#23**. I numeri sono inventati: issue e PR usano lo **stesso contatore**, e `gh` ti stampa quello vero quando le crei.
+Un lavoro vero, da quando prendi la scheda a quando la chiudi. Negli esempi sei `@Elmond0` e lavori sulla scheda **#21** "tabella game_cache"; la PR che ne esce è la **#23**. I numeri sono inventati (la scheda vera di `game_cache` è la #27): issue e PR usano lo **stesso contatore**, e `gh` ti stampa quello vero quando le crei.
 
 ```bash
 # ── Giorno 1: apro la scheda ───────────────────────────────
@@ -140,7 +140,7 @@ gh issue create                     # aprirne una nuova (titolo come un commit)
 |---|---|
 | `BE` · `FE` · `DB` | l'area: backend, frontend, database |
 | `API` | riguarda gli endpoint, il contratto tra backend e frontend |
-| `FASE_0` · `FASE_1` | la fase della `Suddivisione` |
+| (milestone) `fase 1` … `fase 5` | la fase della `Suddivisione`: non è una label, si imposta in *Milestone* |
 | `PO` | urgente: prima delle altre |
 | `question` | serve una risposta prima di poter lavorare |
 | `invalid` · `wontfix` | scheda sbagliata o che non si farà: si chiude con un commento |
