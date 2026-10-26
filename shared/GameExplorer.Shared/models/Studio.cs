@@ -7,5 +7,6 @@ public class Studio
 	public string Slug { get; set; } = "";
 	public string? Image { get; set; }
 	public string? About { get; set; }
-	public int GamesNbr { get; set; }
+	public string? Website { get; set; }
+	public int GamesCount { get; set; }
 }

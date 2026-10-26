@@ -3,10 +3,16 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
+## backups db
+db/backups/
+
 # dotenv files
 .env
 .env.*
 !.env.example
+
+# chiave API
+API-key.txt
 
 #appunti
 piano-backend.md
