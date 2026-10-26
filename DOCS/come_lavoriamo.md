@@ -8,7 +8,7 @@
 |---|---|---|---|
 | **Dev A — backend** | [`@K0ff33Blu3`](https://github.com/K0ff33Blu3) | `be/` · `shared/` · `post-man/` · `GameExplorer.slnx` | `BE` · `API` |
 | **Dev B — frontend** | [`@fmartini02`](https://github.com/fmartini02) | `fe/` | `FE` |
-| **Dev C — database** | [`@Elmond0`](https://github.com/Elmond0) | `db/` · `be/GameExplorer.Api.Data` · `fe/Pages/Account` · `fe/Services/auth` · `docker-compose.yml` · `.env.example` · `.github/workflows/database.yml` | `DB` |
+| **Dev C — database** | [`@Elmond0`](https://github.com/Elmond0) | `db/` · `be/GameExplorer.Api.Data` · `fe/Pages/Account` · `fe/Services/auth` · `compose.yaml` · `.env.example` · `.github/workflows/database.yml` | `DB` |
 | **tutti** | | `DOCS/` · `README.md` · `.gitignore`: modifiche piccole, avvisando gli altri | |
 
 Repository: [`Elmond0/Terranova-game-explorer`](https://github.com/Elmond0/Terranova-game-explorer) · chi fa cosa: [`Suddivisione del lavoro`](Suddivisione%20del%20lavoro.md) · stack: [`adr/adr-01-stack.md`](adr/adr-01-stack.md)
@@ -325,7 +325,7 @@ Un conflitto **non è un errore** e non si perde niente: Git ti dice che tu e un
 **Il territorio.** I conflitti nascono quando due persone toccano le stesse righe dello stesso file, non quando lavorano nello stesso momento. Per questo ognuno scrive solo nelle sue cartelle (tabella in cima).
 
 - **Se devi modificare un file fuori dal tuo territorio, avvisa il proprietario prima di iniziare**, e fai una PR piccola che rivede lui: per esempio i pacchetti del database nel `.csproj` della Web API, o le pagine di Dev C dentro `fe/`.
-- **`docker-compose.yml` lo modifica solo `@Elmond0`:** se ti serve un servizio nuovo, aprigli una scheda.
+- **`compose.yaml` lo modifica solo `@Elmond0`:** se ti serve un servizio nuovo, aprigli una scheda.
 - **`shared/` è il contratto tra backend e frontend:** se cambia un campo, si rompe il codice degli altri. Ogni modifica si annuncia sul gruppo **prima** della PR.
 
 **Le decisioni si scrivono negli ADR.** Quando decidete insieme qualcosa che tocca più persone (il contratto delle API, dove va un pezzo di codice, come si fa il login), lo scrivete in un ADR in `DOCS/adr/`: contesto, decisione, alternative scartate, conseguenze. Si aggiunge con una PR `docs(adr): ...` rivista dagli altri due. Un ADR accettato non si riscrive: se la decisione cambia, ne serve uno nuovo ([cosa sono gli ADR](https://adr.github.io/)).
