@@ -1,6 +1,6 @@
 # ADR-05 — Database: utenti, migrazioni e cache
 
-- **Stato:** Proposto <!-- Proposto → Accettato -->
+- **Stato:** Accettato <!-- Proposto → Accettato -->
 - **Data:** <!-- gg/mm/aaaa della decisione -->
 - **Decisori:** Elmond0 (database), con la revisione di K0ff33Blu3 e fmartini02
 
@@ -19,8 +19,10 @@ Lo schema del database lo gestisce EF Core, dentro la Web API. Chi può modifica
 
 ## Decisione
 
-<!-- Per ogni domanda: opzione scelta e perché, in una riga. -->
-
+- **Utenti PostgreSQL:** A. `terranova_app` (proprietario) solo per migrazioni e restore; la Web API si collega come `terranova_api`, che legge e scrive righe ma non può cambiare le tabelle. Privilegio minimo.
+- **Migrazioni:** A. `dotnet ef migrations script --idempotent` + `db/scripts/migrate.sh` come `terranova_app`. L'SQL si legge prima di applicarlo, si può rilanciare, funziona uguale in locale e su Neon. Niente `database update` né `Database.Migrate()`.
+- **Cache dei giochi:** A. Tabella `game_cache` letta e scritta da `RawgService` tramite `IGameCacheStore` (`FindAsync`, `SaveAsync`). Sopravvive ai riavvii e servirà a preferiti e wishlist; la cache in memoria resta per le risposte.
+- **Nomi nel database:** A. Inglese, `snake_case`, come vuole PostgreSQL.
 ### Conseguenze
 
 <!-- Chi crea le migrazioni, cosa serve su Neon, cosa controlla la CI. -->
