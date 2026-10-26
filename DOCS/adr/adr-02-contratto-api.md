@@ -1,34 +1,52 @@
 # ADR-02 — Contratto delle API
 
-- **Stato:** Proposto <!-- Proposto → Accettato -->
-- **Data:** <!-- gg/mm/aaaa della decisione -->
+- **Stato:** Accettato
+- **Data:** 26/10/2026
 - **Decisori:** Elmond0, K0ff33Blu3, fmartini02
 
 ## Contesto e problema
 
 Client e Web API li scrivono persone diverse. Come sono fatti indirizzi, parametri, risposte ed errori della Web API, così che il client possa lavorare con dati finti finché la Web API non è pronta?
 
-## Opzioni considerate
+## Opzioni discusse
 
-| Domanda | Opzioni |
-|---|---|
-| Forma degli indirizzi | **A.** risorse al plurale sotto `/api` (`/api/games/3498`) · **B.** verbi (`/api/getGame?id=3498`) |
-| Nomi dei parametri | **A.** nostri, camelCase (`text`, `genreIds`, `pageSize`) · **B.** quelli di RAWG (`search`, `genres`, `page_size`) |
-| Filtri con più valori | **A.** ripetuti (`?genreIds=4&genreIds=51`) · **B.** con la virgola (`?genreIds=4,51`) |
-| Errori | **A.** ProblemDetails con `400`, `404`, `502` · **B.** testo libero |
-| `DeveloperIds`, `PublisherIds`, `StoreIds` in `SearchFilter` | **A.** toglierli · **B.** aggiungerli al contratto |
+- Forma degli indirizzi
+- Nomi nel Json dell'API
+- Gestione dei filtri con piu valori
+- Gestioni errori chiamate client-server
+- Prima stesura contratto endpoint
 
 ## Decisione
 
-<!-- Per ogni domanda: opzione scelta e perché, in una riga. Poi la tabella degli endpoint concordati. -->
-
-| Richiesta | Risposta |
+| Richiesta | Decisione |
 |---|---|
-| | |
+| Forma degli indirizzi | risorse al plurale `/api/games/xxxx` (vedi contratto) |
+| Nomi dei parametri | I nomi dei parametri dei nostri metodi (`GameExplorer/Shared/Models`) in camelCase |
+| Filtri con piu valori | liste di id:int |
+| Forma indirizzi filtri con piu valori | id separati da virgola, formato `?genreIds=4,51` |
+| Errori | ProblemDetails con codici Http |
 
-### Conseguenze
+## Contratto
 
-<!-- Cosa cambia per A (backend) e per B (client); cosa diventa più facile e cosa più difficile. -->
+| Richiesta HTTP | Risposta |
+|---|---|
+| GET /api/games/{id} |	GameDetails, screenshot compresi |
+| GET /api/games/top-rated, /recent, /upcoming | List<Game> |
+| GET /api/genres | List<Genre> |
+| GET /api/platforms | List<Platform> |
+| GET /api/studios/{id} | Studio |
+| GET /api/studios/{id}/games?page=&ordering= |	PagedResult<Game> |
+
+### Dettagli
+
+I `GameDetails.WhereToBuy` vengono inviati come oggetto **StoreLink** che contiene il link all'acquisto sullo store **DEL GIOCO** e l'istanza dello `Store`. L'oggetto `Store` ha tra le proprieta `Store.Domain`, che contiene l'URL al sito homepage dello store.
+
+## Da decidere
+
+- [ ] Lunghezza /top-rated /recent /upcoming
+- [ ] Pagina genre/{id} (come per studio)?
+- [ ] pageSize di default?
+- [ ] screenshots in GameDetails oppure /api/games/{id}/screenshots
 
 ## Fonti
 
