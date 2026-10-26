@@ -15,6 +15,11 @@ builder.Services.AddHttpClient<RawgService>(c =>
 	c.Timeout = TimeSpan.FromSeconds(10);
 });
 
+builder.Services.AddOptions<RawgOptions>()
+	.Bind(builder.Configuration.GetSection("Rawg"))
+	.ValidateDataAnnotations()
+	.ValidateOnStart();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

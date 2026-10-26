@@ -20,6 +20,8 @@ public class GamesController : ControllerBase
 		GameDetails? gd = await _rawg.GetGameDetailsAsync(id, ct);
 		if (gd is null)
 			return NotFound();
-		return gd; 
+		return gd;
 	}
+
+	
 }
