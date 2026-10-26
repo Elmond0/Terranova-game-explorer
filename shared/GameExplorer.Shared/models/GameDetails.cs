@@ -1,5 +1,3 @@
-using System.Security.Cryptography.X509Certificates;
-
 namespace GameExplorer.Shared.Models;
 public class GameDetails : Game
 {

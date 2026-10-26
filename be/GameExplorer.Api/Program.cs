@@ -4,6 +4,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+var frontendOrigin = builder.Configuration["Cors:FrontendOrigin"]
+	?? throw new InvalidOperationException("CORS configuration is missing.");
+
+builder.Services.AddCors(options =>
+{
+	options.AddPolicy("Frontend", policy =>
+		policy.WithOrigins(frontendOrigin)
+			.AllowAnyHeader()
+			.AllowAnyMethod()
+			.AllowCredentials());
+});
+
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -21,6 +33,8 @@ builder.Services.AddOptions<RawgOptions>()
 	.ValidateOnStart();
 
 var app = builder.Build();
+
+app.UseCors("Frontend");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
