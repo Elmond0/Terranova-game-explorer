@@ -1,7 +1,7 @@
 # ADR-03 — Organizzazione del codice e convenzioni
 
-- **Stato:** Proposto <!-- Proposto → Accettato -->
-- **Data:** <!-- gg/mm/aaaa della decisione -->
+- **Stato:** Accettato
+- **Data:** 26/10/2026
 - **Decisori:** Elmond0, K0ff33Blu3, fmartini02
 
 ## Contesto e problema
@@ -10,24 +10,24 @@ Tre persone lavorano su tre aree dello stesso repo. Dove va ogni pezzo di codice
 
 ## Opzioni considerate
 
-| Domanda | Opzioni |
+- proprieta delle cartelle
+- porte di sviluppo
+- lingua
+
+## Decisioni
+
+| Domanda | Proposta |
 |---|---|
-| Codice del database | **A.** cartella `be/GameExplorer.Api/Data/`, di C · **B.** progetto separato `GameExplorer.Data` |
-| Chi crea `fe/GameExplorer.Client` | **A.** B (la cartella è sua) · **B.** A (come dice la `Suddivisione`) |
-| Cartella `shared/.../models/` | **A.** rinominarla `Models/`, come il namespace · **B.** lasciarla |
-| Porte in sviluppo | **A.** fisse: API `5290`, client `5100` · **B.** quelle del template |
-| Indirizzi delle pagine | **A.** italiano (`/ricerca`, `/gioco/{id}`, `/studio/{id}`) · **B.** inglese (`/search`, `/games/{id}`, `/studios/{id}`) |
-| Tema chiaro/scuro salvato | **A.** lo fa B · **B.** lo fa A |
-| Chi rivede le pagine di C in `fe/` | **A.** B · **B.** chiunque |
-| Lingua dei nomi nel codice | **A.** inglese (testi per l'utente in italiano) · **B.** italiano |
-
-## Decisione
-
-<!-- Per ogni domanda: opzione scelta e perché, in una riga. -->
+| Codice del db | Proprieta della cartella di K0ff33Blu3, ci lavora elmondo |
+| Codice del client | Proprieta e attivita di di fmartini02 |
+| Porte in sviluppo | API port: 5290, client port: 5100 |
+| Lingua delle variabili | inglese |
+| Lingua degli indirizzi | inglese |
+| Lingua dei DOCS | italiano/eventualmente un README in inglese |
 
 ### Conseguenze
 
-<!-- Territori da aggiornare in DOCS/come_lavoriamo.md, file da rinominare, impostazioni da cambiare. -->
+Territori aggiornati in come_lavoriamo.md
 
 ## Fonti
 
