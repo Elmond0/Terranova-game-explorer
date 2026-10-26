@@ -147,4 +147,4 @@ Utili per riempire i filtri della ricerca (menu a tendina).
 | Pagina di dettaglio | `GET /games/{id}` (+ eventualmente `/screenshots`, `/stores`, `/movies`) |
 | Valori per i filtri | `GET /genres`, `GET /platforms`, `GET /stores`, `GET /tags` |
 
-Ogni chiamata a RAWG consuma quota: la cache (issue #2 in memoria, issue #8 su PostgreSQL) serve proprio a non ripetere la stessa richiesta.
+Ogni chiamata a RAWG consuma quota: la cache (in memoria nella #22, su PostgreSQL nella #27 e nella #35) serve proprio a non ripetere la stessa richiesta.

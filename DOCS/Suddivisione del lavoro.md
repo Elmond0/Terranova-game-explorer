@@ -86,7 +86,7 @@ Alla fine di ogni fase il sito funziona: se il tempo finisce, vi fermate lì con
 - [ ] **B** – Pagina ricerca: risultati mentre si scrive, filtri, ordinamento
 - [ ] **B** – Scheda gioco: descrizione, galleria, generi, piattaforme, voti
 - [ ] **B** – Stati comuni: caricamento, nessun risultato, errore
-- [ ] **C** – Pagina casa produttrice nel client (numero di giochi, voto medio, elenco), con i dati dall'endpoint degli studi e i componenti di B
+- [ ] **B** – Pagina casa produttrice (numero di giochi, voto medio, elenco), con i dati dall'endpoint degli studi (ADR-03)
 - [ ] **C** – Tabella di cache dei giochi nel database, per ridurre le chiamate a RAWG, con una piccola interfaccia che il RawgService di A usa per leggerla e scriverla
 
 ### Fase 2 – Account, preferiti e wishlist
@@ -176,7 +176,7 @@ Poche regole fisse evitano la maggior parte dei conflitti in un gruppo di tre.
 - **Nei file degli altri si entra con una PR piccola** che il proprietario rivede (per esempio i pacchetti del database nel progetto della Web API, o le pagine di C nel client). Le cartelle di ognuno sono nella tabella iniziale di `DOCS/come_lavoriamo.md`.
 - **Chiavi delle API solo negli User Secrets della Web API** (in produzione nelle variabili d'ambiente), mai nel codice, nel client o su GitHub.
 - **Commit piccoli e frequenti**, con messaggi chiari ("Aggiunti filtri per piattaforma").
-- **Elenco dei compiti su GitHub Projects**: ogni voce di questo documento diventa una scheda, con colonne Da fare, In corso, Fatto.
+- **Elenco dei compiti su GitHub Projects**: ogni voce di questo documento diventa una scheda, con le colonne Backlog, Todo, In Progress e Done.
 - **Riunione breve una volta a settimana**: cosa ho finito, cosa faccio ora, dove sono bloccato.
 - **Fine di ogni fase**: dimostrazione insieme del sito funzionante, poi si accordano i dati della fase successiva.
 
