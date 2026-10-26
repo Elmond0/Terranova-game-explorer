@@ -16,9 +16,12 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-terranova}
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env (see .env.example)}"
       POSTGRES_DB: ${POSTGRES_DB:-terranova}
-      # Backend user, created by db/init/01-app-user.sh on first start
+      # Migrations and restore user (owner), created by db/init/01-app-user.sh on first start
       APP_DB_USER: ${APP_DB_USER:-terranova_app}
       APP_DB_PASSWORD: "${APP_DB_PASSWORD:?set APP_DB_PASSWORD in .env (see .env.example)}"
+      # Runtime user of the backend (rows only), created by db/init/02-api-user.sh
+      API_DB_USER: ${API_DB_USER:-terranova_api}
+      API_DB_PASSWORD: "${API_DB_PASSWORD:?set API_DB_PASSWORD in .env (see .env.example)}"
     ports:
       - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:

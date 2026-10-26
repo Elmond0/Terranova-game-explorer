@@ -65,7 +65,7 @@ Partite tutti e tre da C e C++, quindi le tre aree sono equivalenti come diffico
 
 **C – Database e account**
 
-- [x] Avviare PostgreSQL con il `docker-compose.yml` del progetto (istruzioni in `db/README.md`)
+- [x] Avviare PostgreSQL con il `compose.yaml` del progetto (istruzioni in `db/README.md`)
 - [ ] Creare l'utente del database per la Web API, che legge e scrive i dati ma non può modificare le tabelle
 - [ ] Aggiungere Entity Framework Core con Npgsql alla Web API (cartella `Data`; i pacchetti con una PR piccola rivista da A) e la stringa di connessione negli User Secrets
 - [ ] Creare la prima migrazione, applicarla con `db/scripts/migrate.sh` e configurare ASP.NET Core Identity nella Web API (endpoint di registrazione e login), verificandola con il file `.http` o Postman
