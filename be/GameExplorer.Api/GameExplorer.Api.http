@@ -1,6 +1,6 @@
-@GameExplorer.Api_HostAddress = http://localhost:5290
+@Api_HostAddress = http://localhost:5290
 
-GET {{GameExplorer.Api_HostAddress}}/weatherforecast/
-Accept: application/json
-
+GET {{Api_HostAddress}}/api/games/3498
+###
+GET {{Api_HostAddress}}/api/games/3498/screenshots
 ###
