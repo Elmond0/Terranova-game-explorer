@@ -8,7 +8,7 @@
 |---|---|---|---|
 | **Dev A — backend** | [`@K0ff33Blu3`](https://github.com/K0ff33Blu3) | `be/` · `shared/` · `post-man/` · `GameExplorer.slnx` | `BE` · `API` |
 | **Dev B — frontend** | [`@fmartini02`](https://github.com/fmartini02) | `fe/` | `FE` |
-| **Dev C — database** | [`@Elmond0`](https://github.com/Elmond0) | `db/` · `docker-compose.yml` · `.env.example` · `.github/workflows/database.yml` | `DB` |
+| **Dev C — database** | [`@Elmond0`](https://github.com/Elmond0) | `db/` · `be/GameExplorer.Api.Data` · `fe/Pages/Account` · `fe/Services/auth` · `docker-compose.yml` · `.env.example` · `.github/workflows/database.yml` | `DB` |
 | **tutti** | | `DOCS/` · `README.md` · `.gitignore`: modifiche piccole, avvisando gli altri | |
 
 Repository: [`Elmond0/Terranova-game-explorer`](https://github.com/Elmond0/Terranova-game-explorer) · chi fa cosa: [`Suddivisione del lavoro`](Suddivisione%20del%20lavoro.md) · stack: [`adr/adr-01-stack.md`](adr/adr-01-stack.md)
