@@ -1,0 +1,60 @@
+/* Il link che avvolge tutta la card */
+.card-gioco {
+    display: block;               /* un <a> di base è "in linea": così occupa tutto il blocco */
+    height: 100%;                 /* alta quanto lo spazio che le dà la riga (passo 6) */
+    color: inherit;               /* niente colore blu da link: prende il colore del tema */
+    text-decoration: none;        /* niente sottolineatura */
+    transition: transform 0.15s;  /* il movimento del :hover è graduale, non a scatto */
+}
+
+/* Mouse sopra la card: si alza di 4 pixel */
+.card-gioco:hover {
+    transform: translateY(-4px);
+}
+
+/* Card raggiunta con il tasto Tab: bordo colorato visibile */
+.card-gioco:focus-visible {
+    outline: 2px solid var(--mud-palette-primary);
+    outline-offset: 2px;
+}
+
+/* La MudCard (componente Mud → serve ::deep): alta quanto il link */
+.card-gioco ::deep .altezza-piena {
+    height: 100%;
+}
+
+/* Immagine e segnaposto: stessa forma per tutte le card */
+.copertina {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;         /* rettangolo 16:9, come le copertine di RAWG */
+    object-fit: cover;            /* l'immagine viene ritagliata per riempire, non deformata */
+}
+
+/* Riquadro grigio con l'icona al centro, al posto dell'immagine mancante */
+.segnaposto {
+    display: flex;
+    align-items: center;          /* centro in verticale */
+    justify-content: center;      /* centro in orizzontale */
+    background: var(--mud-palette-background-gray);
+    color: var(--mud-palette-text-disabled);
+}
+
+/* Il nome (MudText → serve ::deep): al massimo 2 righe, poi "…" */
+.card-gioco ::deep .nome {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Chi ha chiesto meno animazioni nelle impostazioni del sistema */
+@media (prefers-reduced-motion: reduce) {
+    .card-gioco {
+        transition: none;
+    }
+
+    .card-gioco:hover {
+        transform: none;
+    }
+}
