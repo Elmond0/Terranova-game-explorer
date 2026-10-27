@@ -5,13 +5,18 @@ using MudBlazor.Services;
 using GameExplorer.Client.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
-var apiBaseUrl = builder.Configuration["Api:BaseUrl"] ?? throw new InvalidOperationException("Manca 'Api:BaseUrl' in wwwroot/appsettings.json: inserisci l'indirizzo della Web API, ad es. 'http://localhost:5290/'.");
+
+// In sviluppo l'indirizzo della Web API arriva da wwwroot/appsettings.Development.json.
+// Nel sito pubblicato quel file non viene letto: Web API e client stanno sullo stesso
+// indirizzo, quindi si usa quello da cui è stato scaricato il client.
+var apiBaseUrl = builder.Configuration["Api:BaseUrl"] ?? builder.HostEnvironment.BaseAddress;
 
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// per passare alla modalità realistica scommenta la funzione lambda
-// e commenta la riga dopo il commento
+// Client verso la Web API.
+// Finché gli endpoint della Home (top-rated, recent, upcoming) non sono su main si usa il Fake.
+// Per usare la Web API vera: scommentare il blocco AddHttpClient e commentare la riga AddScoped.
 // builder.Services.AddHttpClient<IGameApiClient, GameApiClient>(client =>
 // {
 // 	client.BaseAddress = new Uri(apiBaseUrl);
