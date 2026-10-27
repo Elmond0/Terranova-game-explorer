@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@inject IJSRuntime JS
 <MudThemeProvider @bind-IsDarkMode="_isDarkMode"/>
 <MudPopoverProvider/>
 <MudDialogProvider />
@@ -11,7 +12,8 @@
         </MudLink>
         <MudSpacer />
         <MudToggleIconButton
-            @bind-Toggled="_isDarkMode"
+            Toggled="_isDarkMode"
+            ToggledChanged="OnThemeToggled"
             Icon="@Icons.Material.Filled.DarkMode"
             ToggledIcon="@Icons.Material.Filled.LightMode"
             Color="Color.Inherit"
@@ -35,4 +37,18 @@
 
 @code {
     private bool _isDarkMode = true;
+    private const string ThemeKey = "theme";
+    protected override async Task OnInitializedAsync()
+    {
+        var savedTheme = await JS.InvokeAsync<string?>("localStorage.getItem", ThemeKey);
+        if (savedTheme is not null)
+        {
+            _isDarkMode = savedTheme == "dark";
+        }
+    }
+    private async Task OnThemeToggled(bool isDark)
+    {
+        _isDarkMode = isDark;
+        await JS.InvokeVoidAsync("localStorage.setItem", ThemeKey, isDark ? "dark" : "light");
+    }
 }
