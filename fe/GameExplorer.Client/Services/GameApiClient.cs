@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 
 namespace GameExplorer.Client.Services;
 
-public class GameApiClient: IGameApiClient
+public class GameApiClient : IGameApiClient
 {
 	private readonly HttpClient _http;
 
@@ -11,19 +11,22 @@ public class GameApiClient: IGameApiClient
 	{
 		_http = http;
 	}
+
 	public async Task<List<Game>> GetTopRatedAsync()
 	{
-		var giochi = await _http.GetFromJsonAsync<List<Game>>("api/games/top-rated");
-		return giochi ?? [];
+		var games = await _http.GetFromJsonAsync<List<Game>>("api/games/top-rated");
+		return games ?? [];
 	}
+
 	public async Task<List<Game>> GetRecentAsync()
 	{
-		var giochi = await _http.GetFromJsonAsync<List<Game>>("api/games/recent");
-		return giochi ?? [];
+		var games = await _http.GetFromJsonAsync<List<Game>>("api/games/recent");
+		return games ?? [];
 	}
+
 	public async Task<List<Game>> GetUpcomingAsync()
 	{
-		var giochi = await _http.GetFromJsonAsync<List<Game>>("api/games/upcoming");
-		return giochi ?? [];
+		var games = await _http.GetFromJsonAsync<List<Game>>("api/games/upcoming");
+		return games ?? [];
 	}
 }
