@@ -1,7 +1,19 @@
 ﻿@page "/"
+@inject IGameApiClient Api
 
 <PageTitle>Home</PageTitle>
+@foreach (var g in _giochi)
+{
+	<CardGioco Game="g"/>
+}
 
-<h1>Hello, world!</h1>
 
-Welcome to your new app.
+@code
+{
+	private List<Game> _giochi = [];
+
+	protected override async Task OnInitializedAsync()
+	{
+		_giochi = await Api.GetRecentAsync();
+	}
+}
