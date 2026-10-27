@@ -18,7 +18,7 @@ API-key.txt
 piano-backend.md
 
 # Override locali di Docker
-docker-compose.override.yml
+compose.override.yaml
 
 # User-specific files
 *.rsuser

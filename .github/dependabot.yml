@@ -23,7 +23,7 @@ updates:
     labels: ["DB"]
     assignees: ["Elmond0"]
 
-  # Images in docker-compose.yml (postgres, adminer): one PR per image
+  # Images in compose.yaml (postgres, adminer): one PR per image
   - package-ecosystem: docker-compose
     directory: /
     schedule:
