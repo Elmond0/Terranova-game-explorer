@@ -18,11 +18,11 @@ builder.Services.AddTransient<CookieHandler>();
 // Client verso la Web API.
 // Finché gli endpoint della Home (top-rated, recent, upcoming) non sono su main si usa il Fake.
 // Per usare la Web API vera: scommentare il blocco AddHttpClient e commentare la riga AddScoped.
-builder.Services.AddHttpClient<IGameApiClient, GameApiClient>(client =>
-{
-	client.BaseAddress = new Uri(apiBaseUrl);
-	client.Timeout = TimeSpan.FromSeconds(10);
-}).AddHttpMessageHandler<CookieHandler>();
+// builder.Services.AddHttpClient<IGameApiClient, GameApiClient>(client =>
+// {
+// 	client.BaseAddress = new Uri(apiBaseUrl);
+// 	client.Timeout = TimeSpan.FromSeconds(10);
+// }).AddHttpMessageHandler<CookieHandler>();
 builder.Services.AddScoped<IGameApiClient, FakeGameApiClient>();
 
 builder.Services.AddMudServices();
