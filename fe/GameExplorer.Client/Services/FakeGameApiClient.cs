@@ -11,6 +11,15 @@ public class FakeGameApiClient : IGameApiClient
 	private static readonly Platform XboxOne = new Platform { Id = 1, Name = "Xbox One", Slug = "xbox-one" };
 	private static readonly Platform Switch = new Platform { Id = 7, Name = "Nintendo Switch", Slug = "nintendo-switch" };
 
+	private static readonly List<Genre> Genres =
+	[
+		new Genre { Id = 4, Name = "Action", Slug = "action" },
+		new Genre { Id = 5, Name = "RPG", Slug = "role-playing-games-rpg" },
+		new Genre { Id = 3, Name = "Adventure", Slug = "adventure" },
+		new Genre { Id = 7, Name = "Puzzle", Slug = "puzzle" },
+		new Genre { Id = 51, Name = "Indie", Slug = "indie" },
+	];
+
 	// Copertine vere di RAWG: le prime tre sono dei giochi omonimi, le altre servono per i titoli inventati
 	private const string Witcher3Cover = "https://media.rawg.io/media/games/618/618c2031a07bbff6b4f611f10b6bcdbc.jpg";
 	private const string Portal2Cover = "https://media.rawg.io/media/games/2ba/2bac0e87cf45e5b508f227d281c9252a.jpg";
@@ -155,21 +164,91 @@ public class FakeGameApiClient : IGameApiClient
 		}
 	];
 
-	public async Task<List<Game>> GetTopRatedAsync()
+	private static IEnumerable<Game> AllGames => TopRated.Concat(Recent).Concat(Upcoming);
+
+	// true: ogni metodo lancia ApiException, per provare ErrorMessage e "Riprova".
+	// Si attiva in Program.cs: AddScoped<IGameApiClient>(_ => new FakeGameApiClient { SimulateError = true })
+	public bool SimulateError { get; set; }
+
+	public async Task<List<Game>> GetTopRatedAsync(CancellationToken cancellationToken = default)
 	{
-		await Task.Delay(800);
+		await DelayAsync(cancellationToken);
 		return TopRated;
 	}
 
-	public async Task<List<Game>> GetRecentAsync()
+	public async Task<List<Game>> GetRecentAsync(CancellationToken cancellationToken = default)
 	{
-		await Task.Delay(800);
+		await DelayAsync(cancellationToken);
 		return Recent;
 	}
 
-	public async Task<List<Game>> GetUpcomingAsync()
+	public async Task<List<Game>> GetUpcomingAsync(CancellationToken cancellationToken = default)
 	{
-		await Task.Delay(800);
+		await DelayAsync(cancellationToken);
 		return Upcoming;
+	}
+
+	// Cerca solo per testo nel nome: gli altri filtri li applica la Web API vera
+	public async Task<PagedResult<Game>> SearchAsync(SearchFilter filter, CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+
+		var games = AllGames;
+		if (!string.IsNullOrWhiteSpace(filter.Text))
+			games = games.Where(g => g.Name.Contains(filter.Text, StringComparison.OrdinalIgnoreCase));
+
+		var items = games.ToList();
+		return new PagedResult<Game>
+		{
+			Items = items,
+			Total = items.Count,
+			Page = 1,
+			PageSize = filter.PageSize,
+			IsLast = true,
+		};
+	}
+
+	// Un id che non è in nessuna lista simula "non trovato" (la Web API risponderebbe 404)
+	public async Task<GameDetails?> GetGameAsync(int id, CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+
+		var game = AllGames.FirstOrDefault(g => g.Id == id);
+		if (game is null)
+			return null;
+
+		return new GameDetails
+		{
+			Id = game.Id,
+			Name = game.Name,
+			Slug = game.Slug,
+			Rating = game.Rating,
+			Image = game.Image,
+			ReleaseDate = game.ReleaseDate,
+			Metacritic = game.Metacritic,
+			Platforms = game.Platforms,
+			Genres = game.Genres,
+			About = $"Descrizione di prova per {game.Name}.",
+		};
+	}
+
+	public async Task<List<Genre>> GetGenresAsync(CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		return Genres;
+	}
+
+	public async Task<List<Platform>> GetPlatformsAsync(CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		return [Pc, Ps5, Ps4, XboxSeries, XboxOne, Switch];
+	}
+
+	// Attesa finta della rete e, se richiesto, errore simulato: comuni a tutti i metodi
+	private async Task DelayAsync(CancellationToken cancellationToken)
+	{
+		await Task.Delay(800, cancellationToken);
+		if (SimulateError)
+			throw new ApiException("Errore simulato dal FakeGameApiClient", null);
 	}
 }
