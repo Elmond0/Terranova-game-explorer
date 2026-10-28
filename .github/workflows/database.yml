@@ -5,7 +5,7 @@ on:
   pull_request:
     # Only when the database setup changes (this file included, so it checks itself)
     paths:
-      - "docker-compose.yml"
+      - "compose.yaml"
       - ".env.example"
       - ".gitattributes"
       - "db/**"
@@ -14,7 +14,7 @@ on:
     # Check main again after every merge
     branches: [main]
     paths:
-      - "docker-compose.yml"
+      - "compose.yaml"
       - ".env.example"
       - ".gitattributes"
       - "db/**"
@@ -33,7 +33,7 @@ concurrency:
 
 # The four jobs run in parallel, each on a fresh virtual machine
 jobs:
-  # Is docker-compose.yml valid?
+  # Is compose.yaml valid?
   config:
     name: compose config
     runs-on: ubuntu-24.04          # pinned: ubuntu-latest changes over time
@@ -43,11 +43,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false   # no git token left on disk
-      - name: Validate docker-compose.yml
+      - name: Validate compose.yaml
         # No .env in CI: the required passwords come from here
         env:
           POSTGRES_PASSWORD: ci
           APP_DB_PASSWORD: ci
+          API_DB_PASSWORD: ci
         run: docker compose config --quiet
 
   # Common mistakes in shell scripts and in workflow files
@@ -79,17 +80,19 @@ jobs:
           cp .env.example .env
           pg_pw="$(openssl rand -hex 24)"
           app_pw="$(openssl rand -hex 24)"
+          api_pw="$(openssl rand -hex 24)"
           # Hide the passwords in the (public) logs
           echo "::add-mask::$pg_pw"
           echo "::add-mask::$app_pw"
-          sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$pg_pw/; s/^APP_DB_PASSWORD=.*/APP_DB_PASSWORD=$app_pw/" .env
+          echo "::add-mask::$api_pw"
+          sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$pg_pw/; s/^APP_DB_PASSWORD=.*/APP_DB_PASSWORD=$app_pw/; s/^API_DB_PASSWORD=.*/API_DB_PASSWORD=$api_pw/" .env
 
       # Fresh VM = empty volume, so the db/init scripts run
       - name: First start on an empty volume
         run: docker compose up -d --wait
 
       # -T: no terminal in CI. -tA: print only the value
-      - name: Backend user is not a superuser and owns the database
+      - name: Migrations user is not a superuser and owns the database
         run: |
           result="$(docker compose exec -T db psql -U terranova -d terranova -tAc \
             "select r.rolsuper::text || ' ' || pg_get_userbyid(d.datdba)
@@ -98,7 +101,16 @@ jobs:
           echo "$result"
           test "$result" = "false terranova_app"
 
-      - name: Backup, then restore as the backend user
+      - name: Runtime user cannot create tables
+        run: |
+          if out="$(docker compose exec -T db psql -U terranova_api -d terranova -c 'create table x(i int)' 2>&1)"; then
+            echo "::error::terranova_api can create tables"
+            exit 1
+          fi
+          echo "$out"
+          grep -q "permission denied for schema public" <<< "$out"
+
+      - name: Backup, then restore as the migrations user
         run: |
           docker compose exec -T db psql -U terranova_app -d terranova \
             -c 'create table ci_check(x int); insert into ci_check values (42)'
@@ -109,6 +121,8 @@ jobs:
           docker compose exec -T db sh -c \
             'psql -q -v ON_ERROR_STOP=1 -U "$APP_DB_USER" -d "$POSTGRES_DB"' < "${backups[0]}"
           test "$(docker compose exec -T db psql -U terranova -d terranova -tAc 'select x from ci_check')" = "42"
+          # Tables created by terranova_app are readable by terranova_api (ALTER DEFAULT PRIVILEGES)
+          test "$(docker compose exec -T db psql -U terranova_api -d terranova -tAc 'select x from ci_check')" = "42"
 
       # down without -v keeps the volume
       - name: Data survives down + up
@@ -146,9 +160,10 @@ jobs:
           fi
           echo "All .sh files use LF"
       # Only config: Windows runners cannot start Linux containers
-      - name: Validate docker-compose.yml on Windows
+      - name: Validate compose.yaml on Windows
         shell: bash
         env:
           POSTGRES_PASSWORD: ci
           APP_DB_PASSWORD: ci
+          API_DB_PASSWORD: ci
         run: docker compose config --quiet

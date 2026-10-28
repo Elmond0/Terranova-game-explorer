@@ -65,7 +65,7 @@ Partite tutti e tre da C e C++, quindi le tre aree sono equivalenti come diffico
 
 **C – Database e account**
 
-- [x] Avviare PostgreSQL con il `docker-compose.yml` del progetto (istruzioni in `db/README.md`)
+- [x] Avviare PostgreSQL con il `compose.yaml` del progetto (istruzioni in `db/README.md`)
 - [ ] Creare l'utente del database per la Web API, che legge e scrive i dati ma non può modificare le tabelle
 - [ ] Aggiungere Entity Framework Core con Npgsql alla Web API (cartella `Data`; i pacchetti con una PR piccola rivista da A) e la stringa di connessione negli User Secrets
 - [ ] Creare la prima migrazione, applicarla con `db/scripts/migrate.sh` e configurare ASP.NET Core Identity nella Web API (endpoint di registrazione e login), verificandola con il file `.http` o Postman
@@ -86,7 +86,7 @@ Alla fine di ogni fase il sito funziona: se il tempo finisce, vi fermate lì con
 - [ ] **B** – Pagina ricerca: risultati mentre si scrive, filtri, ordinamento
 - [ ] **B** – Scheda gioco: descrizione, galleria, generi, piattaforme, voti
 - [ ] **B** – Stati comuni: caricamento, nessun risultato, errore
-- [ ] **C** – Pagina casa produttrice nel client (numero di giochi, voto medio, elenco), con i dati dall'endpoint degli studi e i componenti di B
+- [ ] **B** – Pagina casa produttrice (numero di giochi, voto medio, elenco), con i dati dall'endpoint degli studi (ADR-03)
 - [ ] **C** – Tabella di cache dei giochi nel database, per ridurre le chiamate a RAWG, con una piccola interfaccia che il RawgService di A usa per leggerla e scriverla
 
 ### Fase 2 – Account, preferiti e wishlist
@@ -176,7 +176,7 @@ Poche regole fisse evitano la maggior parte dei conflitti in un gruppo di tre.
 - **Nei file degli altri si entra con una PR piccola** che il proprietario rivede (per esempio i pacchetti del database nel progetto della Web API, o le pagine di C nel client). Le cartelle di ognuno sono nella tabella iniziale di `DOCS/come_lavoriamo.md`.
 - **Chiavi delle API solo negli User Secrets della Web API** (in produzione nelle variabili d'ambiente), mai nel codice, nel client o su GitHub.
 - **Commit piccoli e frequenti**, con messaggi chiari ("Aggiunti filtri per piattaforma").
-- **Elenco dei compiti su GitHub Projects**: ogni voce di questo documento diventa una scheda, con colonne Da fare, In corso, Fatto.
+- **Elenco dei compiti su GitHub Projects**: ogni voce di questo documento diventa una scheda, con le colonne Backlog, Todo, In Progress e Done.
 - **Riunione breve una volta a settimana**: cosa ho finito, cosa faccio ora, dove sono bloccato.
 - **Fine di ogni fase**: dimostrazione insieme del sito funzionante, poi si accordano i dati della fase successiva.
 

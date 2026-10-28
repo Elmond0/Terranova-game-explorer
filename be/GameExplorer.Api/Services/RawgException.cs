@@ -7,10 +7,5 @@ namespace GameExplorer.Api.Services;
 
 public class RawgException : Exception
 {
-	public HttpStatusCode	StatusCode { get; }
-
-	public RawgException( HttpStatusCode statusCode, string msg, Exception? inner = null ) : base(msg, inner)
-	{
-		StatusCode = statusCode;
-	}
+	public RawgException( string msg, Exception? inner = null ) : base(msg, inner) {}
 }

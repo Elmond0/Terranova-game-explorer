@@ -1,0 +1,18 @@
+﻿@page "/"
+@inject IGameApiClient Api
+
+<PageTitle>Home</PageTitle>
+
+@foreach (var game in _games)
+{
+	<GameCard Game="game" />
+}
+
+@code {
+	private List<Game> _games = [];
+
+	protected override async Task OnInitializedAsync()
+	{
+		_games = await Api.GetRecentAsync();
+	}
+}
