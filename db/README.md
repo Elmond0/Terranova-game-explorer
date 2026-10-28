@@ -112,11 +112,28 @@ docker compose down -v   # removes containers AND DELETES ALL DATA
 Use `down -v` only to start from scratch, for example after changing passwords in `.env`.
 If Adminer is running, add `--profile tools` (e.g. `docker compose --profile tools down`).
 
-## Backend connection string
+## Backend secrets (User Secrets)
 
-Store it in .NET User Secrets, never in the repository. Examples are at the bottom of [`.env.example`](../.env.example):
+The backend needs two values that are never stored in the repository: the connection string and the RAWG API key.
+They go in .NET User Secrets, a file in your home folder (`~/.microsoft/usersecrets/<UserSecretsId>/secrets.json`), read only in development.
 
-- from your machine: `Host=localhost;Port=5432;Database=terranova;Username=terranova_api;Password=...`
-- from a container on the `backend` network: `Host=db;Port=5432;...`
+Set them **once per computer** (not per clone), from the repository root:
+
+```bash
+# Connection string: reads API_DB_PASSWORD from .env, so the password is not typed or kept in the shell history
+dotnet user-secrets set ConnectionStrings:Default "Host=localhost;Port=5432;Database=terranova;Username=terranova_api;Password=$(grep '^API_DB_PASSWORD=' .env | cut -d= -f2-)" --project be/GameExplorer.Api
+
+# RAWG API key (free, from https://rawg.io/apidocs): typed without echo
+read -rsp "RAWG key: " key && dotnet user-secrets set Rawg:ApiKey "$key" --project be/GameExplorer.Api; unset key
+# fish: read -s -P "RAWG key: " key; and dotnet user-secrets set Rawg:ApiKey $key --project be/GameExplorer.Api; set -e key
+
+# Check (key names only, no values)
+dotnet user-secrets list --project be/GameExplorer.Api | sed 's/ = .*//'
+```
+
+- Do **not** run `dotnet user-secrets init`: the project already has a `UserSecretsId`, a second one would split the secrets.
+- Without `ConnectionStrings:Default` the app (and `dotnet ef`) stops with `Missing ConnectionStrings:Default`; without `Rawg:ApiKey` the app does not start.
+- From a container on the `backend` network the host is `db` instead of `localhost` (see the bottom of [`.env.example`](../.env.example)).
+- Online there are no User Secrets: the same values are environment variables, with `__` instead of `:` (`ConnectionStrings__Default`, `Rawg__ApiKey`).
 
 Never use `terranova_app` here: its password is needed only by `migrate.sh` and restore.
