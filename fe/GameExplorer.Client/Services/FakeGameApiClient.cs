@@ -194,8 +194,8 @@ public class FakeGameApiClient : IGameApiClient
 		await DelayAsync(cancellationToken);
 
 		var games = AllGames;
-		if (!string.IsNullOrWhiteSpace(filter.Text))
-			games = games.Where(g => g.Name.Contains(filter.Text, StringComparison.OrdinalIgnoreCase));
+		if (!string.IsNullOrWhiteSpace(filter.Query))
+			games = games.Where(g => g.Name.Contains(filter.Query, StringComparison.OrdinalIgnoreCase));
 
 		var items = games.ToList();
 		return new PagedResult<Game>

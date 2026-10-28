@@ -82,8 +82,8 @@ public class GameApiClient : IGameApiClient
 	{
 		List<string> parts = [];
 
-		if (!string.IsNullOrWhiteSpace(filter.Text))
-			parts.Add($"text={Uri.EscapeDataString(filter.Text)}");
+		if (!string.IsNullOrWhiteSpace(filter.Query))
+			parts.Add($"text={Uri.EscapeDataString(filter.Query)}");
 		if (filter.GenreIds.Count > 0)
 			parts.Add($"genreIds={string.Join(",", filter.GenreIds)}");
 		if (filter.PlatformIds.Count > 0)
