@@ -22,7 +22,17 @@
     </MudAppBar>
     <MudMainContent>
         <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="py-6">
-            @Body
+            <ErrorBoundary @ref="_errorBoundary">
+                <ChildContent>
+                    @Body
+                </ChildContent>
+                <ErrorContent>
+                    <ErrorMessage
+                        Message="Si è verificato un errore imprevisto."
+                        OnRetry="() => _errorBoundary?.Recover()"
+                    />
+                </ErrorContent>
+            </ErrorBoundary>
         </MudContainer>
         <footer class="py-4">
             <MudText Typo="Typo.body2" Align="Align.Center" Class="mud-text-secondary">
@@ -38,6 +48,7 @@
 @code {
     private bool _isDarkMode = true;
     private const string ThemeKey = "theme";
+    private ErrorBoundary? _errorBoundary;
     protected override async Task OnInitializedAsync()
     {
         var savedTheme = await JS.InvokeAsync<string?>("localStorage.getItem", ThemeKey);
@@ -45,6 +56,10 @@
         {
             _isDarkMode = savedTheme == "dark";
         }
+    }
+    protected override void OnParametersSet()
+    {
+        _errorBoundary?.Recover();
     }
     private async Task OnThemeToggled(bool isDark)
     {

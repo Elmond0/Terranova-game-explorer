@@ -1,0 +1,15 @@
+<MudStack AlignItems="AlignItems.Center" Class="py-8" role="status">
+	<MudProgressCircular
+		Indeterminate="true"
+		Color="Color.Primary"
+		Size="Size.Large">
+	</MudProgressCircular>
+	<MudText Typo="Typo.body2" Class="mud-text-secondary">
+		@Text
+	</MudText>
+</MudStack>
+
+
+@code {
+	[Parameter] public string Text { get; set; } = "Caricamento...";
+}
