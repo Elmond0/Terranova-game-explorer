@@ -22,6 +22,61 @@ namespace GameExplorer.Api.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("GameExplorer.Api.Data.Entities.GameCacheEntry", b =>
+                {
+                    b.Property<int>("RawgId")
+                        .HasColumnType("integer")
+                        .HasColumnName("rawg_id");
+
+                    b.Property<string>("Details")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("details");
+
+                    b.Property<string>("Image")
+                        .HasColumnType("text")
+                        .HasColumnName("image");
+
+                    b.Property<int?>("Metacritic")
+                        .HasColumnType("integer")
+                        .HasColumnName("metacritic");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<double>("Rating")
+                        .HasColumnType("double precision")
+                        .HasColumnName("rating");
+
+                    b.Property<DateOnly?>("ReleaseDate")
+                        .HasColumnType("date")
+                        .HasColumnName("release_date");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("slug");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("RawgId")
+                        .HasName("pk_game_cache");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasDatabaseName("ix_game_cache_slug");
+
+                    b.ToTable("game_cache", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_game_cache_metacritic", "metacritic BETWEEN 0 AND 100");
+
+                            t.HasCheckConstraint("ck_game_cache_rating", "rating BETWEEN 0 AND 5");
+                        });
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
