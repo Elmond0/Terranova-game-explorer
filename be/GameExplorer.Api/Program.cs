@@ -1,5 +1,6 @@
 using GameExplorer.Api.Data;
 using GameExplorer.Api.Services;
+using GameExplorer.Api.Errors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,8 +8,24 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+builder.Services.AddExceptionHandler<RawgExceptionHandler>();
+builder.Services.AddProblemDetails();
+
+builder.Services.AddHealthChecks();
+
+var frontendOrigin = builder.Configuration["Cors:FrontendOrigin"]
+	?? throw new InvalidOperationException("CORS configuration is missing.");
+
+builder.Services.AddCors(options =>
+{
+	options.AddPolicy("Frontend", policy =>
+		policy.WithOrigins(frontendOrigin)
+			.AllowAnyHeader()
+			.AllowAnyMethod()
+			.AllowCredentials());
+});
+
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 builder.Services.AddMemoryCache();
@@ -40,7 +57,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // --- Login (ASP.NET Core Identity, cookies: ADR-04) ---
 builder.Services.AddIdentityApiEndpoints<IdentityUser>().AddEntityFrameworkStores<AppDbContext>();
 
+
+
 var app = builder.Build();
+
+app.UseExceptionHandler();
+
+app.MapHealthChecks("/health");
+
+app.UseCors("Frontend");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -54,10 +79,9 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// --- Login endpoints: /api/account/register, /login, /manage/info... ---
+// --- Login endpoints ---
 var account = app.MapGroup("/api/account");
 account.MapIdentityApi<IdentityUser>();
-// MapIdentityApi has no logout. POST, so a link or an image on another site cannot log you out
 account.MapPost("/logout", async (SignInManager<IdentityUser> signInManager) =>
 {
 	await signInManager.SignOutAsync();

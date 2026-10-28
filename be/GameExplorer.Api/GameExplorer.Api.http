@@ -4,3 +4,4 @@ GET {{Api_HostAddress}}/api/games/3498
 ###
 GET {{Api_HostAddress}}/api/games/3498/screenshots
 ###
+GET https://api.rawg.io/api/games/3498?key=7ba89b621dd44c00a8dd325b79bc1e2e
