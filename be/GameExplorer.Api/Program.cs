@@ -36,6 +36,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 	if (builder.Environment.IsDevelopment())
 		options.EnableSensitiveDataLogging().EnableDetailedErrors();
 });
+builder.Services.AddScoped<IGameCacheStore, GameCacheStore>();
 
 // --- Login (ASP.NET Core Identity, cookies: ADR-04) ---
 builder.Services.AddIdentityApiEndpoints<IdentityUser>().AddEntityFrameworkStores<AppDbContext>();
