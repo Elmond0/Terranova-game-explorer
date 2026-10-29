@@ -85,6 +85,9 @@ jobs:
           dotnet-version: "10.0.x"
       - name: Restore dotnet-ef (dotnet-tools.json)
         run: dotnet tool restore
+      # dotnet ef needs obj/project.assets.json, and it does not restore by itself
+      - name: Restore NuGet packages
+        run: dotnet restore be/GameExplorer.Api
       - name: No model change without a migration
         run: dotnet ef migrations has-pending-model-changes --project be/GameExplorer.Api
 
@@ -107,6 +110,8 @@ jobs:
           dotnet-version: "10.0.x"
       - name: Restore dotnet-ef (dotnet-tools.json)
         run: dotnet tool restore
+      - name: Restore NuGet packages
+        run: dotnet restore be/GameExplorer.Api
 
       - name: Create .env like a new teammate (random passwords)
         run: |
