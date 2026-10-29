@@ -56,6 +56,8 @@ public class RawgService
 	{
 		RawgGameDetails? raw = await GetAsync<RawgGameDetails>($"games/{id}", ct);
 		List<RawgScreenshot>? shots = await GetScreenshotsAsync(id, ct);
+		if (raw is null)
+			return null;
 		return RawgConverter.InDetails(raw!, shots);
 	}
 
