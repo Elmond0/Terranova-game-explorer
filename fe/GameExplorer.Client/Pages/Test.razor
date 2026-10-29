@@ -70,7 +70,7 @@ else
 		try
 		{
 			_games = _search
-				? (await Api.SearchAsync(new SearchFilter { Text = "nessun gioco con questo nome" })).Items ?? []
+				? (await Api.SearchAsync(new SearchFilter { Query = "nessun gioco con questo nome" })).Items ?? []
 				: await Api.GetTopRatedAsync();
 		}
 		catch (ApiException)
