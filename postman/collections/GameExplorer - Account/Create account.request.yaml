@@ -3,9 +3,12 @@ url: http://localhost:5290/api/account/register
 method: POST
 body:
   type: json
-  content: '{ "email": "prova3@test.local", "password": "{{vault:password}}" }'
+  content: '{ "email": "{{email}}", "password": "{{vault:password}}" }'
 scripts:
   - type: afterResponse
     code: pm.test("200 OK", () => pm.response.to.have.status(200));
+    language: text/javascript
+  - type: beforeRequest
+    code: pm.collectionVariables.set("email", `user${Date.now()}@test.local`);
     language: text/javascript
 order: 1000

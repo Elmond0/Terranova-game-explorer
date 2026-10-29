@@ -1,11 +1,11 @@
 $kind: http-request
-url: " http://localhost:5290/api/account/login?useCookies=true"
+url: "http://localhost:5290/api/account/login?useCookies=true"
 method: POST
 queryParams:
   useCookies: "true"
 body:
   type: json
-  content: ' { "email": "prova3@test.local", "password": "{{vault:password}}" }'
+  content: ' { "email": "{{email}}", "password": "{{vault:password}}" }'
 scripts:
   - type: afterResponse
     code: pm.test("200 OK", () => pm.response.to.have.status(200));
