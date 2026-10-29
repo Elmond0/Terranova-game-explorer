@@ -1,0 +1,13 @@
+.game-row {
+	display: flex;
+	gap: 16px;
+	overflow-x: auto;
+	scroll-snap-type: x mandatory;
+	padding: 8px 4px 12px;
+}
+
+.game-row-item {
+	flex: 0 0 min(260px, 80%);
+	scroll-snap-align: start;
+
+}
