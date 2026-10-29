@@ -1,0 +1,8 @@
+$kind: http-request
+url: http://localhost:5290/api/account/manage/info
+method: GET
+scripts:
+  - type: afterResponse
+    code: pm.test("401 Unauthorized", () => pm.response.to.have.status(401));
+    language: text/javascript
+order: 7000
