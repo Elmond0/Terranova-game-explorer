@@ -1,0 +1,75 @@
+@implements IDisposable
+
+<section class="mb-8">
+	<MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
+		<MudText Typo="Typo.h5" HtmlTag="h2">
+			@Title
+		</MudText>
+		@if (SeeAllHref is not null)
+		{
+			<MudLink Href="@SeeAllHref">
+				Vedi tutti
+			</MudLink>
+		}
+	</MudStack>
+	@if (_error)
+	{
+		<ErrorMessage OnRetry="LoadAsync"/>
+	}
+	else if (_games is null)
+	{
+		<div class="game-row">
+			@for(var i = 0; i < 4; i++)
+			{
+				<div class="game-row-item">
+					<SkeletonCard/>
+				</div>
+			}
+		</div>
+	}
+	else if (_games.Count == 0)
+	{
+		<NoResults Message="Nessun gioco da mostrare."/>
+	}
+	else
+	{
+		<div class="game-row">
+			@foreach(var game in _games)
+			{
+				<div class="game-row-item">
+					<GameCard Game="game" HighlightDate="HighlightDate"/>
+				</div>
+			}
+		</div>
+	}
+</section>
+
+@code {
+	[Parameter, EditorRequired] public string Title { get; set; } = default!;
+	[Parameter, EditorRequired] public Func<CancellationToken, Task<List<Game>>> Load { get; set; } = default!;
+	[Parameter] public string? SeeAllHref { get; set; }
+	[Parameter] public bool HighlightDate { get; set; }
+	private List<Game>? _games;
+	private bool _error;
+	private readonly CancellationTokenSource _cts = new();
+	private async Task LoadAsync()
+	{
+		_error = false;
+		_games = null;
+		try
+		{
+			_games = await Load(_cts.Token);
+		}
+		catch (ApiException)
+		{
+			_error = true;
+		}
+		catch (OperationCanceledException){}
+	}
+	protected override Task OnInitializedAsync() => LoadAsync();
+	public void Dispose()
+	{
+		_cts.Cancel();
+		_cts.Dispose();
+	}
+}
