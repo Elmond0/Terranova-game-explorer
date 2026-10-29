@@ -33,7 +33,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# The four jobs run in parallel, each on a fresh virtual machine
+# The five jobs run in parallel, each on a fresh virtual machine
 jobs:
   # Is compose.yaml valid?
   config:
@@ -66,6 +66,27 @@ jobs:
         run: shellcheck db/init/*.sh db/scripts/*.sh
       - name: actionlint (workflow files)
         run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 -color
+  # Did someone change a table without adding the migration?
+  migrations:
+    name: migrations up to date
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # dotnet ef runs Program.cs, which stops without these; fake values, nothing connects to them
+    env:
+      ConnectionStrings__Default: "Host=localhost;Database=ci;Username=ci;Password=ci"
+      Rawg__ApiKey: ci
+      Cors__FrontendOrigin: http://localhost:5100
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: "10.0.x"
+      - name: Restore dotnet-ef (dotnet-tools.json)
+        run: dotnet tool restore
+      - name: No model change without a migration
+        run: dotnet ef migrations has-pending-model-changes --project be/GameExplorer.Api
 
   # The clean-clone test of the README, automated: start, check users, backup, restore, persistence
   smoke:
