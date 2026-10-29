@@ -1,0 +1,11 @@
+$kind: http-request
+url: http://localhost:5290/api/account/register
+method: POST
+body:
+  type: json
+  content: ' { "email": "prova3@test.local", "password": "{{vault:password}}" }'
+scripts:
+  - type: afterResponse
+    code: pm.test("400 Bad Request", () => pm.response.to.have.status(400));
+    language: text/javascript
+order: 2000
