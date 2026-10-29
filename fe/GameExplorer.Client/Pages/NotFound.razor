@@ -1,0 +1,19 @@
+﻿@page "/not-found"
+@layout MainLayout
+
+<PageTitle>Pagina non trovata</PageTitle>
+
+<MudStack AlignItems="AlignItems.Center" Class="py-8">
+	<MudIcon
+		Icon="@Icons.Material.Filled.SearchOff"
+		Size="Size.Large"
+		Class="mud-text-secondary"
+	/>
+	<MudText Typo="Typo.h4" HtmlTag="h1">
+		Pagina non trovata
+	</MudText>
+	<MudText>La pagina che cerchi non esiste o è stata spostata.</MudText>
+	<MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary">
+		Torna alla home
+	</MudButton>
+</MudStack>

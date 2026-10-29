@@ -1,0 +1,14 @@
+<MudStack AlignItems="AlignItems.Center" Class="py-8" role="status">
+	<MudIcon
+		Icon="@Icons.Material.Filled.SearchOff"
+		Size="Size.Large"
+		Class="mud-text-secondary"
+	/>
+	<MudText>
+		@Message
+	</MudText>
+</MudStack>
+
+@code {
+	[Parameter] public string Message { get; set; } = "Nessun gioco trovato.";
+}

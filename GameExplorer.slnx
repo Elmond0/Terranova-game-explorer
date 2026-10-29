@@ -1,6 +1,10 @@
 <Solution>
   <Folder Name="/be/">
+    <Project Path="be/GameExplorer.Api.Tests/GameExplorer.Api.Tests.csproj" />
     <Project Path="be/GameExplorer.Api/GameExplorer.Api.csproj" />
+  </Folder>
+  <Folder Name="/fe/">
+    <Project Path="fe/GameExplorer.Client/GameExplorer.Client.csproj" />
   </Folder>
   <Folder Name="/shared/">
     <Project Path="shared/GameExplorer.Shared/GameExplorer.Shared.csproj" />

@@ -1,0 +1,69 @@
+﻿@inherits LayoutComponentBase
+@inject IJSRuntime JS
+<MudThemeProvider @bind-IsDarkMode="_isDarkMode"/>
+<MudPopoverProvider/>
+<MudDialogProvider />
+<MudSnackbarProvider/>
+
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudLink Href="/" Typo="Typo.h6" Color="Color.Inherit" Underline="Underline.None">
+            Game Explorer
+        </MudLink>
+        <MudSpacer />
+        <MudToggleIconButton
+            Toggled="_isDarkMode"
+            ToggledChanged="OnThemeToggled"
+            Icon="@Icons.Material.Filled.DarkMode"
+            ToggledIcon="@Icons.Material.Filled.LightMode"
+            Color="Color.Inherit"
+            aria-label="Cambia tema"
+        />
+    </MudAppBar>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="py-6">
+            <ErrorBoundary @ref="_errorBoundary">
+                <ChildContent>
+                    @Body
+                </ChildContent>
+                <ErrorContent>
+                    <ErrorMessage
+                        Message="Si è verificato un errore imprevisto."
+                        OnRetry="() => _errorBoundary?.Recover()"
+                    />
+                </ErrorContent>
+            </ErrorBoundary>
+        </MudContainer>
+        <footer class="py-4">
+            <MudText Typo="Typo.body2" Align="Align.Center" Class="mud-text-secondary">
+                Dati forniti da
+                <MudLink Href="https://rawg.io" Target="_blank" rel="noopener">
+                    RAWG
+                </MudLink>
+            </MudText>
+        </footer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private bool _isDarkMode = true;
+    private const string ThemeKey = "theme";
+    private ErrorBoundary? _errorBoundary;
+    protected override async Task OnInitializedAsync()
+    {
+        var savedTheme = await JS.InvokeAsync<string?>("localStorage.getItem", ThemeKey);
+        if (savedTheme is not null)
+        {
+            _isDarkMode = savedTheme == "dark";
+        }
+    }
+    protected override void OnParametersSet()
+    {
+        _errorBoundary?.Recover();
+    }
+    private async Task OnThemeToggled(bool isDark)
+    {
+        _isDarkMode = isDark;
+        await JS.InvokeVoidAsync("localStorage.setItem", ThemeKey, isDark ? "dark" : "light");
+    }
+}

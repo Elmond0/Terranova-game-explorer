@@ -1,0 +1,93 @@
+@page "/prova"
+@inject IGameApiClient Api
+
+@* Pagina provvisoria per provare i componenti di stato (issue #23): da togliere quando ci sono le pagine vere *@
+
+<PageTitle>Prova</PageTitle>
+
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">Pagina di prova</MudText>
+
+<MudStack Row="true" Spacing="2" Class="mb-6" Wrap="Wrap.Wrap">
+	<MudButton Variant="Variant.Outlined" OnClick="ShowTopRatedAsync">Più apprezzati</MudButton>
+	<MudButton Variant="Variant.Outlined" OnClick="ShowEmptySearchAsync">Ricerca senza risultati</MudButton>
+	<MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="() => _crash = true">Errore imprevisto</MudButton>
+</MudStack>
+
+@if (_crash)
+{
+	// Eccezione non gestita durante il disegno: la deve catturare l'ErrorBoundary del layout
+	throw new InvalidOperationException("Errore imprevisto di prova");
+}
+
+@if (_error)
+{
+	<ErrorMessage OnRetry="LoadAsync" />
+}
+else if (_games is null && _search)
+{
+	<Loading Text="Ricerca in corso…" />
+}
+else if (_games is null)
+{
+	<MudGrid>
+		@for (var i = 0; i < 8; i++)
+		{
+			<MudItem xs="12" sm="6" md="4" lg="3">
+				<SkeletonCard />
+			</MudItem>
+		}
+	</MudGrid>
+}
+else if (_games.Count == 0)
+{
+	<NoResults />
+}
+else
+{
+	<MudGrid>
+		@foreach (var game in _games)
+		{
+			<MudItem xs="12" sm="6" md="4" lg="3">
+				<GameCard Game="game" />
+			</MudItem>
+		}
+	</MudGrid>
+}
+
+@code {
+	private List<Game>? _games;
+	private bool _error;
+	private bool _crash;
+	// false: più apprezzati (caricamento con SkeletonCard); true: ricerca vuota (caricamento con Loading)
+	private bool _search;
+
+	protected override Task OnInitializedAsync() => LoadAsync();
+
+	private async Task LoadAsync()
+	{
+		_error = false;
+		_games = null;
+		try
+		{
+			_games = _search
+				? (await Api.SearchAsync(new SearchFilter { Text = "nessun gioco con questo nome" })).Items ?? []
+				: await Api.GetTopRatedAsync();
+		}
+		catch (ApiException)
+		{
+			_error = true;
+		}
+	}
+
+	private Task ShowTopRatedAsync()
+	{
+		_search = false;
+		return LoadAsync();
+	}
+
+	private Task ShowEmptySearchAsync()
+	{
+		_search = true;
+		return LoadAsync();
+	}
+}

@@ -1,0 +1,29 @@
+<MudAlert Severity="Severity.Error">
+	@Message
+	@if (OnRetry.HasDelegate)
+	{
+		<MudButton OnClick="RetryAsync" Disabled="_retrying" Variant="Variant.Text" Color="Color.Error" StartIcon="@Icons.Material.Filled.Refresh">
+			Riprova
+		</MudButton>
+	}
+</MudAlert>
+
+
+@code {
+	[Parameter] public EventCallback OnRetry { get; set; }
+	[Parameter] public string Message { get; set; } = "Non siamo riusciti a caricare i dati.";
+	private bool _retrying = false;
+	private async Task RetryAsync()
+	{
+		_retrying = true;
+		try
+		{
+			await OnRetry.InvokeAsync();
+		}
+		finally
+		{
+			_retrying = false;
+		}
+	}
+
+}
