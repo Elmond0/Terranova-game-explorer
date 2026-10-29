@@ -7,8 +7,9 @@ namespace GameExplorer.Api.Errors;
 
 public sealed class RawgExceptionHandler : IExceptionHandler
 {
-	ILogger<RawgExceptionHandler> _logger;
-	public RawgExceptionHandler( ILogger<RawgExceptionHandler> logger ) : base() { _logger = logger; }
+	ILogger<RawgExceptionHandler> 	_logger;
+	IProblemDetailsService 			_problems;
+	public RawgExceptionHandler( ILogger<RawgExceptionHandler> logger, IProblemDetailsService problems ) : base() { _logger = logger; _problems = problems; }
 
 	public async ValueTask<bool> TryHandleAsync( HttpContext context, Exception e, CancellationToken ct )
 	{
@@ -18,13 +19,16 @@ public sealed class RawgExceptionHandler : IExceptionHandler
 		_logger.LogWarning(e, "Rawg does not respond");
 
 		context.Response.StatusCode = StatusCodes.Status502BadGateway;
-		await context.Response.WriteAsJsonAsync(new ProblemDetails
+		return await _problems.TryWriteAsync(new ProblemDetailsContext
 		{
-			Status = StatusCodes.Status502BadGateway,
-			Title = "Rawg service not available.",
-			Detail = "Rawg is not responding. Try again."
-		}, ct);
-
-		return true;
+			HttpContext = context,
+			Exception = e,
+			ProblemDetails = new ProblemDetails
+			{	
+				Status = StatusCodes.Status502BadGateway,
+				Title = "Rawg service not available.",
+				Detail = "Rawg is not responding. Try again."
+			}
+		});
 	}
 }

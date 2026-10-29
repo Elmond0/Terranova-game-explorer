@@ -45,7 +45,7 @@ public class SearchFilter : IValidatableObject
 			string order = Ordering.TrimStart('-');
 			if(!ValidOrders.Contains(order))
 			{
-				yields return new ValidationResult(
+				yield return new ValidationResult(
 					"Ordinamento non valido.",
 					[nameof(Ordering)]);
 			}
