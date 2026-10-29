@@ -9,6 +9,7 @@ on:
       - ".env.example"
       - ".gitattributes"
       - "db/**"
+      - "be/GameExplorer.Api/Data/**"
       - ".github/workflows/database.yml"
   push:
     # Check main again after every merge
@@ -18,6 +19,7 @@ on:
       - ".env.example"
       - ".gitattributes"
       - "db/**"
+      - "be/GameExplorer.Api/Data/**"
       - ".github/workflows/database.yml"
   # "Run workflow" button in the Actions tab
   workflow_dispatch:
