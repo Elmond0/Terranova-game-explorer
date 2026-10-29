@@ -29,11 +29,8 @@ public class RawgService
         char sep = path.Contains('?') ? '&' : '?';
         string url = $"{path}{sep}key={_key}";
 
-		
-
         try
         {
-
 			_logger.LogInformation("RAWG request: {Url}", url.Replace(_key ?? "", "***"));
 			_logger.LogInformation("Key loaded: {Loaded}, length {Len}", !string.IsNullOrEmpty(_key), _key?.Length);
             using HttpResponseMessage res = await _http.GetAsync(url, ct);
@@ -55,15 +52,15 @@ public class RawgService
 	public async Task<GameDetails?>	GetGameDetailsAsync( int id, CancellationToken ct )
 	{
 		RawgGameDetails? raw = await GetAsync<RawgGameDetails>($"games/{id}", ct);
-		List<RawgScreenshot>? shots = await GetScreenshotsAsync(id, ct);
+		List<string?>? shots = await GetScreenshotsAsync(id, ct);
 		if (raw is null)
 			return null;
 		return RawgConverter.InDetails(raw!, shots);
 	}
 
-	internal async Task<List<RawgScreenshot>?> GetScreenshotsAsync( int id, CancellationToken ct )
+	internal async Task<List<string?>?> GetScreenshotsAsync( int id, CancellationToken ct )
 	{
-		List<RawgScreenshot> shots = [];
+		List<string?> shots = [];
 		string? url = $"games/{id}/screenshots?page_size=40";
 		
 		while (url is not null)
@@ -73,9 +70,72 @@ public class RawgService
 				break ;
 			shots = (raw.Results ?? [])
 				.Where(r => r is not null && r.IsDeleted is not true)
+				.Select(r => r!.Image)
 				.ToList();
 			url = raw.Next;
 		}
 		return shots;
 	}
+
+	internal async Task<List<Genre>?> GetGenresAsync( CancellationToken ct )
+	{
+		List<Genre> genres = [];
+		string? url = $"genres?page_size=40";
+		RawgList<RawgItem>? raw = await GetAsync<RawgList<RawgItem>>(url, ct);
+		if (raw is null)
+			return [];
+		genres = (raw.Results ?? [])
+			.Where(r => r is not null)
+			.Select(r => r!.InGenre())
+			.ToList();
+		return genres;
+	}
+
+	internal async Task<List<Platform>?> GetPlatformsAsync( CancellationToken ct )
+	{
+		List<Platform> platforms = [];
+		string? url = $"genres?page_size=40";
+		RawgList<RawgItem>? raw = await GetAsync<RawgList<RawgItem>>(url, ct);
+		if (raw is null)
+			return [];
+		platforms = (raw.Results ?? [])
+			.Where(r => r is not null)
+			.Select(r => r!.InPlatform())
+			.ToList();
+		return platforms;
+	}
+
+	internal async Task<List<Game>>	GetTopRatedAsync( CancellationToken ct )
+	{
+		RawgList<RawgGame>? raw = await GetAsync<RawgList<RawgGame>>($"games?ordering=-rating", ct);
+		if (raw is null)
+			return [];
+		return raw.Results
+			.Where(r => r is not null)
+			.Select(r => r!.InGame())
+			.ToList();
+	}
+
+	internal async Task<List<Game>>	GetRecentAsync( CancellationToken ct )
+	{
+		RawgList<RawgGame>? raw = await GetAsync<RawgList<RawgGame>>($"games?ordering=-released&dates=2026-09-29,2026-10-29&ordering=-released", ct);
+		if (raw is null)
+			return [];
+		return raw.Results
+			.Where(r => r is not null)
+			.Select(r => r!.InGame())
+			.ToList();
+	}
+
+	internal async Task<List<Game>>	GetUpcomingAsync( CancellationToken ct )
+	{
+		RawgList<RawgGame>? raw = await GetAsync<RawgList<RawgGame>>($"games?ordering=-released&dates=2026-10-29,2027-10-29&ordering=-released", ct);
+		if (raw is null)
+			return [];
+		return raw.Results
+			.Where(r => r is not null)
+			.Select(r => r!.InGame())
+			.ToList();
+	}
+
 }

@@ -4,7 +4,7 @@ namespace GameExplorer.Api.Services.Rawg;
 
 internal class RawgGameDetails : RawgGame
 {
-	[JsonPropertyName("description")]
+	[JsonPropertyName("description_raw")]
 	public string? About { get; set; }
 
 	[JsonPropertyName("website")]
@@ -18,5 +18,4 @@ internal class RawgGameDetails : RawgGame
 
 	[JsonPropertyName("stores")]
 	public List<RawgStoreWrapper> Stores { get; set; } = [];
-
 }

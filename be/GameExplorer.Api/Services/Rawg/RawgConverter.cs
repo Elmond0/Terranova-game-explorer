@@ -39,7 +39,7 @@ internal static class RawgConverter
 		Name = r.Name,
 	};
 
-	public static GameDetails		InDetails( RawgGameDetails r, List<RawgScreenshot>? shots )
+	public static GameDetails		InDetails( RawgGameDetails r, List<string?>? shots )
 	{
 		var base_ = r.InGame();
 
@@ -67,7 +67,8 @@ internal static class RawgConverter
 				.ToList(),
 
 			Screenshots = (shots ?? [])
-				.Select(s => s.Image)
+				.Where(s => s is not null)
+				.Select(s => s)
 				.ToList(),
 
 			WhereToBuy = (r.Stores ?? [])
