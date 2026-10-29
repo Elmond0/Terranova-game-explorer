@@ -1,18 +1,55 @@
 ﻿@page "/"
 @inject IGameApiClient Api
+@inject NavigationManager Navigation
 
 <PageTitle>Home</PageTitle>
+<MudText Typo="Typo.h3" HtmlTag="h1" Align="Align.Center">
+	Ricerca giochi
+</MudText>
+<div class="search-box">
+	<MudTextField
+		@bind-Value="_query"
+		Immediate="true"
+		OnKeyDown="OnSearchKeyDown"
+		Placeholder="Cerca un gioco..."
+		Variant="Variant.Outlined"
+		Adornment="Adornment.End"
+		AdornmentIcon="@Icons.Material.Filled.Search"
+		OnAdornmentClick="Search"
+		AdornmentAriaLabel="Cerca"
+	/>
+</div>
+<GameSection
+	Title="Più apprezzati"
+	Load="Api.GetTopRatedAsync"
+	SeeAllHref="search?ordering=-rating"
+/>
+<GameSection
+	Title="Usciti di recente"
+	Load="Api.GetRecentAsync"
+	SeeAllHref="search?ordering=-released"
+	HighlightDate="true"
+/>
 
-@foreach (var game in _games)
-{
-	<GameCard Game="game" />
-}
+<GameSection
+	Title="In arrivo"
+	Load="Api.GetUpcomingAsync"
+	HighlightDate="true"
+/>
 
 @code {
-	private List<Game> _games = [];
+	private string? _query;
 
-	protected override async Task OnInitializedAsync()
+	private void Search()
 	{
-		_games = await Api.GetRecentAsync();
+		if (string.IsNullOrWhiteSpace(_query))
+			return ;
+		Navigation.NavigateTo($"search?q={Uri.EscapeDataString(_query.Trim())}");
+	}
+
+	private void OnSearchKeyDown(KeyboardEventArgs e)
+	{
+		if (e.Key == "Enter")
+			Search();
 	}
 }
