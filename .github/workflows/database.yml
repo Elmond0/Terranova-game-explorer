@@ -90,13 +90,23 @@ jobs:
 
   # The clean-clone test of the README, automated: start, check users, backup, restore, persistence
   smoke:
-    name: start, backup, restore
+    name: start, migrate, backup, restore
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
+    # dotnet ef (inside migrate.sh) runs Program.cs, which stops without these; fake values
+    env:
+      ConnectionStrings__Default: "Host=localhost;Database=ci;Username=ci;Password=ci"
+      Rawg__ApiKey: ci
+      Cors__FrontendOrigin: http://localhost:5100
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: "10.0.x"
+      - name: Restore dotnet-ef (dotnet-tools.json)
+        run: dotnet tool restore
 
       - name: Create .env like a new teammate (random passwords)
         run: |
@@ -132,6 +142,22 @@ jobs:
           fi
           echo "$out"
           grep -q "permission denied for schema public" <<< "$out"
+
+      # --idempotent in migrate.sh: the second run must skip what is already applied
+      - name: Migrations apply twice
+        run: |
+          ./db/scripts/migrate.sh
+          ./db/scripts/migrate.sh
+
+      - name: Runtime user reads game_cache but cannot drop it
+        run: |
+          test "$(docker compose exec -T db psql -U terranova_api -d terranova -tAc 'select count(*) from game_cache')" = "0"
+          if out="$(docker compose exec -T db psql -U terranova_api -d terranova -c 'drop table game_cache' 2>&1)"; then
+            echo "::error::terranova_api can drop game_cache"
+            exit 1
+          fi
+          echo "$out"
+          grep -q "must be owner of table game_cache" <<< "$out"
 
       - name: Backup, then restore as the migrations user
         run: |
