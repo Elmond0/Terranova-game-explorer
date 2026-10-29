@@ -1,0 +1,7 @@
+workspace:
+  id: 52ae74eb-d5c1-4115-8b27-338ed7763203
+cloudResources:
+  collections:
+    ../postman/collections/GameExplorer - Account: 59306240-0ea9e43f-abe0-4ea1-869b-8206d7b5cedc
+  globals:
+    ../postman/globals/workspace.globals.yaml: feacac99-fecc-4f5d-89b6-7560c8b4f83f
