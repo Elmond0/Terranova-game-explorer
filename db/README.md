@@ -7,6 +7,8 @@ Run all commands from the repository root.
 ## Requirements
 
 - Docker Engine **25+** and Docker Compose **2.20.2+** (check with `docker version` and `docker compose version`)
+- .NET **10** SDK, for the migrations (check with `dotnet --version`)
+- Windows only: **Git Bash** (comes with [Git for Windows](https://git-scm.com/download/win)), to run the `.sh` scripts
 
 ## First start
 
@@ -157,3 +159,38 @@ The `.sh` scripts (`migrate.sh`, `backup.sh`) need **Git Bash** or WSL; in Git B
 - Online there are no User Secrets: the same values are environment variables, with `__` instead of `:` (`ConnectionStrings__Default`, `Rawg__ApiKey`).
 
 Never use `terranova_app` here: its password is needed only by `migrate.sh` and restore.
+
+## Migrations
+
+The tables are created only by EF Core migrations (`be/GameExplorer.Api/Data/Migrations/`), applied by `db/scripts/migrate.sh` as `terranova_app`.
+
+### Apply them (everyone)
+
+Set the [backend secrets](#backend-secrets-user-secrets) first: `dotnet ef` stops without them.
+Same commands on Linux, macOS and Windows (in Git Bash):
+
+```bash
+dotnet tool restore                  # once per clone: installs dotnet-ef from dotnet-tools.json
+dotnet restore be/GameExplorer.Api   # once per clone: downloads the NuGet packages dotnet-ef needs
+./db/scripts/migrate.sh              # applies the missing migrations
+```
+
+Run `migrate.sh` again after a `git pull` that brings new migrations: running it twice is safe, applied migrations are skipped.
+
+Check that the tables exist:
+
+```bash
+docker compose exec -T db psql -U terranova -d terranova -c '\dt'
+```
+
+### Create one (only Elmond0)
+
+Two migrations created in parallel conflict: if you need a table or a column, ask Elmond0.
+
+```bash
+dotnet ef migrations add AddSomething --project be/GameExplorer.Api      # after changing Data/
+dotnet ef migrations script --idempotent --project be/GameExplorer.Api   # read the SQL before applying
+./db/scripts/migrate.sh
+```
+
+A migration already on `main` is never edited: fix it with a new one.

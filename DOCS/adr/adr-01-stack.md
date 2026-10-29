@@ -31,4 +31,4 @@ Stack consigliato da Terranova, inoltre C# è uno dei linguaggi più veloci nell
 
 **PostgreSQL**, con **Entity Framework Core** come ORM e **Npgsql** come provider.
 
-> **Motivazione:** _da completare_
+> **Motivazione:** Al posto di SQL Server Express usiamo PostgreSQL perché è open source. Inoltre lo avevo già in parte studiato per un altro progetto (Transcendence), quindi partiamo con meno tempo da dedicare a imparare il database.
