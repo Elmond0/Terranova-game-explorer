@@ -28,7 +28,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-builder.Services.AddMemoryCache();
+builder.Services.AddHybridCache();
 builder.Services.AddHttpClient<RawgService>(c =>
 {
 	c.BaseAddress = new Uri("https://api.rawg.io/api/");
