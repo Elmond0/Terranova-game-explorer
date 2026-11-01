@@ -1,7 +1,7 @@
 namespace GameExplorer.Api.Data.Entities;
 
-/// <summary> A game downloaded from RAWG, kept to avoid asking RAWG again.</summary>
-public class GameCacheEntry
+// Copy of a game saved by at least one user (favorites, wishlist, tier list).
+public class GameSnapshot
 {
 	public int RawgId { get; set; }
 	public string Slug { get; set; } = "";
@@ -11,9 +11,9 @@ public class GameCacheEntry
 	public double Rating { get; set; }
 	public int? Metacritic { get; set; }
 
-	// Full GameDetails as JSON (jsonb column); null if only seen in a list so far
+	// Full GameDetails as JSON (jsonb column)
 	public string? Details { get; set; }
 
-	// When it was downloaded from RAWG. Always UTC (timestamptz)
+	// When the copy was last taken from RAWG. Always UTC (timestamptz)
 	public DateTime UpdatedAt { get; set; }
 }

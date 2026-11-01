@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace GameExplorer.Api.Data.Configurations;
 
-public class GameCacheEntryConfiguration : IEntityTypeConfiguration<GameCacheEntry>
+public class GameSnapshotConfiguration : IEntityTypeConfiguration<GameSnapshot>
 {
-	public void Configure(EntityTypeBuilder<GameCacheEntry> builder)
+	public void Configure(EntityTypeBuilder<GameSnapshot> builder)
 	{
 		// Column names are snake_case (UseSnakeCaseNamingConvention)
 		builder.ToTable("game_snapshots", table =>

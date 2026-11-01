@@ -6,17 +6,11 @@ using Npgsql;
 
 namespace GameExplorer.Api.Data;
 
-public class GameCacheStore(AppDbContext db) : IGameCacheStore
+public class GameSnapshotStore(AppDbContext db)
 {
-	public Task<GameCacheEntry?> FindAsync(int rawgId, CancellationToken ct)
-	{
-		// Read only: no change tracking needed
-		return db.GameCache.AsNoTracking().FirstOrDefaultAsync(g => g.RawgId == rawgId, ct);
-	}
-
 	public async Task SaveAsync(GameDetails game, CancellationToken ct)
 	{
-		GameCacheEntry entry = new()
+		GameSnapshot entry = new()
 		{
 			RawgId = game.Id,
 			Slug = game.Slug,
@@ -29,9 +23,9 @@ public class GameCacheStore(AppDbContext db) : IGameCacheStore
 			UpdatedAt = DateTime.UtcNow,
 		};
 
-		GameCacheEntry? existing = await db.GameCache.FindAsync([entry.RawgId], ct);
+		GameSnapshot? existing = await db.GameSnapshots.FindAsync([entry.RawgId], ct);
 		if (existing is null)
-			db.GameCache.Add(entry);
+			db.GameSnapshots.Add(entry);
 		else
 			db.Entry(existing).CurrentValues.SetValues(entry);
 
@@ -39,9 +33,10 @@ public class GameCacheStore(AppDbContext db) : IGameCacheStore
 		{
 			await db.SaveChangesAsync(ct);
 		}
-		catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "pk_game_cache" })
+		catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "pk_game_snapshots" })
 		{
 			// Another request saved the same game at the same moment: same data, nothing to do
+			db.Entry(entry).State = EntityState.Detached;
 		}
 	}
 }
