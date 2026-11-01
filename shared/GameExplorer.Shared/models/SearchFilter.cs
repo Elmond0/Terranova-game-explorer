@@ -6,7 +6,7 @@ public class SearchFilter : IValidatableObject
 {
 	private static readonly string[] ValidOrders =
 		["name", "released", "added", "created", "updated", "rating", "metacritic"];
-	public string? Query { get; set; }
+	public string Query { get; set; } = "";
 	public List<int> GenreIds { get; set; } = [];
 	public List<int> PlatformIds { get; set; } = [];
 
