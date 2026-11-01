@@ -100,15 +100,14 @@ internal static class RawgConverter
 		Url = string.IsNullOrWhiteSpace(r.Url) ? null : r.Url,
 	};
 
-	public static PagedResult<TOut>	InPage<TIn, TOut>( this RawgList<TIn> r, int page, Func<TIn, TOut> map) => new()
+	public static PagedResult<TOut>	InPage<TIn, TOut>( this RawgList<TIn> r, int page, int pageSize, Func<TIn, TOut> map) => new()
 	{
 		Items = (r.Results ?? [])
 			.Select(map)
 			.ToList(),
 		Total = r.Count,
 		Page = page,
+		PageSize = pageSize,
 		IsLast = r.Next is null,
 	};
-
-	
 }

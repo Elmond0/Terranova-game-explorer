@@ -14,6 +14,13 @@ public class GamesController : ControllerBase
 		_rawg = rawg;	
 	}
 
+	[HttpGet]
+	public async Task<ActionResult<PagedResult<Game>>>	Search( [FromQuery] SearchFilter filter, CancellationToken ct )
+	{
+		PagedResult<Game>	p = await _rawg.SearchAsync(filter, ct);
+		return Ok(p);
+	}
+
 	[HttpGet("{id:int}")]
 	public async Task<ActionResult<GameDetails>>	GetGameDetails( int id, CancellationToken ct )
 	{
@@ -29,7 +36,7 @@ public class GamesController : ControllerBase
 		List<string?>? ss = await _rawg.GetScreenshotsAsync(id, ct);
 		if (ss is null)
 			return NotFound();
-		return Ok();
+		return Ok(ss);
 	}
 
 	[HttpGet("top-rated")]

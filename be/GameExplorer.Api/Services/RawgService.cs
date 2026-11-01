@@ -10,6 +10,7 @@ using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.AspNetCore.DataProtection.KeyManagement.Internal;
 using Polly;
 using Polly.Timeout;
+using Microsoft.AspNetCore.Mvc.Diagnostics;
 
 namespace GameExplorer.Api.Services;
 
@@ -31,6 +32,33 @@ public class RawgService
         _key = opt.Value.ApiKey;
         _logger = logger;
     }
+
+	private static string	BuildSearchPath( SearchFilter filter )
+	{
+		List<string> parts = [];
+
+		if (!string.IsNullOrWhiteSpace(filter.Query))
+			parts.Add($"search={Uri.EscapeDataString(filter.Query)}");
+		if (filter.GenreIds.Count > 0)
+			parts.Add($"genres={string.Join(",", filter.GenreIds)}");
+		if (filter.PlatformIds.Count > 0)
+			parts.Add($"platforms={string.Join(",", filter.PlatformIds)}");
+		if (filter.FromYear is not null || filter.ToYear is not null)
+			parts.Add($"dates={filter.FromYear ?? 1950}-01-01,{filter.ToYear ?? 2100}-12-31");
+		if (filter.MinMetacritic is not null)
+			parts.Add($"metacritic={filter.MinMetacritic},100");
+		if (filter.DeveloperIds.Count > 0)
+			parts.Add($"developers={string.Join(",", filter.DeveloperIds)}");
+		if (filter.PublisherIds.Count > 0)
+			parts.Add($"publishers={string.Join(",", filter.PublisherIds)}");
+		if (filter.StoreIds.Count > 0)
+			parts.Add($"stores={string.Join(",", filter.StoreIds)}");
+		if (!string.IsNullOrWhiteSpace(filter.Ordering))
+			parts.Add($"ordering={filter.Ordering}");
+		parts.Add($"page={filter.Page}");
+		parts.Add($"page_size={filter.PageSize}");
+		return $"games?{string.Join("&", parts)}";
+	}
 
 	private async Task<T?>  GetAsync<T>( string path, CancellationToken ct )
     {
@@ -67,7 +95,22 @@ public class RawgService
         }
     }
 
-	public async Task<List<T>>	GetCachedListAsync<TRaw, T>( string cacheKey, string path, Func<TRaw, T> convert, HybridCacheEntryOptions options, CancellationToken ct)
+	private async Task<PagedResult<T>>	GetCachedPagedResultAsync<TRaw, T>( string path, int page, int pageSize, Func<TRaw, T> convert, HybridCacheEntryOptions options, CancellationToken ct )
+	{
+		return await _cache.GetOrCreateAsync(
+			path,
+			async cancel =>
+			{
+				RawgList<TRaw>? raw = await GetAsync<RawgList<TRaw>>(path, cancel);
+				if (raw is null)
+					return new PagedResult<T>();
+				return raw.InPage<TRaw, T>(page, pageSize, convert);
+			},
+			options,
+			cancellationToken: ct);
+	}
+
+	private async Task<List<T>>	GetCachedListAsync<TRaw, T>( string cacheKey, string path, Func<TRaw, T> convert, HybridCacheEntryOptions options, CancellationToken ct)
 	{
 		return await _cache.GetOrCreateAsync(
 			cacheKey,
@@ -78,7 +121,10 @@ public class RawgService
 			},
 			options,
 			cancellationToken: ct);
-	} 
+	}
+
+	public async Task<PagedResult<Game>>	SearchAsync( SearchFilter filter, CancellationToken ct ) =>
+		await GetCachedPagedResultAsync<RawgGame, Game>(BuildSearchPath(filter), filter.Page, filter.PageSize, RawgConverter.InGame, RawgCache.Search, ct);
 
 	public async Task<GameDetails?> GetGameDetailsAsync( int id, CancellationToken ct ) =>
 		await _cache.GetOrCreateAsync( RawgCache.GameKey(id), async cancel => await LoadGameDetailsAsync(id, cancel), RawgCache.Details, cancellationToken: ct);
@@ -102,13 +148,13 @@ public class RawgService
 		await GetCachedListAsync<RawgGame, Game>( "top-rated", "games?ordering=-rating", RawgConverter.InGame, RawgCache.Home, ct );
 
 	internal async Task<List<Game>>	GetRecentAsync( CancellationToken ct ) =>
-		await GetCachedListAsync<RawgGame, Game>( "recent", "games?ordering=-released&dates=2026-09-29,2026-10-29&ordering=-released", RawgConverter.InGame, RawgCache.Home, ct );
+		await GetCachedListAsync<RawgGame, Game>( "recent", "games?dates=2026-09-29,2026-10-29&ordering=-released", RawgConverter.InGame, RawgCache.Home, ct );
 
 	internal async Task<List<Game>>	GetUpcomingAsync( CancellationToken ct ) =>
-		await GetCachedListAsync<RawgGame, Game>( "upcoming", "games?ordering=-released&dates=2026-10-29,2027-10-29&ordering=-released", RawgConverter.InGame, RawgCache.Home, ct );
+		await GetCachedListAsync<RawgGame, Game>( "upcoming", "games?dates=2026-10-29,2027-10-29&ordering=released", RawgConverter.InGame, RawgCache.Home, ct );
 
 	internal async Task<List<string?>?> GetScreenshotsAsync( int id, CancellationToken ct ) =>
-		await _cache.GetOrCreateAsync( RawgCache.GameKey(id), async cancel => await LoadScreenshotsAsync(id, cancel), RawgCache.Details, cancellationToken: ct);
+		await _cache.GetOrCreateAsync( RawgCache.ScreenshotsKey(id), async cancel => await LoadScreenshotsAsync(id, cancel), RawgCache.Details, cancellationToken: ct);
 
 	private async Task<List<string?>?> LoadScreenshotsAsync( int id, CancellationToken ct )
 	{
