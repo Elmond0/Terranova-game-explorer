@@ -10,5 +10,6 @@ internal static class RawgCache
 	public static readonly HybridCacheEntryOptions Search = new() { Expiration = TimeSpan.FromMinutes(10), LocalCacheExpiration = TimeSpan.FromMinutes(10)};
 
 	public static string GameKey( int id ) => $"game:{id}";
+	public static string ScreenshotsKey( int id ) => $"game:{id}:screenshots";
 	
 }
