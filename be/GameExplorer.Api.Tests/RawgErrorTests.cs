@@ -7,32 +7,21 @@ using Xunit;
 
 namespace GameExplorer.Api.Tests;
 
-public class RawgErrorTests
+public class RawgErrorTests : TestData
 {
-	private static readonly string[] Endpoints =
-	[
-		"api/games/3498",
-	];
+	private static async Task AssertBadGateway( HttpResponseMessage res )
+	{
+		Assert.Equal(HttpStatusCode.BadGateway, res.StatusCode);
+		Assert.Equal("application/problem+json", res.Content.Headers.ContentType?.MediaType);
+		
+		var body = await res.Content.ReadAsStringAsync();
+		using var json = JsonDocument.Parse(body);
+		Assert.Equal(502, json.RootElement.GetProperty("status").GetInt32());
 
-	private static readonly HttpStatusCode[] ErrorCodes =
-	[
-		HttpStatusCode.BadRequest,					// 400
-		HttpStatusCode.Unauthorized,				// 401
-		HttpStatusCode.Forbidden,					// 403
-		HttpStatusCode.TooManyRequests,				// 429
-		HttpStatusCode.InternalServerError,			// 500
-		HttpStatusCode.BadGateway,					// 502
-		HttpStatusCode.ServiceUnavailable,			// 503
-		HttpStatusCode.GatewayTimeout,				// 504	
-	];
-
-	public static IEnumerable<object[]> EndpointsPerCode()
-		=>	from e in Endpoints
-			from c in ErrorCodes
-			select new object[] { e, c };
-
-	public static IEnumerable<object[]> OnlyEndpoints()
-		=> Endpoints.Select(e => new object[] { e });
+		Assert.DoesNotContain(ApiFactory.FakeKey, body);
+		Assert.DoesNotContain("api.rawg.io", body);
+		Assert.DoesNotContain("Exception", body);
+	}
 
 	[Theory]
 	[MemberData(nameof(EndpointsPerCode))]
@@ -82,19 +71,4 @@ public class RawgErrorTests
 
 		Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
 	}
-
-	private static async Task AssertBadGateway( HttpResponseMessage res )
-	{
-		Assert.Equal(HttpStatusCode.BadGateway, res.StatusCode);
-		Assert.Equal("application/problem+json", res.Content.Headers.ContentType?.MediaType);
-		
-		var body = await res.Content.ReadAsStringAsync();
-		using var json = JsonDocument.Parse(body);
-		Assert.Equal(502, json.RootElement.GetProperty("status").GetInt32());
-
-		Assert.DoesNotContain(ApiFactory.FakeKey, body);
-		Assert.DoesNotContain("api.rawg.io", body);
-		Assert.DoesNotContain("Exception", body);
-	}
-
 }

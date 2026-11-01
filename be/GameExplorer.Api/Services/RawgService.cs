@@ -8,6 +8,8 @@ using System.Runtime.CompilerServices;
 using GameExplorer.Api.Errors;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.AspNetCore.DataProtection.KeyManagement.Internal;
+using Polly;
+using Polly.Timeout;
 
 namespace GameExplorer.Api.Services;
 
@@ -37,8 +39,6 @@ public class RawgService
 
         try
         {
-			_logger.LogInformation("RAWG request: {Url}", url.Replace(_key ?? "", "***"));
-			_logger.LogInformation("Key loaded: {Loaded}, length {Len}", !string.IsNullOrEmpty(_key), _key?.Length);
             using HttpResponseMessage res = await _http.GetAsync(url, ct);
             if (res.StatusCode == HttpStatusCode.NotFound)
                 return default;
@@ -49,7 +49,19 @@ public class RawgService
         {
             throw ;
         }
-        catch (Exception e) when (e is HttpRequestException or TaskCanceledException or JsonException)
+		catch (HttpRequestException e) when (e.StatusCode is HttpStatusCode.TooManyRequests)
+		{
+            throw new RawgException("Rawg rate limit", e);
+		}
+		catch (HttpRequestException e) when (e.StatusCode is HttpStatusCode.Unauthorized)
+		{
+            throw new RawgException("Rawg API key rejected", e);
+		}
+		catch (JsonException e)
+		{
+            throw new RawgException("Rawg return invalid payload", e);
+		}
+        catch (Exception e) when (e is HttpRequestException or TaskCanceledException or JsonException or TimeoutRejectedException)
         {
             throw new RawgException("Rawg does not respond", e);
         }

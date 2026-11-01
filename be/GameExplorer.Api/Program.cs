@@ -3,6 +3,8 @@ using GameExplorer.Api.Services;
 using GameExplorer.Api.Errors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Http.Resilience;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,7 +35,13 @@ builder.Services.AddHttpClient<RawgService>(c =>
 {
 	c.BaseAddress = new Uri("https://api.rawg.io/api/");
 	c.Timeout = TimeSpan.FromSeconds(10);
-});
+})
+.AddStandardResilienceHandler(options =>
+ {
+	options.Retry.MaxRetryAttempts = 2;
+	options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(3);
+	options.Retry.DisableForUnsafeHttpMethods();
+ });
 
 builder.Services.AddOptions<RawgOptions>()
 	.Bind(builder.Configuration.GetSection("Rawg"))
@@ -57,8 +65,6 @@ builder.Services.AddScoped<IGameCacheStore, GameCacheStore>();
 
 // --- Login (ASP.NET Core Identity, cookies: ADR-04) ---
 builder.Services.AddIdentityApiEndpoints<IdentityUser>().AddEntityFrameworkStores<AppDbContext>();
-
-
 
 var app = builder.Build();
 
