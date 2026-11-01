@@ -10,15 +10,15 @@ public class FakeGameApiClient : IGameApiClient
 	private static readonly Platform XboxSeries = new Platform { Id = 186, Name = "Xbox Series S/X", Slug = "xbox-series-x" };
 	private static readonly Platform XboxOne = new Platform { Id = 1, Name = "Xbox One", Slug = "xbox-one" };
 	private static readonly Platform Switch = new Platform { Id = 7, Name = "Nintendo Switch", Slug = "nintendo-switch" };
+	private static readonly List<Platform> Platforms = [Pc, Ps5, Ps4, XboxSeries, XboxOne, Switch];
 
-	private static readonly List<Genre> Genres =
-	[
-		new Genre { Id = 4, Name = "Action", Slug = "action" },
-		new Genre { Id = 5, Name = "RPG", Slug = "role-playing-games-rpg" },
-		new Genre { Id = 3, Name = "Adventure", Slug = "adventure" },
-		new Genre { Id = 7, Name = "Puzzle", Slug = "puzzle" },
-		new Genre { Id = 51, Name = "Indie", Slug = "indie" },
-	];
+	private static readonly Genre Action = new Genre { Id = 4, Name = "Action", Slug = "action" };
+	private static readonly Genre Rpg = new Genre { Id = 5, Name = "RPG", Slug = "role-playing-games-rpg" };
+	private static readonly Genre Adventure = new Genre { Id = 3, Name = "Adventure", Slug = "adventure" };
+	private static readonly Genre Puzzle = new Genre { Id = 7, Name = "Puzzle", Slug = "puzzle" };
+	private static readonly Genre Indie = new Genre { Id = 51, Name = "Indie", Slug = "indie" };
+
+	private static readonly List<Genre> Genres = [Action, Rpg, Adventure, Puzzle, Indie];
 
 	// Copertine vere di RAWG: le prime tre sono dei giochi omonimi, le altre servono per i titoli inventati
 	private const string Witcher3Cover = "https://media.rawg.io/media/games/618/618c2031a07bbff6b4f611f10b6bcdbc.jpg";
@@ -40,6 +40,7 @@ public class FakeGameApiClient : IGameApiClient
 			ReleaseDate = new DateOnly(2015, 05, 18),
 			Metacritic = 92,
 			Platforms = [Pc, Ps4, XboxOne, Switch],
+			Genres = [Action, Rpg]
 		},
 		new Game
 		{
@@ -51,6 +52,7 @@ public class FakeGameApiClient : IGameApiClient
 			ReleaseDate = new DateOnly(2011, 04, 18),
 			Metacritic = 95,
 			Platforms = [Pc],
+			Genres = [Puzzle]
 		},
 		new Game
 		{
@@ -62,6 +64,7 @@ public class FakeGameApiClient : IGameApiClient
 			ReleaseDate = new DateOnly(2013, 09, 17),
 			Metacritic = 92,
 			Platforms = [Pc, Ps5, Ps4, XboxSeries, XboxOne],
+			Genres = [Action, Adventure]
 		},
 		new Game
 		{
@@ -73,6 +76,7 @@ public class FakeGameApiClient : IGameApiClient
 			ReleaseDate = new DateOnly(2019, 03, 01),
 			Metacritic = 81,
 			Platforms = [Pc],
+			Genres = [Indie, Puzzle]
 		}
 	];
 
@@ -88,6 +92,7 @@ public class FakeGameApiClient : IGameApiClient
 			ReleaseDate = new DateOnly(2026, 10, 20),
 			Metacritic = 78,
 			Platforms = [Ps5, XboxSeries, Pc],
+			Genres = [Action, Adventure]
 		},
 		new Game
 		{
@@ -98,6 +103,7 @@ public class FakeGameApiClient : IGameApiClient
 			Image = SampleCover2,
 			ReleaseDate = new DateOnly(2026, 10, 12),
 			Platforms = [Switch],
+			Genres = [Rpg, Adventure]
 		},
 		new Game
 		{
@@ -107,6 +113,7 @@ public class FakeGameApiClient : IGameApiClient
 			Rating = 0,
 			Image = SampleCover3,
 			ReleaseDate = new DateOnly(2026, 10, 05),
+			Genres = []
 		},
 		new Game
 		{
@@ -118,6 +125,7 @@ public class FakeGameApiClient : IGameApiClient
 			ReleaseDate = new DateOnly(2026, 09, 30),
 			Metacritic = 70,
 			Platforms = [Pc],
+			Genres = [Indie]
 		}
 	];
 
@@ -132,6 +140,7 @@ public class FakeGameApiClient : IGameApiClient
 			Image = SampleCover1,
 			ReleaseDate = new DateOnly(2026, 11, 14),
 			Platforms = [Ps5, XboxSeries],
+			Genres = [Action]
 		},
 		new Game
 		{
@@ -142,6 +151,7 @@ public class FakeGameApiClient : IGameApiClient
 			Image = SampleCover3,
 			ReleaseDate = new DateOnly(2027, 03, 02),
 			Platforms = [Pc, Ps5],
+			Genres = [Action, Adventure]
 		},
 		new Game
 		{
@@ -151,6 +161,7 @@ public class FakeGameApiClient : IGameApiClient
 			Rating = 0,
 			Image = null,
 			Platforms = [Pc],
+			Genres = [Adventure, Puzzle]
 		},
 		new Game
 		{
@@ -161,10 +172,37 @@ public class FakeGameApiClient : IGameApiClient
 			Image = SampleCover2,
 			ReleaseDate = new DateOnly(2027, 06, 18),
 			Platforms = [Switch],
+			Genres = [Indie]
 		}
 	];
 
-	private static IEnumerable<Game> AllGames => TopRated.Concat(Recent).Concat(Upcoming);
+	private static readonly List<Game> SearchOnly =
+	[
+		new Game
+		{
+			Id = 22511,
+			Name = "The Legend of Zelda: Breath of the Wild",
+			Slug = "the-legend-of-zelda-breath-of-the-wild",
+			Rating = 4.5,
+			Image = "https://media.rawg.io/media/games/511/5118aff5091cb3efec399c808f8c598f.jpg",
+			ReleaseDate = new DateOnly(2017, 03, 03),
+			Metacritic = 97,
+			Platforms = [Switch],
+			Genres = [Action, Adventure],
+		},
+		.. Enumerable.Range(1, 25).Select(i => new Game {
+				Id = 900300 + i,
+				Name = $"Gioco di prova {i}",
+				Slug = $"gioco-di-prova-{i}",
+				Rating = 3 + (i % 20) / 10.0,
+				Image = SampleCover2,
+				ReleaseDate = new DateOnly(2000 + i, 1, 1),
+				Metacritic = 60 + i,
+				Platforms = [Platforms[i % 6]],
+				Genres = [Genres[i % 5]],
+			}),
+	];
+	private static IEnumerable<Game> AllGames => TopRated.Concat(Recent).Concat(Upcoming).Concat(SearchOnly);
 
 	// true: ogni metodo lancia ApiException, per provare ErrorMessage e "Riprova".
 	// Si attiva in Program.cs: AddScoped<IGameApiClient>(_ => new FakeGameApiClient { SimulateError = true })
@@ -188,23 +226,58 @@ public class FakeGameApiClient : IGameApiClient
 		return Upcoming;
 	}
 
-	// Cerca solo per testo nel nome: gli altri filtri li applica la Web API vera
+	// Filtra, ordina e pagina come la Web API vera; sviluppatori, publisher e store li ignora
 	public async Task<PagedResult<Game>> SearchAsync(SearchFilter filter, CancellationToken cancellationToken = default)
 	{
 		await DelayAsync(cancellationToken);
 
 		var games = AllGames;
 		if (!string.IsNullOrWhiteSpace(filter.Query))
-			games = games.Where(g => g.Name.Contains(filter.Query, StringComparison.OrdinalIgnoreCase));
-
-		var items = games.ToList();
+			games = games.Where(g =>
+				g.Name.Contains(filter.Query, StringComparison.OrdinalIgnoreCase)
+				|| Initials(g.Name).Contains(filter.Query.Trim(), StringComparison.OrdinalIgnoreCase));
+		if (filter.GenreIds.Count > 0)
+		{
+			games = games.Where(g =>
+				g.Genres.Any(genre =>
+					filter.GenreIds.Contains(genre.Id)));
+		}
+		if (filter.PlatformIds.Count > 0)
+		{
+			games = games.Where(g =>
+				g.Platforms.Any(platform =>
+					filter.PlatformIds.Contains(platform.Id)));
+		}
+		if (filter.FromYear is not null)
+			games = games.Where(g => g.ReleaseDate?.Year >= filter.FromYear);
+		if (filter.ToYear is not null)
+			games = games.Where(g => g.ReleaseDate?.Year <= filter.ToYear);
+		if (filter.MinMetacritic is not null)
+			games = games.Where(g => g.Metacritic >= filter.MinMetacritic);
+		games = filter.Ordering switch
+		{
+			"rating" => games.OrderBy(g => g.Rating),
+			"-rating" => games.OrderByDescending(g => g.Rating),
+			"released" => games.OrderBy(g => g.ReleaseDate),
+			"-released" => games.OrderByDescending(g => g.ReleaseDate),
+			"name" => games.OrderBy(g => g.Name),
+			"-name" => games.OrderByDescending(g => g.Name),
+			"metacritic" => games.OrderBy(g => g.Metacritic),
+			"-metacritic" => games.OrderByDescending(g => g.Metacritic),
+			_ => games
+		};
+		var total = games.Count();
+		var items = games
+			.Skip((filter.Page - 1) * filter.PageSize)
+			.Take(filter.PageSize)
+			.ToList();
 		return new PagedResult<Game>
 		{
 			Items = items,
-			Total = items.Count,
-			Page = 1,
+			Total = total,
+			Page = filter.Page,
 			PageSize = filter.PageSize,
-			IsLast = true,
+			IsLast = filter.Page * filter.PageSize >= total,
 		};
 	}
 
@@ -241,8 +314,12 @@ public class FakeGameApiClient : IGameApiClient
 	public async Task<List<Platform>> GetPlatformsAsync(CancellationToken cancellationToken = default)
 	{
 		await DelayAsync(cancellationToken);
-		return [Pc, Ps5, Ps4, XboxSeries, XboxOne, Switch];
+		return Platforms;
 	}
+
+	// Iniziali delle parole del nome: "Grand Theft Auto V" → "GTAV", così "gta" trova il gioco come su RAWG
+	private static string Initials(string name) =>
+		string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(word => word[0]));
 
 	// Attesa finta della rete e, se richiesto, errore simulato: comuni a tutti i metodi
 	private async Task DelayAsync(CancellationToken cancellationToken)
