@@ -1,12 +1,7 @@
-using System.Runtime.Serialization;
-using GameExplorer.Api.Data;
-using GameExplorer.Api.Data.Entities;
 using GameExplorer.Api.Services;
-using GameExplorer.Shared.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace GameExplorer.Api.Tests;
 
@@ -26,9 +21,6 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
 		builder.UseSetting("ConnectionStrings:Default", "Host=localhost;Port=1;Database=not_used;Username=test;Password=test");
 		builder.ConfigureServices(services
 			=>	{
-					services.RemoveAll<IGameCacheStore>();
-					services.AddScoped<IGameCacheStore, EmptyGameCacheStore>();
-
 					services.AddHttpClient<RawgService>()
 						.ConfigurePrimaryHttpMessageHandler(() => _rawg )
 						.ConfigureHttpClient(c
@@ -38,13 +30,4 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
 
 				});
 	}
-}
-
-internal sealed class EmptyGameCacheStore : IGameCacheStore
-{
-	public Task<GameCacheEntry?> FindAsync( int rawId, CancellationToken ct )
-		=> Task.FromResult<GameCacheEntry?>(null);
-
-	public Task	SaveAsync( GameDetails game, CancellationToken ct )
-		=> Task.CompletedTask;
 }

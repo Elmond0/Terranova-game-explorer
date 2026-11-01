@@ -154,15 +154,15 @@ jobs:
           ./db/scripts/migrate.sh
           ./db/scripts/migrate.sh
 
-      - name: Runtime user reads game_cache but cannot drop it
+      - name: Runtime user reads game_snapshots but cannot drop it
         run: |
-          test "$(docker compose exec -T db psql -U terranova_api -d terranova -tAc 'select count(*) from game_cache')" = "0"
-          if out="$(docker compose exec -T db psql -U terranova_api -d terranova -c 'drop table game_cache' 2>&1)"; then
-            echo "::error::terranova_api can drop game_cache"
+          test "$(docker compose exec -T db psql -U terranova_api -d terranova -tAc 'select count(*) from game_snapshots')" = "0"
+          if out="$(docker compose exec -T db psql -U terranova_api -d terranova -c 'drop table game_snapshots' 2>&1)"; then
+            echo "::error::terranova_api can drop game_snapshots"
             exit 1
           fi
           echo "$out"
-          grep -q "must be owner of table game_cache" <<< "$out"
+          grep -q "must be owner of table game_snapshots" <<< "$out"
 
       - name: Backup, then restore as the migrations user
         run: |

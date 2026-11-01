@@ -384,9 +384,9 @@ Oggi `main` non è protetto: le regole valgono perché le rispettiamo noi. Per f
 | Restrict deletions · Block force pushes | ✅ |
 | Require a pull request before merging | ✅, con **1** approvazione |
 | Allowed merge methods | solo **Squash** |
-| Require status checks to pass | i controlli di `database.yml` (e di `backend.yml` quando esiste) |
+| Require status checks to pass | **no**: `database.yml` parte solo sulle PR che toccano il database, e un controllo obbligatorio che non parte lascia le altre PR bloccate su "Waiting for status to be reported" |
 
-Da quel momento un push diretto su `main` viene rifiutato, e il pulsante di merge resta grigio finché un compagno non approva e i controlli automatici non sono verdi.
+Da quel momento un push diretto su `main` viene rifiutato, e il pulsante di merge resta grigio finché un compagno non approva. La CI del backend non c'è (#37 tolta il 01/11/2026): prima di ogni PR si lanciano `dotnet build` e `dotnet test` in locale, con Docker acceso, e lo si scrive in "Come verificare".
 
 ---
 

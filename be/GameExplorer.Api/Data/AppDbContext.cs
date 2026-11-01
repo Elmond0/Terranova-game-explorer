@@ -8,7 +8,7 @@ namespace GameExplorer.Api.Data;
 public class AppDbContext(DbContextOptions<AppDbContext> options)
 	: IdentityDbContext<IdentityUser>(options)
 {
-	public DbSet<GameCacheEntry> GameCache => Set<GameCacheEntry>();
+	public DbSet<GameSnapshot> GameSnapshots => Set<GameSnapshot>();
 	
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
