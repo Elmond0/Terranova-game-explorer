@@ -1,6 +1,6 @@
 # ADR-05 — Database: utenti, migrazioni e cache
 
-- **Stato:** Accettato <!-- Proposto → Accettato -->
+- **Stato:** Accettato; il punto *Cache dei giochi* è sostituito dall'[ADR-06](adr-06-account-preferiti.md) (punto 10) <!-- Proposto → Accettato -->
 - **Data:** <!-- gg/mm/aaaa della decisione -->
 - **Decisori:** Elmond0 (database), con la revisione di K0ff33Blu3 e fmartini02
 
