@@ -7,7 +7,7 @@ using Npgsql;
 
 namespace GameExplorer.Api.Tests.Data;
 
-public class GameCacheStoreTests(PostgresFixture pg) : IClassFixture<PostgresFixture>
+public class GameSnapshotStoreTests(PostgresFixture pg) : IClassFixture<PostgresFixture>
 {
 	static GameDetails NewGame(int id, string slug, double rating = 4.2) => new()
 	{
@@ -22,7 +22,7 @@ public class GameCacheStoreTests(PostgresFixture pg) : IClassFixture<PostgresFix
 	async Task SaveAsync(GameDetails game)
 	{
 		await using AppDbContext db = pg.CreateContext();
-		await new GameCacheStore(db).SaveAsync(game, default);
+		await new GameSnapshotStore(db).SaveAsync(game, default);
 	}
 
 	[Fact]
@@ -31,7 +31,7 @@ public class GameCacheStoreTests(PostgresFixture pg) : IClassFixture<PostgresFix
 		await SaveAsync(NewGame(1, "one"));
 
 		await using AppDbContext db = pg.CreateContext();
-		GameCacheEntry? entry = await new GameCacheStore(db).FindAsync(1, default);
+		GameSnapshot? entry = await db.GameSnapshots.AsNoTracking().SingleOrDefaultAsync(g => g.RawgId == 1);
 
 		Assert.NotNull(entry);
 		Assert.Equal("one", entry.Slug);
@@ -49,7 +49,7 @@ public class GameCacheStoreTests(PostgresFixture pg) : IClassFixture<PostgresFix
 		await SaveAsync(changed);
 
 		await using AppDbContext db = pg.CreateContext();
-		GameCacheEntry row = await db.GameCache.SingleAsync(g => g.RawgId == 2);
+		GameSnapshot row = await db.GameSnapshots.SingleAsync(g => g.RawgId == 2);
 		Assert.Equal("Renamed", row.Name);
 	}
 
@@ -58,16 +58,16 @@ public class GameCacheStoreTests(PostgresFixture pg) : IClassFixture<PostgresFix
 	{
 		var ex = await Assert.ThrowsAsync<DbUpdateException>(() => SaveAsync(NewGame(3, "three", rating: 7)));
 
-		Assert.Equal("ck_game_cache_rating", Assert.IsType<PostgresException>(ex.InnerException).ConstraintName);
+		Assert.Equal("ck_game_snapshots_rating", Assert.IsType<PostgresException>(ex.InnerException).ConstraintName);
 	}
 
 	[Fact]
-	public async Task Same_slug_twice_is_rejected()
+	public async Task Same_slug_on_two_games_is_accepted()
 	{
 		await SaveAsync(NewGame(4, "dup"));
+		await SaveAsync(NewGame(5, "dup"));
 
-		var ex = await Assert.ThrowsAsync<DbUpdateException>(() => SaveAsync(NewGame(5, "dup")));
-
-		Assert.Equal("ix_game_cache_slug", Assert.IsType<PostgresException>(ex.InnerException).ConstraintName);
+		await using AppDbContext db = pg.CreateContext();
+		Assert.Equal(2, await db.GameSnapshots.CountAsync(g => g.Slug == "dup"));
 	}
 }
