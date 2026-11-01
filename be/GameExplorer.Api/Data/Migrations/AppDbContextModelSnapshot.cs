@@ -63,17 +63,13 @@ namespace GameExplorer.Api.Data.Migrations
                         .HasColumnName("updated_at");
 
                     b.HasKey("RawgId")
-                        .HasName("pk_game_cache");
+                        .HasName("pk_game_snapshots");
 
-                    b.HasIndex("Slug")
-                        .IsUnique()
-                        .HasDatabaseName("ix_game_cache_slug");
-
-                    b.ToTable("game_cache", null, t =>
+                    b.ToTable("game_snapshots", null, t =>
                         {
-                            t.HasCheckConstraint("ck_game_cache_metacritic", "metacritic BETWEEN 0 AND 100");
+                            t.HasCheckConstraint("ck_game_snapshots_metacritic", "metacritic BETWEEN 0 AND 100");
 
-                            t.HasCheckConstraint("ck_game_cache_rating", "rating BETWEEN 0 AND 5");
+                            t.HasCheckConstraint("ck_game_snapshots_rating", "rating BETWEEN 0 AND 5");
                         });
                 });
 
