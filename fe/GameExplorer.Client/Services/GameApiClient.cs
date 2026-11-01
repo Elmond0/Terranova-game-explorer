@@ -76,35 +76,38 @@ public class GameApiClient : IGameApiClient
 		}
 	}
 
-	// Unico punto in cui SearchFilter diventa query string (ADR-02: nomi in camelCase, liste separate da virgole).
+	// Unico punto in cui SearchFilter diventa query string: nomi delle proprietà in camelCase,
+	// liste con la chiave ripetuta (?genreIds=4&genreIds=3), come le legge [FromQuery] SearchFilter.
 	// Se la Web API cambia i nomi dei parametri, si corregge solo qui.
 	private static string BuildQueryString(SearchFilter filter)
 	{
 		List<string> parts = [];
 
 		if (!string.IsNullOrWhiteSpace(filter.Query))
-			parts.Add($"text={Uri.EscapeDataString(filter.Query)}");
-		if (filter.GenreIds.Count > 0)
-			parts.Add($"genreIds={string.Join(",", filter.GenreIds)}");
-		if (filter.PlatformIds.Count > 0)
-			parts.Add($"platformIds={string.Join(",", filter.PlatformIds)}");
+			parts.Add($"query={Uri.EscapeDataString(filter.Query)}");
+		AddList(parts, "genreIds", filter.GenreIds);
+		AddList(parts, "platformIds", filter.PlatformIds);
 		if (filter.FromYear is not null)
 			parts.Add($"fromYear={filter.FromYear}");
 		if (filter.ToYear is not null)
 			parts.Add($"toYear={filter.ToYear}");
 		if (filter.MinMetacritic is not null)
 			parts.Add($"minMetacritic={filter.MinMetacritic}");
-		if (filter.DeveloperIds.Count > 0)
-			parts.Add($"developerIds={string.Join(",", filter.DeveloperIds)}");
-		if (filter.PublisherIds.Count > 0)
-			parts.Add($"publisherIds={string.Join(",", filter.PublisherIds)}");
-		if (filter.StoreIds.Count > 0)
-			parts.Add($"storeIds={string.Join(",", filter.StoreIds)}");
+		AddList(parts, "developerIds", filter.DeveloperIds);
+		AddList(parts, "publisherIds", filter.PublisherIds);
+		AddList(parts, "storeIds", filter.StoreIds);
 		if (!string.IsNullOrWhiteSpace(filter.Ordering))
 			parts.Add($"ordering={Uri.EscapeDataString(filter.Ordering)}");
 		parts.Add($"page={filter.Page}");
 		parts.Add($"pageSize={filter.PageSize}");
 
 		return string.Join("&", parts);
+	}
+
+	// Una coppia chiave=valore per ogni id: [4, 3] → genreIds=4&genreIds=3
+	private static void AddList(List<string> parts, string key, List<int> ids)
+	{
+		foreach (var id in ids)
+			parts.Add($"{key}={id}");
 	}
 }

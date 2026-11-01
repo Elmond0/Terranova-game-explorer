@@ -1,0 +1,401 @@
+@page "/search"
+@inject IGameApiClient Api
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@implements IDisposable
+@using System.Globalization
+
+<PageTitle>Ricerca</PageTitle>
+
+<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">
+	Cerca giochi
+</MudText>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-4">
+	<MudTextField
+		T="string"
+		Value="_query"
+		ValueChanged="OnQueryChanged"
+		DebounceInterval="300"
+		Clearable="true"
+		Placeholder="Cerca un gioco..."
+		Variant="Variant.Outlined"
+		Adornment="Adornment.End"
+		AdornmentIcon="@Icons.Material.Filled.Search"
+	/>
+	@* Solo su schermi piccoli: lì i filtri stanno nel MudDrawer *@
+	<MudButton
+		Class="d-md-none"
+		OnClick="() => _filtersOpen = true"
+		Variant="Variant.Outlined"
+		StartIcon="@Icons.Material.Filled.FilterList">
+		Filtri@(ActiveFilterCount > 0 ? $" ({ActiveFilterCount})" : "")
+	</MudButton>
+</MudStack>
+
+<MudDrawer
+	@bind-Open="_filtersOpen"
+	Anchor="Anchor.End"
+	Variant="DrawerVariant.Temporary"
+	Width="320px">
+	<MudDrawerHeader Class="align-center">
+		<MudText Typo="Typo.h6">Filtri</MudText>
+		<MudSpacer/>
+		<MudIconButton
+			Icon="@Icons.Material.Filled.Close"
+			OnClick="() => _filtersOpen = false"
+			aria-label="Chiudi i filtri"
+		/>
+	</MudDrawerHeader>
+	<div class="px-4 pb-4">
+		@FiltersPanel
+	</div>
+</MudDrawer>
+
+<MudGrid>
+	@* Da md in su i filtri stanno in una colonna a sinistra *@
+	<MudItem md="3" Class="d-none d-md-block">
+		@FiltersPanel
+	</MudItem>
+
+	<MudItem xs="12" md="9">
+		@if (_error)
+		{
+			<ErrorMessage OnRetry="LoadAsync"/>
+		}
+		else if (_result is null)
+		{
+			<MudGrid Spacing="3">
+				@for (var i = 0; i < 6; i++)
+				{
+					<MudItem xs="12" sm="6" lg="4">
+						<SkeletonCard/>
+					</MudItem>
+				}
+			</MudGrid>
+		}
+		else if (_result.Items is null or { Count: 0 })
+		{
+			<NoResults/>
+		}
+		else
+		{
+			<MudText Typo="Typo.body2" Class="mud-text-secondary mb-2" role="status">
+				@TotalText
+			</MudText>
+			<MudGrid Spacing="3">
+				@foreach (var game in _result.Items)
+				{
+					<MudItem xs="12" sm="6" lg="4">
+						<GameCard Game="game"/>
+					</MudItem>
+				}
+			</MudGrid>
+			@if (PageCount > 1)
+			{
+				<MudStack AlignItems="AlignItems.Center" Class="mt-6">
+					<MudPagination
+						Count="PageCount"
+						Selected="CurrentPage"
+						SelectedChanged="OnPageChanged"
+						Color="Color.Primary"
+					/>
+				</MudStack>
+			}
+		}
+	</MudItem>
+</MudGrid>
+
+@code {
+	private const int PageSize = 20;
+
+	// Le voci del menu "Ordina per": valore RAWG senza "-" e testo da mostrare
+	private static readonly (string Value, string Label)[] OrderFields =
+	[
+		("name", "Nome"),
+		("released", "Data di uscita"),
+		("rating", "Voto"),
+		("metacritic", "Metacritic"),
+	];
+
+	[SupplyParameterFromQuery(Name = "q")] string? Query { get; set; }
+	[SupplyParameterFromQuery] int[]? Genres { get; set; }
+	[SupplyParameterFromQuery] int[]? Platforms { get; set; }
+	[SupplyParameterFromQuery] int? FromYear { get; set; }
+	[SupplyParameterFromQuery] int? ToYear { get; set; }
+	[SupplyParameterFromQuery] int? Metacritic { get; set; }
+	[SupplyParameterFromQuery] string? Ordering { get; set; }
+	[SupplyParameterFromQuery] int? Page { get; set; }
+	private PagedResult<Game>? _result;
+	private bool _error;
+	private CancellationTokenSource? _cts;
+	private string? _query;
+	private List<Genre> _genres = [];
+	private List<Platform> _platforms = [];
+	private bool _filtersOpen;
+
+	// ?page=0 o negativo scritto a mano nell'indirizzo vale come pagina 1
+	private int CurrentPage => Math.Max(Page ?? 1, 1);
+	// SearchFilter.Validate rifiuta "Dal" dopo "Al": la Web API risponderebbe 400
+	private bool YearsInverted => FromYear > ToYear;
+	private int PageCount => _result is null ? 0 : (int)Math.Ceiling(_result.Total / (double)PageSize);
+	private string TotalText => _result?.Total == 1
+		? "1 gioco trovato"
+		: $"{_result?.Total.ToString("N0", CultureInfo.GetCultureInfo("it-IT"))} giochi trovati";
+
+	// "-rating" → campo "rating", verso decrescente
+	private string? OrderField => Ordering?.TrimStart('-');
+	private bool OrderDescending => Ordering?.StartsWith('-') ?? false;
+
+	private int ActiveFilterCount =>
+		(Genres?.Length > 0 ? 1 : 0) + (Platforms?.Length > 0 ? 1 : 0)
+		+ (FromYear is not null ? 1 : 0) + (ToYear is not null ? 1 : 0)
+		+ (Metacritic is not null ? 1 : 0) + (Ordering is not null ? 1 : 0);
+
+	// Lo stesso pannello compare due volte: nella colonna (schermi grandi) e nel MudDrawer (smartphone)
+	// @key: MudSelect calcola il testo ("Action, Adventure") una volta sola, quindi si ricrea quando arrivano gli elenchi
+	private RenderFragment FiltersPanel => @<MudStack Spacing="3">
+		<MudSelect
+			@key="@($"genres-{_genres.Count}")"
+			T="int"
+			Label="Generi"
+			MultiSelection="true"
+			SelectedValues="Genres"
+			SelectedValuesChanged="OnGenresChanged"
+			ToStringFunc="GenreName"
+			Clearable="true"
+			Variant="Variant.Outlined">
+			@foreach (var genre in _genres)
+			{
+				<MudSelectItem T="int" Value="genre.Id">@genre.Name</MudSelectItem>
+			}
+		</MudSelect>
+		<MudSelect
+			@key="@($"platforms-{_platforms.Count}")"
+			T="int"
+			Label="Piattaforme"
+			MultiSelection="true"
+			SelectedValues="Platforms"
+			SelectedValuesChanged="OnPlatformsChanged"
+			ToStringFunc="PlatformName"
+			Clearable="true"
+			Variant="Variant.Outlined">
+			@foreach (var platform in _platforms)
+			{
+				<MudSelectItem T="int" Value="platform.Id">@platform.Name</MudSelectItem>
+			}
+		</MudSelect>
+		<MudStack Row="true" Spacing="2">
+			<MudNumericField
+				T="int?"
+				Label="Dal"
+				Value="FromYear"
+				ValueChanged="@((int? v) => NavigateWith("fromYear", v))"
+				Min="1950"
+				Max="2100"
+				DebounceInterval="500"
+				HideSpinButtons="true"
+				Variant="Variant.Outlined"
+			/>
+			<MudNumericField
+				T="int?"
+				Label="Al"
+				Value="ToYear"
+				ValueChanged="@((int? v) => NavigateWith("toYear", v))"
+				Error="YearsInverted"
+				ErrorText="Prima di «Dal»"
+				Min="1950"
+				Max="2100"
+				DebounceInterval="500"
+				HideSpinButtons="true"
+				Variant="Variant.Outlined"
+			/>
+		</MudStack>
+		<MudNumericField
+			T="int?"
+			Label="Metacritic minimo"
+			Value="Metacritic"
+			ValueChanged="@((int? v) => NavigateWith("metacritic", v))"
+			Min="0"
+			Max="100"
+			DebounceInterval="500"
+			HideSpinButtons="true"
+			Variant="Variant.Outlined"
+		/>
+		<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+			<MudSelect
+				T="string"
+				Label="Ordina per"
+				Value="OrderField"
+				ValueChanged="OnOrderFieldChanged"
+				ToStringFunc="OrderLabel"
+				Clearable="true"
+				Variant="Variant.Outlined">
+				@foreach (var order in OrderFields)
+				{
+					<MudSelectItem T="string" Value="order.Value">@order.Label</MudSelectItem>
+				}
+			</MudSelect>
+			<MudTooltip Text="@(OrderDescending ? "Decrescente" : "Crescente")">
+				<MudIconButton
+					Icon="@(OrderDescending ? Icons.Material.Filled.ArrowDownward : Icons.Material.Filled.ArrowUpward)"
+					OnClick="ToggleOrderDirection"
+					Disabled="OrderField is null"
+					aria-label="@(OrderDescending ? "Ordine decrescente, passa a crescente" : "Ordine crescente, passa a decrescente")"
+				/>
+			</MudTooltip>
+		</MudStack>
+		@if (ActiveFilterCount > 0)
+		{
+			<MudButton
+				OnClick="ResetFilters"
+				Variant="Variant.Text"
+				StartIcon="@Icons.Material.Filled.FilterListOff">
+				Azzera filtri
+			</MudButton>
+		}
+	</MudStack>;
+
+	// Generi e piattaforme non dipendono dall'indirizzo: si caricano una volta sola, senza far aspettare la ricerca
+	protected override void OnInitialized() => _ = LoadFilterListsAsync();
+
+	protected override Task OnParametersSetAsync()
+	{
+		_query = Query;
+		return LoadAsync();
+	}
+
+	private async Task LoadFilterListsAsync()
+	{
+		try
+		{
+			var genres = Api.GetGenresAsync();
+			var platforms = Api.GetPlatformsAsync();
+			_genres = await genres;
+			_platforms = await platforms;
+			StateHasChanged();
+		}
+		catch (ApiException)
+		{
+			// Senza elenchi i due menu restano vuoti, ma la ricerca funziona lo stesso
+		}
+	}
+
+	private async Task LoadAsync()
+	{
+		_cts?.Cancel();
+		_cts?.Dispose();
+		_cts = new CancellationTokenSource();
+		var token = _cts.Token;
+		_error = false;
+		_result = null;
+		if (YearsInverted)
+		{
+			_result = new PagedResult<Game>();
+			return;
+		}
+		var filter = new SearchFilter
+		{
+			Query = Query ?? "",
+			GenreIds = Genres?.ToList() ?? [],
+			PlatformIds = Platforms?.ToList() ?? [],
+			FromYear = FromYear,
+			ToYear = ToYear,
+			MinMetacritic = Metacritic,
+			Ordering = Ordering,
+			Page = CurrentPage,
+			PageSize = PageSize,
+		};
+		try
+		{
+			_result = await Api.SearchAsync(filter, token);
+		}
+		catch (ApiException)
+		{
+			_error = true;
+		}
+		catch (OperationCanceledException) { }
+	}
+
+	public void Dispose()
+	{
+		_cts?.Cancel();
+		_cts?.Dispose();
+	}
+
+	private string GenreName(int id) => _genres.FirstOrDefault(g => g.Id == id)?.Name ?? id.ToString();
+
+	private string PlatformName(int id) => _platforms.FirstOrDefault(p => p.Id == id)?.Name ?? id.ToString();
+
+	private static string? OrderLabel(string? value) => OrderFields.FirstOrDefault(o => o.Value == value).Label ?? value;
+
+	private void OnQueryChanged(string? value)
+	{
+		_query = value;
+		NavigateWith("q", string.IsNullOrWhiteSpace(value) ? null : value);
+	}
+
+	private void OnGenresChanged(IEnumerable<int> values) =>
+		NavigateWith("genres", values.Any() ? values.ToArray() : null);
+
+	private void OnPlatformsChanged(IEnumerable<int> values) =>
+		NavigateWith("platforms", values.Any() ? values.ToArray() : null);
+
+	// Un campo nuovo tiene il verso scelto prima; senza un ordinamento precedente,
+	// il nome va dalla A alla Z e gli altri dal valore più alto
+	private void OnOrderFieldChanged(string? field)
+	{
+		if (field is null)
+		{
+			NavigateWith("ordering", null);
+			return;
+		}
+		var descending = Ordering is null ? field != "name" : OrderDescending;
+		NavigateWith("ordering", descending ? $"-{field}" : field);
+	}
+
+	private void ToggleOrderDirection()
+	{
+		if (OrderField is null)
+			return;
+		NavigateWith("ordering", OrderDescending ? OrderField : $"-{OrderField}");
+	}
+
+	// Il testo resta: "Azzera filtri" toglie solo i filtri e l'ordinamento
+	private void ResetFilters()
+	{
+		Navigate(new Dictionary<string, object?>
+		{
+			["genres"] = null,
+			["platforms"] = null,
+			["fromYear"] = null,
+			["toYear"] = null,
+			["metacritic"] = null,
+			["ordering"] = null,
+			["page"] = null,
+		});
+	}
+
+	// La pagina 1 non si scrive nell'indirizzo: /search?q=zelda e /search?q=zelda&page=1 sono la stessa ricerca
+	private async Task OnPageChanged(int page)
+	{
+		Navigate(new Dictionary<string, object?> { ["page"] = page == 1 ? null : page });
+		await JS.InvokeVoidAsync("scrollTo", 0, 0);
+	}
+
+	// Un filtro nuovo riporta sempre a pagina 1
+	private void NavigateWith(string key, object? value)
+	{
+		Navigate(new Dictionary<string, object?>
+		{
+			[key] = value,
+			["page"] = null,
+		});
+	}
+
+	// Cambia solo l'indirizzo: la ricerca la fa partire OnParametersSetAsync
+	private void Navigate(Dictionary<string, object?> changes)
+	{
+		Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(changes));
+	}
+}
