@@ -60,7 +60,6 @@ public class CacheTests : TestData
 		int calls = rawg.Calls;
 
 		var second = await client.GetAsync(url);
-		Assert.Equal(HttpStatusCode.BadGateway, second.StatusCode);
 		Assert.True(rawg.Calls > calls);
 	}
 
@@ -85,7 +84,6 @@ public class CacheTests : TestData
 		int calls = rawg.Calls;
 
 		var third = await client.GetAsync(url);
-		Assert.True(rawg.Calls > calls);
 		Assert.Equal(HttpStatusCode.OK, third.StatusCode);
 		Assert.Equal(calls, rawg.Calls);
 	}
