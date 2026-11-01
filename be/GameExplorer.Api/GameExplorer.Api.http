@@ -4,4 +4,16 @@ GET {{Api_HostAddress}}/api/games/3498
 ###
 GET {{Api_HostAddress}}/api/games/3498/screenshots
 ###
-GET https://api.rawg.io/api/games/3498?key=7ba89b621dd44c00a8dd325b79bc1e2e
+GET {{Api_HostAddress}}/api/games/top-rated
+###
+GET {{Api_HostAddress}}/api/games/upcoming
+###
+GET {{Api_HostAddress}}/api/games/recent
+###
+GET {{Api_HostAddress}}/api/genres
+###
+GET {{Api_HostAddress}}/api/platforms
+###
+GET {{Api_HostAddress}}/api/games?query=zelda&genreIds=4&genreIds=3&platformIds=7&fromYear=2017&toYear=2024&minMetacritic=80&storeIds=6&ordering=-rating&page=1&pageSize=20
+###
+GET https://api.rawg.io/api/games/3498/screenshots

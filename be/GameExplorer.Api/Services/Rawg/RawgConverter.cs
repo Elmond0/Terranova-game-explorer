@@ -39,7 +39,7 @@ internal static class RawgConverter
 		Name = r.Name,
 	};
 
-	public static GameDetails		InDetails( RawgGameDetails r, List<RawgScreenshot>? shots )
+	public static GameDetails		InDetails( RawgGameDetails r, List<string?>? shots )
 	{
 		var base_ = r.InGame();
 
@@ -67,7 +67,8 @@ internal static class RawgConverter
 				.ToList(),
 
 			Screenshots = (shots ?? [])
-				.Select(s => s.Image)
+				.Where(s => s is not null)
+				.Select(s => s)
 				.ToList(),
 
 			WhereToBuy = (r.Stores ?? [])
@@ -99,13 +100,14 @@ internal static class RawgConverter
 		Url = string.IsNullOrWhiteSpace(r.Url) ? null : r.Url,
 	};
 
-	public static PagedResult<TOut>	InPage<TIn, TOut>( this RawgList<TIn> r, int page, Func<TIn, TOut> map) => new()
+	public static PagedResult<TOut>	InPage<TIn, TOut>( this RawgList<TIn> r, int page, int pageSize, Func<TIn, TOut> map) => new()
 	{
 		Items = (r.Results ?? [])
 			.Select(map)
 			.ToList(),
 		Total = r.Count,
 		Page = page,
+		PageSize = pageSize,
 		IsLast = r.Next is null,
 	};
 }

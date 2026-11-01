@@ -1,8 +1,3 @@
-using System.Net;
-// using System.Net.Http.Json;
-// using GameExplorer.Api.Services.Rawg;
-// using GameExplorer.Shared.Models;
-
 namespace GameExplorer.Api.Services;
 
 public class RawgException : Exception
