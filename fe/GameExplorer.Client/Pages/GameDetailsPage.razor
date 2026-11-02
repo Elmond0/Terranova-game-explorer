@@ -1,0 +1,69 @@
+@page "/games/{Id:int}"
+@inject IGameApiClient Api
+@implements IDisposable
+
+<PageTitle>@(_game?.Name ?? "Gioco")</PageTitle>
+@if (_error)
+{
+	<ErrorMessage OnRetry="LoadAsync"/>
+}
+else if (_loading)
+{
+	<Loading Text="Caricamento..."/>
+}
+else if (_game is null)
+{
+	<MudText Typo="Typo.h5" HtmlTag="h1">Gioco non trovato</MudText>
+	<MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary">
+		Torna alla home
+	</MudButton>
+}
+else
+{
+	<MudText Typo="Typo.h3" HtmlTag="h1">
+		@_game.Name
+	</MudText>
+}
+
+@code {
+	[Parameter] public int Id { get; set; }
+	private GameDetails? _game;
+	private bool _loading;
+	private bool _error;
+	private CancellationTokenSource? _cts;
+
+	protected override async Task OnParametersSetAsync()
+	{
+		await LoadAsync();
+	}
+	private async Task LoadAsync()
+	{
+		_cts?.Cancel();
+		_cts?.Dispose();
+		_cts = new CancellationTokenSource();
+		var token = _cts.Token;
+		_loading = true;
+		_error = false;
+		_game = null;
+		try
+		{
+			var game = await Api.GetGameAsync(Id, token);
+			if (token.IsCancellationRequested)
+				return;
+			_game = game;
+			_loading = false;
+		}
+		catch (ApiException)
+		{
+			_error = true;
+			_loading = false;
+		}
+		catch (OperationCanceledException) when (token.IsCancellationRequested)
+		{ }
+	}
+	public void Dispose()
+	{
+		_cts?.Cancel();
+		_cts?.Dispose();
+	}
+}
