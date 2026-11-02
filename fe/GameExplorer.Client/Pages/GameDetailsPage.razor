@@ -68,6 +68,62 @@ else
 					Metacritic @score
 				</MudChip>
 			}
+			@if (_game.Genres.Count > 0)
+			{
+				<MudText Typo="Typo.subtitle2" Class="mt-4">
+					Generi
+				</MudText>
+				<MudStack Row="true" Wrap="Wrap.Wrap">
+					@foreach (var genre in _game.Genres)
+					{
+						<MudChip T="string" Href="@($"/search?genres={genre.Id}")" Color="Color.Primary">
+							@genre.Name
+						</MudChip>
+					}
+				</MudStack>
+			}
+			@if (_game.Platforms.Count > 0)
+			{
+				<MudText Typo="Typo.subtitle2" Class="mt-4">
+					Piattaforme
+				</MudText>
+				<MudStack Row="true" Wrap="Wrap.Wrap">
+					@foreach (var piattaforme in _game.Platforms)
+					{
+						<MudChip T="string" Href="@($"/search?platforms={piattaforme.Id}")" Color="Color.Primary">
+							@piattaforme.Name
+						</MudChip>
+					}
+				</MudStack>
+			}
+			@if (_game.Developers.Count > 0)
+			{
+				<MudText Typo="Typo.subtitle2" Class="mt-4">
+					Sviluppatori
+				</MudText>
+				<MudStack Row="true" Wrap="Wrap.Wrap">
+					@foreach (var studio in _game.Developers)
+					{
+						<MudChip T="string" Href="@($"/studios/{studio.Id}")" Color="Color.Primary">
+							@studio.Name
+						</MudChip>
+					}
+				</MudStack>
+			}
+			@if (_game.Publishers.Count > 0)
+			{
+				<MudText Typo="Typo.subtitle2" Class="mt-4">
+					Publisher
+				</MudText>
+				<MudStack Row="true" Wrap="Wrap.Wrap">
+					@foreach (var publisher in _game.Publishers)
+					{
+						<MudChip T="string" Color="Color.Primary">
+							@publisher.Name
+						</MudChip>
+					}
+				</MudStack>
+			}
 		</MudItem>
 	</MudGrid>
 	@if (!string.IsNullOrWhiteSpace(_game.About))
