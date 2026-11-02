@@ -144,6 +144,69 @@ else
 			</MudButton>
 		}
 	}
+	@if (ScreenshotUrls.Count > 0)
+	{
+		<MudText Typo="Typo.h5" HtmlTag="h2" Class="mt-6 mb-2">
+			Screenshot
+		</MudText>
+		<MudGrid Spacing="2">
+			@for (var i = 0; i < ScreenshotUrls.Count; i++)
+			{
+				var index = i;
+				<MudItem xs="6" sm="4" md="3">
+					<button
+						type="button"
+						class="thumb"
+						aria-label="Apri screenshot @(index + 1)"
+						@onclick="() => OpenViewer(index)">
+						<img
+							src="@ScreenshotUrls[index]"
+							alt="Screenshot @(index + 1) di @_game.Name"
+							loading="lazy"
+						/>
+					</button>
+				</MudItem>
+			}
+		</MudGrid>
+		<MudDialog @bind-Visible="_viewerOpen" Options="_viewerOptions">
+			<TitleContent>
+				@if (_viewerOpen)
+				{
+					<MudText Typo="Typo.h6">
+						Screenshot @(_viewerIndex + 1) di @ScreenshotUrls.Count
+					</MudText>
+				}
+			</TitleContent>
+			<DialogContent>
+				@if (_viewerOpen)
+				{
+					<MudStack
+						Row="true"
+						AlignItems="AlignItems.Center"
+						Justify="Justify.Center">
+						<MudIconButton
+							Icon="@Icons.Material.Filled.ChevronLeft"
+							aria-label="Precedente"
+							OnClick="Previous"
+						>
+						</MudIconButton>
+						<img
+							src="@ScreenshotUrls[_viewerIndex]"
+							alt="Screenshot @(_viewerIndex + 1) di @_game.Name"
+							style="max-width: 100%; max-height: 75vh;
+							object-fit: contain; min-width: 0;"
+						/>
+						<MudIconButton
+							Icon="@Icons.Material.Filled.ChevronRight"
+							aria-label="Successivo"
+							OnClick="Next"
+						>
+						</MudIconButton>
+					</MudStack>
+				}
+			</DialogContent>
+		</MudDialog>
+	}
 }
 
 @code {
@@ -152,9 +215,32 @@ else
 	private CancellationTokenSource? _cts;
 	private bool _aboutExpanded;
 	private GameDetails? _game;
+	private bool _viewerOpen;
+	private int _viewerIndex;
 	private bool _loading;
 	private bool _error;
+	private readonly DialogOptions _viewerOptions = new()
+	{
+		CloseOnEscapeKey = true,
+		CloseButton = true,
+		MaxWidth = MaxWidth.Large,
+		FullWidth = true,
+	};
 	private bool IsAboutLong => _game?.About?.Length > AboutPreviewLength;
+	private List<string> ScreenshotUrls => _game?.Screenshots.OfType<string>().ToList() ?? [];
+	private void OpenViewer(int index)
+	{
+		_viewerIndex = index;
+		_viewerOpen = true;
+	}
+	private void Next()
+	{
+		_viewerIndex = (_viewerIndex + 1) % ScreenshotUrls.Count;
+	}
+	private void Previous()
+	{
+		_viewerIndex = (_viewerIndex - 1 + ScreenshotUrls.Count) % ScreenshotUrls.Count;
+	}
 	// Testo da mostrare nella descrizione: intero, oppure tagliato all'ultimo spazio prima del limite
 	private string AboutText
 	{
@@ -193,8 +279,10 @@ else
 			if (token.IsCancellationRequested)
 				return;
 			_game = game;
-			_aboutExpanded = false;
+			_viewerIndex = 0;
 			_loading = false;
+			_viewerOpen = false;
+			_aboutExpanded = false;
 		}
 		catch (ApiException)
 		{

@@ -1,16 +1,54 @@
 /* Immagine e segnaposto: stessa forma per tutte le card */
 .cover {
-    display: block;
-    width: 100%;
-    aspect-ratio: 16 / 9;         /* rettangolo 16:9, come le copertine di RAWG */
-    object-fit: cover;            /* l'immagine viene ritagliata per riempire, non deformata */
+	display: block;
+	width: 100%;
+	aspect-ratio: 16 / 9;         /* rettangolo 16:9, come le copertine di RAWG */
+	object-fit: cover;            /* l'immagine viene ritagliata per riempire, non deformata */
 }
 
 /* Riquadro grigio con l'icona al centro, al posto dell'immagine mancante */
 .cover-placeholder {
-    display: flex;
-    align-items: center;          /* centro in verticale */
-    justify-content: center;      /* centro in orizzontale */
-    background: var(--mud-palette-background-gray);
-    color: var(--mud-palette-text-disabled);
+	display: flex;
+	align-items: center;          /* centro in verticale */
+	justify-content: center;      /* centro in orizzontale */
+	background: var(--mud-palette-background-gray);
+	color: var(--mud-palette-text-disabled);
+}
+
+.thumb {
+	display: block;
+	width: 100%;
+	padding: 0;
+	border: none;
+	background: none;
+	cursor: pointer;
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.thumb:focus-visible {
+	outline: 2px solid var(--mud-palette-primary);
+	outline-offset: 2px;
+}
+
+.thumb img {
+	display: block;
+	width: 100%;
+	aspect-ratio: 16 / 9;
+	object-fit: cover;
+	transition: transform 0.15s;
+}
+
+.thumb:hover img {
+	transform: scale(1.05);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.game-card {
+		transition: none;
+	}
+
+	.game-card:hover {
+		transform: none;
+	}
 }
