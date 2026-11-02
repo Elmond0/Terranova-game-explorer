@@ -44,11 +44,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.game-card {
+	.thumb img {
 		transition: none;
 	}
 
-	.game-card:hover {
+	.thumb:hover img {
 		transform: none;
 	}
 }
