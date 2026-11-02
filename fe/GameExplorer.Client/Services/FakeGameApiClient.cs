@@ -1,5 +1,4 @@
 using GameExplorer.Shared.Models;
-
 namespace GameExplorer.Client.Services;
 
 public class FakeGameApiClient : IGameApiClient
@@ -290,7 +289,7 @@ public class FakeGameApiClient : IGameApiClient
 		if (game is null)
 			return null;
 
-		return new GameDetails
+		var details = new GameDetails
 		{
 			Id = game.Id,
 			Name = game.Name,
@@ -301,8 +300,31 @@ public class FakeGameApiClient : IGameApiClient
 			Metacritic = game.Metacritic,
 			Platforms = game.Platforms,
 			Genres = game.Genres,
-			About = $"Descrizione di prova per {game.Name}.",
 		};
+
+		// Solo GTA V ha la scheda completa: gli altri giochi servono a provare i dati mancanti
+		if (details.Id == 3498)
+		{
+			details.About =
+				"Rockstar Games went bigger, since their previous installment of the series. You get the complicated and realistic world-building from Liberty City of GTA4 in the setting of lively and diverse Los Santos, from an old fan favorite GTA San Andreas. 561 different vehicles (including every transport you can operate) and the amount is rising with every update.\n" +
+				"Simultaneous storytelling from three unique perspectives: follow Michael, ex-criminal living his life of leisure away from the past, Franklin, a kid that seeks the better future, and Trevor, the exact past Michael is trying to run away from.\n" +
+				"GTA Online will provide a lot of additional challenge even for the experienced players, coming fresh from the story mode. Now you will have other players around that can help you just as likely as ruin your mission. Every GTA mechanic up to date can be experienced by players through the unique customizable character, and community content paired with the leveling system tends to keep everyone busy and engaged.";
+			details.Screenshots =
+			[
+				"https://media.rawg.io/media/screenshots/5f5/5f5a38a222252d996b18962806eed707.jpg",
+				"https://media.rawg.io/media/screenshots/b98/b98adb52b2123a14d1c88e828a6b49f3.jpg",
+				"https://media.rawg.io/media/screenshots/a95/a95c031fe96063cc40ad377fd828d9ad.jpg",
+				"https://media.rawg.io/media/screenshots/1bb/1bb3f78f0fe43b5d5ca2f3da5b638840.jpg",
+			];
+			details.Developers =
+			[
+				new Studio { Id = 3524, Name = "Rockstar North", Slug = "rockstar-north" },
+				new Studio { Id = 10, Name = "Rockstar Games", Slug = "rockstar-games" },
+			];
+			details.Publishers = [new Studio { Id = 2155, Name = "Rockstar Games", Slug = "rockstar-games" }];
+		}
+
+		return details;
 	}
 
 	public async Task<List<Genre>> GetGenresAsync(CancellationToken cancellationToken = default)
