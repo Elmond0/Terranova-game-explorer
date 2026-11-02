@@ -1,0 +1,16 @@
+/* Immagine e segnaposto: stessa forma per tutte le card */
+.cover {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;         /* rettangolo 16:9, come le copertine di RAWG */
+    object-fit: cover;            /* l'immagine viene ritagliata per riempire, non deformata */
+}
+
+/* Riquadro grigio con l'icona al centro, al posto dell'immagine mancante */
+.cover-placeholder {
+    display: flex;
+    align-items: center;          /* centro in verticale */
+    justify-content: center;      /* centro in orizzontale */
+    background: var(--mud-palette-background-gray);
+    color: var(--mud-palette-text-disabled);
+}

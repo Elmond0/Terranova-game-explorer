@@ -1,3 +1,5 @@
+@using System.Globalization
+
 @page "/games/{Id:int}"
 @inject IGameApiClient Api
 @implements IDisposable
@@ -20,17 +22,101 @@ else if (_game is null)
 }
 else
 {
-	<MudText Typo="Typo.h3" HtmlTag="h1">
-		@_game.Name
-	</MudText>
+	<MudGrid>
+		<MudItem xs="12" md="4">
+			@if (_game.Image is not null)
+			{
+				<MudImage
+					Fluid="true"
+					Class="rounded-lg"
+					Src="@_game.Image"
+					Alt="@_game.Image"
+				/>
+			}
+			else
+			{
+				<div class="cover cover-placeholder">
+					<MudIcon Icon="@Icons.Material.Filled.ImageNotSupported" Size="Size.Large" />
+				</div>
+			}
+		</MudItem>
+		<MudItem xs="12" md="8">
+			<MudText Typo="Typo.h3" HtmlTag="h1">
+				@_game.Name
+			</MudText>
+			<MudText Typo="Typo.body1" Class="mud-text-secondary">
+				@ReleaseDateText
+			</MudText>
+			@if (_game.Rating > 0)
+			{
+				<MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+					<MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Color="Color.Warning" />
+					<MudText Typo="Typo.body2">
+						@_game.Rating.ToString("0.0 / 5", CultureInfo.GetCultureInfo("it-IT"))
+					</MudText>
+				</MudStack>
+			}
+			else
+			{
+				<MudText Typo="Typo.body2" Class="mud-text-secondary">
+					Nessun voto
+				</MudText>
+			}
+			@if (_game.Metacritic is int score)
+			{
+				<MudChip T="string" Variant="Variant.Filled" Color="MetacriticColor(score)">
+					Metacritic @score
+				</MudChip>
+			}
+		</MudItem>
+	</MudGrid>
+	@if (!string.IsNullOrWhiteSpace(_game.About))
+	{
+		<MudText
+			Typo="Typo.h5"
+			HtmlTag="h2"
+			Class="mt-6 mb-2">
+			Descrizione
+		</MudText>
+		<MudText Style="white-space: pre-line">
+			@AboutText
+		</MudText>
+		@if (IsAboutLong)
+		{
+			<MudButton Variant="Variant.Text" OnClick="() => _aboutExpanded = !_aboutExpanded">
+				@(_aboutExpanded ? "Mostra meno" : "Leggi tutto")
+			</MudButton>
+		}
+	}
 }
 
 @code {
 	[Parameter] public int Id { get; set; }
+	private const int AboutPreviewLength = 500;
+	private CancellationTokenSource? _cts;
+	private bool _aboutExpanded;
 	private GameDetails? _game;
 	private bool _loading;
 	private bool _error;
-	private CancellationTokenSource? _cts;
+	private bool IsAboutLong => _game?.About?.Length > AboutPreviewLength;
+	// Testo da mostrare nella descrizione: intero, oppure tagliato all'ultimo spazio prima del limite
+	private string AboutText
+	{
+		get
+		{
+			var about = _game?.About ?? "";
+			if (!IsAboutLong || _aboutExpanded)
+				return about;
+
+			var cut = about.LastIndexOf(' ', AboutPreviewLength);
+			if (cut < 0)
+				cut = AboutPreviewLength;
+			return about[..cut] + "…";
+		}
+	}
+	private string ReleaseDateText => _game?.ReleaseDate is null
+		? "Data da annunciare"
+		: _game.ReleaseDate.Value.ToString("d MMM yyyy", CultureInfo.GetCultureInfo("it-IT"));
 
 	protected override async Task OnParametersSetAsync()
 	{
@@ -60,6 +146,14 @@ else
 		}
 		catch (OperationCanceledException) when (token.IsCancellationRequested)
 		{ }
+	}
+	private static Color MetacriticColor(int score)
+	{
+		if (score >= 75)
+			return Color.Success;
+		else if (score >= 50 && score <= 74)
+			return Color.Warning;
+		return Color.Error;
 	}
 	public void Dispose()
 	{
