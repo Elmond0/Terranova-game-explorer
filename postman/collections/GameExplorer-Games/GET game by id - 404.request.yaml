@@ -1,0 +1,28 @@
+$kind: http-request
+url: "{{apiUrl}}/games/{{missingGameId}}"
+method: GET
+scripts:
+  - type: afterResponse
+    code: "   pm.test(\"404 NOT FOUND\", () => {\r
+
+      \       pm.response.to.have.status(404);\r
+
+      \   });\r
+
+      \r
+
+      \   pm.test(\"La risposta è JSON\", () => {\r
+
+      \       pm.response.to.be.json;\r
+
+      \   });\r
+
+      \r
+
+      \   pm.test(\"Risponde in meno di 2 secondi\", () => {\r
+
+      \       pm.expect(pm.response.responseTime).to.be.below(2000);\r
+
+      \   });"
+    language: text/javascript
+order: 2000
