@@ -30,6 +30,37 @@ public class CacheTests : TestData
 	}
 
 	[Fact]
+	public async Task App_DoesNotCallRawgAtSecondRequestSearch()
+	{
+		var rawg = FakeRawgHandler.Status(HttpStatusCode.OK, ValidBody);
+		await using var app = new ApiFactory(rawg);
+		var client = app.CreateClient();
+
+		var first = await client.GetAsync("/api/games?query=zelda&genreIds=4&genreIds=3&platformIds=7&fromYear=2017&toYear=2024&minMetacritic=80&storeIds=6&ordering=-rating&page=1&pageSize=20");
+		Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+		int calls = rawg.Calls;
+
+		await client.GetAsync("/api/games?query=zelda&genreIds=4&genreIds=3&platformIds=7&fromYear=2017&toYear=2024&minMetacritic=80&storeIds=6&ordering=-rating&page=1&pageSize=20");
+		Assert.Equal(calls, rawg.Calls);
+	}
+
+	[Fact]
+	public async Task App_DoesCallRawgAtSecondRequestSearchIfFilterIsDifferent()
+	{
+		var rawg = FakeRawgHandler.Status(HttpStatusCode.OK, ValidBody);
+		await using var app = new ApiFactory(rawg);
+		var client = app.CreateClient();
+
+		var first = await client.GetAsync("/api/games?query=zelda&genreIds=4&genreIds=3&platformIds=7&fromYear=2017&toYear=2024&minMetacritic=80&storeIds=6&ordering=-rating&page=1&pageSize=20");
+		Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+		int calls = rawg.Calls;
+
+		await client.GetAsync("/api/games?query=zelda&genreIds=4&genreIds=3&platformIds=7&fromYear=2016&toYear=2024&minMetacritic=80&storeIds=6&ordering=-rating&page=1&pageSize=30");
+		Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+		Assert.True(rawg.Calls > calls);
+	}
+
+	[Fact]
 	public async Task Cache_DoesNotSaveConnectionErrors()
 	{
 		var rawg = FakeRawgHandler.Throws(new HttpRequestException("Connection Denied"));
