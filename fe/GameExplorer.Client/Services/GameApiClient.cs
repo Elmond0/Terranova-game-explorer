@@ -55,6 +55,21 @@ public class GameApiClient : IGameApiClient
 		return platforms ?? [];
 	}
 
+	public async Task<Studio?> GetStudioAsync(int id, CancellationToken cancellationToken = default)
+	{
+		var studio = await GetAsync<Studio>($"api/studios/{id}", cancellationToken);
+		return studio;
+	}
+
+	public async Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, string? ordering, CancellationToken cancellationToken = default)
+	{
+		var url = $"api/studios/{id}/games?page={page}";
+		if (!string.IsNullOrWhiteSpace(ordering))
+			url += $"&ordering={Uri.EscapeDataString(ordering)}";
+		var games = await GetAsync<PagedResult<Game>>(url, cancellationToken);
+		return games ?? new PagedResult<Game>();
+	}
+
 	// 404 → null, annullamento chiesto dalla pagina → passa così com'è, qualsiasi altro errore → ApiException
 	private async Task<T?> GetAsync<T>(string url, CancellationToken cancellationToken)
 	{

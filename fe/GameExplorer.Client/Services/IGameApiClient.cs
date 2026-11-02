@@ -11,5 +11,7 @@ public interface IGameApiClient
 	Task<GameDetails?> GetGameAsync(int id, CancellationToken cancellationToken = default);
 	Task<List<Genre>> GetGenresAsync(CancellationToken cancellationToken = default);
 	Task<List<Platform>> GetPlatformsAsync(CancellationToken cancellationToken = default);
+	Task<Studio?> GetStudioAsync(int id, CancellationToken cancellationToken = default);
+	Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, string? ordering, CancellationToken cancellationToken = default);
 
 }
