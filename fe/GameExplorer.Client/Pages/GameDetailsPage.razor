@@ -30,7 +30,7 @@ else
 					Fluid="true"
 					Class="rounded-lg"
 					Src="@_game.Image"
-					Alt="@_game.Image"
+					Alt="@_game.Name"
 				/>
 			}
 			else
@@ -137,6 +137,7 @@ else
 			if (token.IsCancellationRequested)
 				return;
 			_game = game;
+			_aboutExpanded = false;
 			_loading = false;
 		}
 		catch (ApiException)
