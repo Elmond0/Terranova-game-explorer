@@ -1,0 +1,20 @@
+/* Riquadro grigio con l'icona al centro, al posto dell'immagine mancante: stessa forma 16:9 della scheda gioco */
+.cover {
+	display: block;
+	width: 100%;
+	aspect-ratio: 16 / 9;
+}
+
+.cover-placeholder {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--mud-palette-background-gray);
+	color: var(--mud-palette-text-disabled);
+}
+
+/* Il menu "Ordina per" non si allarga su tutta la riga, ma non esce dallo schermo a 375 px */
+.order-select {
+	width: 220px;
+	max-width: 100%;
+}
