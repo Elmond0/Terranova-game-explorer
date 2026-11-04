@@ -1,0 +1,356 @@
+@page "/studios/{Id:int}"
+@inject IGameApiClient Api
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@implements IDisposable
+@using System.Globalization
+
+<PageTitle>@(_studio?.Name ?? "Studio")</PageTitle>
+
+@if (_error)
+{
+	<ErrorMessage OnRetry="LoadStudioAsync"/>
+}
+else if (_loading)
+{
+	<Loading Text="Caricamento..."/>
+}
+else if (_studio is null)
+{
+	<MudStack AlignItems="AlignItems.Center" Class="py-8">
+		<MudIcon
+			Icon="@Icons.Material.Filled.SearchOff"
+			Size="Size.Large"
+			Class="mud-text-secondary"
+		/>
+		<MudText Typo="Typo.h5" HtmlTag="h1">
+			Studio non trovato
+		</MudText>
+		<MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary">
+			Torna alla home
+		</MudButton>
+	</MudStack>
+}
+else
+{
+	<MudGrid>
+		<MudItem xs="12" md="4">
+			@if (_studio.Image is not null)
+			{
+				<MudImage
+					Fluid="true"
+					Class="rounded-lg"
+					Src="@_studio.Image"
+					Alt="@_studio.Name"
+				/>
+			}
+			else
+			{
+				<div class="cover cover-placeholder rounded-lg">
+					<MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Large" />
+				</div>
+			}
+		</MudItem>
+		<MudItem xs="12" md="8">
+			<MudText Typo="Typo.h3" HtmlTag="h1">
+				@_studio.Name
+			</MudText>
+			<MudText Typo="Typo.body1" Class="mud-text-secondary">
+				@GamesWord(_studio.GamesCount)
+			</MudText>
+			@if (!string.IsNullOrWhiteSpace(_studio.Website))
+			{
+				<MudLink
+					Href="@_studio.Website"
+					Target="_blank"
+					rel="noopener noreferrer"
+					Class="d-inline-flex align-center gap-1 mt-2">
+					<MudIcon Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" />
+					Sito ufficiale
+				</MudLink>
+			}
+			@if (!string.IsNullOrWhiteSpace(_studio.About))
+			{
+				<MudText Style="white-space: pre-line" Class="mt-4">
+					@AboutText
+				</MudText>
+				@if (IsAboutLong)
+				{
+					<MudButton Variant="Variant.Text" OnClick="() => _aboutExpanded = !_aboutExpanded">
+						@(_aboutExpanded ? "Mostra meno" : "Leggi tutto")
+					</MudButton>
+				}
+			}
+		</MudItem>
+	</MudGrid>
+
+	<MudStack
+		Row="true"
+		Wrap="Wrap.Wrap"
+		AlignItems="AlignItems.Center"
+		Justify="Justify.SpaceBetween"
+		Class="mt-8 mb-4">
+		<MudText Typo="Typo.h5" HtmlTag="h2">
+			Giochi
+		</MudText>
+		<div class="order-select">
+			<MudSelect
+				T="string"
+				Label="Ordina per"
+				Value="CurrentOrdering"
+				ValueChanged="OnOrderingChanged"
+				ToStringFunc="OrderLabel"
+				Dense="true"
+				Variant="Variant.Outlined">
+				@foreach (var order in OrderOptions)
+				{
+					<MudSelectItem T="string" Value="order.Value">@order.Label</MudSelectItem>
+				}
+			</MudSelect>
+		</div>
+	</MudStack>
+
+	@if (_gamesError)
+	{
+		<ErrorMessage OnRetry="LoadGamesAsync"/>
+	}
+	else if (_games is null)
+	{
+		<MudGrid Spacing="3">
+			@for (var i = 0; i < 4; i++)
+			{
+				<MudItem xs="12" sm="6" md="4" lg="3">
+					<SkeletonCard/>
+				</MudItem>
+			}
+		</MudGrid>
+	}
+	else if (_games.Items is null or { Count: 0 })
+	{
+		<NoResults Message="Nessun gioco di questo studio."/>
+	}
+	else
+	{
+		<div class="mb-4" role="status">
+			@if (RatedGames.Count > 0)
+			{
+				<MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+					<MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Color="Color.Warning" />
+					<MudText Typo="Typo.body1">
+						Voto medio <strong>@AverageRating.ToString("0.0 / 5", ItalianCulture)</strong>
+					</MudText>
+				</MudStack>
+				<MudText Typo="Typo.body2" Class="mud-text-secondary">
+					Calcolato su @GamesWord(RatedGames.Count) con un voto (@GamesWord(_games.Items.Count) in questa pagina)
+				</MudText>
+			}
+			else
+			{
+				<MudText Typo="Typo.body2" Class="mud-text-secondary">
+					Nessun voto sui giochi di questa pagina
+				</MudText>
+			}
+		</div>
+		<MudGrid Spacing="3">
+			@foreach (var game in _games.Items)
+			{
+				<MudItem xs="12" sm="6" md="4" lg="3">
+					<GameCard Game="game"/>
+				</MudItem>
+			}
+		</MudGrid>
+		@if (PageCount > 1)
+		{
+			<MudStack AlignItems="AlignItems.Center" Class="mt-6">
+				<MudPagination
+					Count="PageCount"
+					Selected="CurrentPage"
+					SelectedChanged="OnPageChanged"
+					Color="Color.Primary"
+				/>
+			</MudStack>
+		}
+	}
+}
+
+@code {
+	[Parameter] public int Id { get; set; }
+	[SupplyParameterFromQuery] string? Ordering { get; set; }
+	[SupplyParameterFromQuery] int? Page { get; set; }
+
+	// RAWG manda 20 giochi per pagina: serve solo se la Web API non riempie PageSize
+	private const int DefaultPageSize = 20;
+	private const int AboutPreviewLength = 500;
+	private static readonly CultureInfo ItalianCulture = CultureInfo.GetCultureInfo("it-IT");
+
+	// "" vuol dire nessun ordinamento: l'ordine scelto da RAWG
+	private static readonly (string Value, string Label)[] OrderOptions =
+	[
+		("", "Rilevanza"),
+		("-rating", "Voto più alto"),
+		("-released", "Più recenti"),
+		("released", "Meno recenti"),
+		("name", "Nome (A-Z)"),
+		("-metacritic", "Metacritic più alto"),
+	];
+
+	private Studio? _studio;
+	private bool _loading;
+	private bool _error;
+	private bool _aboutExpanded;
+	private int _loadedId;
+	private CancellationTokenSource? _studioCts;
+
+	private PagedResult<Game>? _games;
+	private bool _gamesError;
+	private CancellationTokenSource? _gamesCts;
+
+	// ?page=0 o negativo scritto a mano nell'indirizzo vale come pagina 1
+	private int CurrentPage => Math.Max(Page ?? 1, 1);
+	// Un ordinamento scritto a mano che non è nel menu si ignora: la Web API risponderebbe 400
+	private string CurrentOrdering => OrderOptions.Any(o => o.Value == Ordering) ? Ordering! : "";
+	private int PageCount
+	{
+		get
+		{
+			if (_games is null)
+				return 0;
+			var pageSize = _games.PageSize > 0 ? _games.PageSize : DefaultPageSize;
+			return (int)Math.Ceiling(_games.Total / (double)pageSize);
+		}
+	}
+
+	// Su RAWG Rating 0 vuol dire "nessun voto": quei giochi non entrano nella media
+	private List<Game> RatedGames => _games?.Items?.Where(g => g.Rating > 0).ToList() ?? [];
+	private double AverageRating => RatedGames.Count > 0 ? RatedGames.Average(g => g.Rating) : 0;
+
+	private bool IsAboutLong => _studio?.About?.Length > AboutPreviewLength;
+	// Descrizione intera, oppure tagliata all'ultimo spazio prima del limite
+	private string AboutText
+	{
+		get
+		{
+			var about = _studio?.About ?? "";
+			if (!IsAboutLong || _aboutExpanded)
+				return about;
+
+			var cut = about.LastIndexOf(' ', AboutPreviewLength);
+			if (cut < 0)
+				cut = AboutPreviewLength;
+			return about[..cut] + "…";
+		}
+	}
+
+	private static string GamesWord(int count) => count == 1
+		? "1 gioco"
+		: $"{count.ToString("N0", ItalianCulture)} giochi";
+
+	private static string? OrderLabel(string? value) =>
+		OrderOptions.FirstOrDefault(o => o.Value == value).Label ?? value;
+
+	// Cambiano studio → si ricarica tutto; cambiano solo pagina o ordinamento → solo i giochi
+	protected override async Task OnParametersSetAsync()
+	{
+		if (Id != _loadedId)
+		{
+			_loadedId = Id;
+			await Task.WhenAll(LoadStudioAsync(), LoadGamesAsync());
+		}
+		else
+		{
+			await LoadGamesAsync();
+		}
+	}
+
+	private async Task LoadStudioAsync()
+	{
+		_studioCts?.Cancel();
+		_studioCts?.Dispose();
+		_studioCts = new CancellationTokenSource();
+		var token = _studioCts.Token;
+		_loading = true;
+		_error = false;
+		_studio = null;
+		_aboutExpanded = false;
+		try
+		{
+			var studio = await Api.GetStudioAsync(Id, token);
+			if (token.IsCancellationRequested)
+				return;
+			_studio = studio;
+		}
+		catch (ApiException)
+		{
+			if (token.IsCancellationRequested)
+				return;
+			_error = true;
+		}
+		catch (OperationCanceledException) when (token.IsCancellationRequested)
+		{
+			return;
+		}
+		_loading = false;
+		// Lo studio può arrivare prima dei giochi: si mostra subito, senza aspettare l'altra chiamata
+		StateHasChanged();
+	}
+
+	private async Task LoadGamesAsync()
+	{
+		_gamesCts?.Cancel();
+		_gamesCts?.Dispose();
+		_gamesCts = new CancellationTokenSource();
+		var token = _gamesCts.Token;
+		_gamesError = false;
+		_games = null;
+		var ordering = CurrentOrdering == "" ? null : CurrentOrdering;
+		try
+		{
+			var games = await Api.GetStudioGamesAsync(Id, CurrentPage, ordering, token);
+			if (token.IsCancellationRequested)
+				return;
+			_games = games;
+		}
+		catch (ApiException)
+		{
+			if (token.IsCancellationRequested)
+				return;
+			_gamesError = true;
+		}
+		catch (OperationCanceledException) when (token.IsCancellationRequested)
+		{
+			return;
+		}
+		StateHasChanged();
+	}
+
+	// Un ordinamento nuovo riporta a pagina 1
+	private void OnOrderingChanged(string? value)
+	{
+		Navigate(new Dictionary<string, object?>
+		{
+			["ordering"] = string.IsNullOrEmpty(value) ? null : value,
+			["page"] = null,
+		});
+	}
+
+	// La pagina 1 non si scrive nell'indirizzo, come nella ricerca
+	private async Task OnPageChanged(int page)
+	{
+		Navigate(new Dictionary<string, object?> { ["page"] = page == 1 ? null : page });
+		await JS.InvokeVoidAsync("scrollTo", 0, 0);
+	}
+
+	// Cambia solo l'indirizzo: i giochi li ricarica OnParametersSetAsync, e il tasto "indietro" del browser funziona
+	private void Navigate(Dictionary<string, object?> changes)
+	{
+		Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(changes));
+	}
+
+	public void Dispose()
+	{
+		_studioCts?.Cancel();
+		_studioCts?.Dispose();
+		_gamesCts?.Cancel();
+		_gamesCts?.Dispose();
+	}
+}
