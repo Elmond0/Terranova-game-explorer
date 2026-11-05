@@ -10,7 +10,7 @@ public class GameDetailsPageTests : PageTestBase
 	{
 		// Id che non c'è nei dati del client finto
 		var cut = Ctx.Render<GameDetailsPage>(parameters => parameters
-			.Add(p => p.Id, 3498));
+			.Add(p => p.Id, 9999999));
 		cut.WaitForAssertion(() =>
 		{
 			Assert.Contains("Gioco non trovato", cut.Markup);
