@@ -9,6 +9,7 @@ public class CookieAuthenticationStateProvider :  AuthenticationStateProvider
 {
 	private readonly HttpClient _http;
 	private record UserInfo(string Email);
+	private record RegisterErrors(Dictionary<string, string[]>? Errors);
 	private static readonly AuthenticationState Anonymous = new(new ClaimsPrincipal(new ClaimsIdentity()));
 	public CookieAuthenticationStateProvider(IHttpClientFactory account)
 	{
@@ -45,5 +46,18 @@ public class CookieAuthenticationStateProvider :  AuthenticationStateProvider
 		response.EnsureSuccessStatusCode();
 		NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
 		return true;
+	}
+
+	public async Task<string[]> RegisterAsync(string email, string password)
+	{
+		var response = await _http.PostAsJsonAsync("api/account/register", new { email, password });
+		if (response.StatusCode == HttpStatusCode.BadRequest)
+		{
+			var problem = await response.Content.ReadFromJsonAsync<RegisterErrors>();
+			return problem?.Errors?.Keys.ToArray() ?? ["Unknown"];
+		}
+		response.EnsureSuccessStatusCode();
+		await LoginAsync(email, password);
+		return [];
 	}
 }

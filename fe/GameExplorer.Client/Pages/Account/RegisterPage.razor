@@ -1,0 +1,90 @@
+@page "/account/register"
+@inject CookieAuthenticationStateProvider Auth
+@inject NavigationManager Navigation
+
+
+<PageTitle>Registrati</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small">
+	<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">Registrati</MudText>
+
+	<MudPaper Class="pa-6">
+		<form @onsubmit="SubmitAsync">
+			<MudTextField
+				@bind-Value="_email"
+				Label="Email"
+				InputType="InputType.Email"
+				Class="mb-3"
+			/>
+			<MudTextField
+				@bind-Value="_password"
+				Label="Password"
+				InputType="InputType.Password"
+				HelperText="Almeno 6 caratteri, con maiuscola, minuscola, numero e simbolo"
+				Class="mb-3"
+			/>
+
+			@if (_error is not null)
+			{
+				<MudAlert
+					Severity="Severity.Error"
+					Class="mb-3">
+					@_error
+				</MudAlert>
+			}
+
+			<MudButton
+				ButtonType="ButtonType.Submit"
+				Disabled="_busy"
+				Variant="Variant.Filled"
+				Color="Color.Primary">
+				Registrati
+			</MudButton>
+		</form>
+	</MudPaper>
+
+	<MudText Class="mt-4">
+		Hai già un account? <MudLink Href="/account/login">Accedi</MudLink>
+	</MudText>
+</MudContainer>
+
+@code{
+	private string _email = "";
+	private string _password = "";
+	private string? _error;
+	private bool _busy;
+
+	private async Task SubmitAsync()
+	{
+		_busy = true;
+		_error = null;
+		try
+		{
+			var errors = await Auth.RegisterAsync(_email, _password);
+			if (errors.Length == 0)
+				Navigation.NavigateTo("/");
+			else
+				_error = ToMessage(errors);
+		}
+		catch (HttpRequestException)
+		{
+			_error = "Registrazione non riuscita, riprova più tardi";
+		}
+		finally
+		{
+			_busy = false;
+		}
+	}
+	private static string ToMessage(string[] errors)
+	{
+		if (errors.Contains("DuplicateUserName"))
+		{
+			return "Questa email è già registrata";
+		}
+		if (errors.Any(e => e.StartsWith("Password")))
+		{
+			return "La password deve avere almeno 6 caratteri, una maiuscola, una minuscola, un numero e un simbolo";
+		}
+		return "Registrazione non riuscita";
+	}
+}
