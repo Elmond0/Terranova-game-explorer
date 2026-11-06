@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Net.Http.Json;
 using  Microsoft.AspNetCore.Components.Authorization;
+using System.Net;
 
 namespace GameExplorer.Client.Services.Auth;
 
@@ -35,5 +36,14 @@ public class CookieAuthenticationStateProvider :  AuthenticationStateProvider
 		{
 			return Anonymous;
 		}
+	}
+	public async Task<bool> LoginAsync(string email, string password)
+	{
+		var response = await _http.PostAsJsonAsync("api/account/login?useCookies=true", new { email, password });
+		if (response.StatusCode == HttpStatusCode.Unauthorized)
+			return false;
+		response.EnsureSuccessStatusCode();
+		NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+		return true;
 	}
 }
