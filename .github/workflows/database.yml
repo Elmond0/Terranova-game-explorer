@@ -162,6 +162,26 @@ jobs:
           echo "$out"
           grep -q "must be owner of table game_snapshots" <<< "$out"
 
+      - name: Runtime user reads favorites and wishlist but cannot truncate or drop them
+        run: |
+          for table in favorites wishlist; do
+            test "$(docker compose exec -T db psql -U terranova_api -d terranova -tAc "select count(*) from $table")" = "0"
+
+            if out="$(docker compose exec -T db psql -U terranova_api -d terranova -c "truncate $table" 2>&1)"; then
+              echo "::error::terranova_api can truncate $table"
+              exit 1
+            fi
+            echo "$out"
+            grep -q "permission denied for table $table" <<< "$out"
+
+            if out="$(docker compose exec -T db psql -U terranova_api -d terranova -c "drop table $table" 2>&1)"; then
+              echo "::error::terranova_api can drop $table"
+              exit 1
+            fi
+            echo "$out"
+            grep -q "must be owner of table $table" <<< "$out"
+          done
+
       - name: Backup, then restore as the migrations user
         run: |
           docker compose exec -T db psql -U terranova_app -d terranova \
