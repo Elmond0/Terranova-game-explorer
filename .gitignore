@@ -13,6 +13,7 @@ db/backups/
 
 # chiave API
 API-key.txt
+IGDB-key.txt
 
 #appunti
 piano-backend.md
