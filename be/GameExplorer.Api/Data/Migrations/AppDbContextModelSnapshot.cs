@@ -22,11 +22,11 @@ namespace GameExplorer.Api.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("GameExplorer.Api.Data.Entities.GameCacheEntry", b =>
+            modelBuilder.Entity("GameExplorer.Api.Data.Entities.GameSnapshot", b =>
                 {
-                    b.Property<int>("RawgId")
+                    b.Property<int>("GameId")
                         .HasColumnType("integer")
-                        .HasColumnName("rawg_id");
+                        .HasColumnName("game_id");
 
                     b.Property<string>("Details")
                         .HasColumnType("jsonb")
@@ -62,7 +62,7 @@ namespace GameExplorer.Api.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.HasKey("RawgId")
+                    b.HasKey("GameId")
                         .HasName("pk_game_snapshots");
 
                     b.ToTable("game_snapshots", null, t =>
