@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace GameExplorer.Api.Services.Rawg;
 
-internal static class RawgConverter
+internal static class IgdbMapper
 {
 	public static Game				InGame( this RawgGame r ) => new()
 	{
