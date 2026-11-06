@@ -3,7 +3,7 @@ namespace GameExplorer.Api.Data.Entities;
 // Copy of a game saved by at least one user (favorites, wishlist, tier list).
 public class GameSnapshot
 {
-	public int RawgId { get; set; }
+	public int GameId { get; set; }
 	public string Slug { get; set; } = "";
 	public string Name { get; set; } = "";
 	public string? Image { get; set; }
@@ -14,6 +14,6 @@ public class GameSnapshot
 	// Full GameDetails as JSON (jsonb column)
 	public string? Details { get; set; }
 
-	// When the copy was last taken from RAWG. Always UTC (timestamptz)
+	// When the copy was last taken from IGDB. Always UTC (timestamptz)
 	public DateTime UpdatedAt { get; set; }
 }

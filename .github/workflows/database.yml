@@ -74,7 +74,6 @@ jobs:
     # dotnet ef runs Program.cs, which stops without these; fake values, nothing connects to them
     env:
       ConnectionStrings__Default: "Host=localhost;Database=ci;Username=ci;Password=ci"
-      Rawg__ApiKey: ci
       Cors__FrontendOrigin: http://localhost:5100
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -99,7 +98,6 @@ jobs:
     # dotnet ef (inside migrate.sh) runs Program.cs, which stops without these; fake values
     env:
       ConnectionStrings__Default: "Host=localhost;Database=ci;Username=ci;Password=ci"
-      Rawg__ApiKey: ci
       Cors__FrontendOrigin: http://localhost:5100
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
