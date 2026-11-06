@@ -59,10 +59,6 @@ namespace GameExplorer.Api.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("image");
 
-                    b.Property<int?>("Metacritic")
-                        .HasColumnType("integer")
-                        .HasColumnName("metacritic");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text")
@@ -90,9 +86,7 @@ namespace GameExplorer.Api.Data.Migrations
 
                     b.ToTable("game_snapshots", null, t =>
                         {
-                            t.HasCheckConstraint("ck_game_snapshots_metacritic", "metacritic BETWEEN 0 AND 100");
-
-                            t.HasCheckConstraint("ck_game_snapshots_rating", "rating BETWEEN 0 AND 5");
+                            t.HasCheckConstraint("ck_game_snapshots_rating", "rating BETWEEN 0 AND 100");
                         });
                 });
 

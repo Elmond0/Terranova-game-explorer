@@ -54,9 +54,9 @@ public class GameSnapshotStoreTests(PostgresFixture pg) : IClassFixture<Postgres
 	}
 
 	[Fact]
-	public async Task Rating_7_is_rejected()
+	public async Task Rating_101_is_rejected()
 	{
-		var ex = await Assert.ThrowsAsync<DbUpdateException>(() => SaveAsync(NewGame(3, "three", rating: 7)));
+		var ex = await Assert.ThrowsAsync<DbUpdateException>(() => SaveAsync(NewGame(3, "three", rating: 101)));
 
 		Assert.Equal("ck_game_snapshots_rating", Assert.IsType<PostgresException>(ex.InnerException).ConstraintName);
 	}
