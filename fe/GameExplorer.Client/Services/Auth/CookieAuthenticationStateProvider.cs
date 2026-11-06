@@ -60,4 +60,15 @@ public class CookieAuthenticationStateProvider :  AuthenticationStateProvider
 		await LoginAsync(email, password);
 		return [];
 	}
+	public async Task LogoutAsync()
+	{
+		try
+		{
+			await _http.PostAsync("api/account/logout", null);
+		}
+		catch (HttpRequestException)
+		{
+		}
+		NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+	}
 }
