@@ -1,0 +1,47 @@
+# Client tests (owner: fmartini02). Runs on PRs and on main when the client changes.
+name: frontend
+
+on:
+  pull_request:
+    # The client, the shared models it uses, the solution, and this file (so it checks itself)
+    paths:
+      - "fe/**"
+      - "shared/**"
+      - "GameExplorer.slnx"
+      - ".github/workflows/frontend.yml"
+  push:
+    # Check main again after every merge
+    branches: [main]
+    paths:
+      - "fe/**"
+      - "shared/**"
+      - "GameExplorer.slnx"
+      - ".github/workflows/frontend.yml"
+  # "Run workflow" button in the Actions tab
+  workflow_dispatch:
+
+# Read-only token: this job never writes to the repository
+permissions:
+  contents: read
+
+# A new push to the same PR cancels the run still in progress
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Pages tested with bUnit and the fake client: no browser, no Web API
+  test:
+    name: client tests (bUnit)
+    runs-on: ubuntu-24.04          # pinned: ubuntu-latest changes over time
+    timeout-minutes: 10            # default would be 360
+    steps:
+      # Same pinned versions as database.yml
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false   # no git token left on disk
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: "10.0.x"
+      - name: Run client tests
+        run: dotnet test fe/GameExplorer.Client.Tests
