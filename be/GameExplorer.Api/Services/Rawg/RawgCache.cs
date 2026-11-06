@@ -1,3 +1,4 @@
+using GameExplorer.Shared.Models;
 using Microsoft.Extensions.Caching.Hybrid;
 
 namespace GameExplorer.Api.Services.Rawg;
@@ -11,5 +12,4 @@ internal static class RawgCache
 
 	public static string GameKey( int id ) => $"game:{id}";
 	public static string ScreenshotsKey( int id ) => $"game:{id}:screenshots";
-	
 }

@@ -1,0 +1,14 @@
+name: RAWG
+values:
+  - key: port
+    value: ''
+  - key: host
+    value: ''
+  - key: baseUrl
+    value: ''
+  - key: apiUrl
+    value: ''
+  - key: existingGameId
+    value: ''
+  - key: missingGameId
+    value: ''
