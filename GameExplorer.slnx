@@ -4,6 +4,7 @@
     <Project Path="be/GameExplorer.Api/GameExplorer.Api.csproj" />
   </Folder>
   <Folder Name="/fe/">
+    <Project Path="fe/GameExplorer.Client.Tests/GameExplorer.Client.Tests.csproj" />
     <Project Path="fe/GameExplorer.Client/GameExplorer.Client.csproj" />
   </Folder>
   <Folder Name="/shared/">

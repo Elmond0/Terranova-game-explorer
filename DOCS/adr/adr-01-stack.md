@@ -25,7 +25,7 @@ Stack consigliato da Terranova, inoltre C# è uno dei linguaggi più veloci nell
 
 **Blazor WebAssembly (C#) con MudBlazor** come libreria di componenti
 
-> **Motivazione:** _da completare_
+> **Motivazione:** Al posto di Angular abbiamo scelto Blazor WebAssembly per usare un solo linguaggio, C#, in frontend e backend: Angular (e React, che avevamo considerato) richiede TypeScript e ci sembrava più complesso da imparare. Così i modelli di `shared/` sono usati sia dalla Web API sia dal client. Blazor offre comunque strumenti simili ad Angular: template di progetto pronti, componenti riutilizzabili, routing e dependency injection. Sappiamo che il primo caricamento è più lento (poi il runtime .NET resta in cache quindi, la navigazione rimane veloce) e che la community è più piccola, ma era la scelta che richiedeva meno sforzo per imparare. Al posto di Bootstrap usiamo MudBlazor: componenti Material già pronti, solo in C#, con il tema chiaro/scuro incluso.
 
 ## 3. Database
 

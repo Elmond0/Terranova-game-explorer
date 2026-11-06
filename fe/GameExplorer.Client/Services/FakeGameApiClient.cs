@@ -1,5 +1,4 @@
 using GameExplorer.Shared.Models;
-
 namespace GameExplorer.Client.Services;
 
 public class FakeGameApiClient : IGameApiClient
@@ -204,6 +203,27 @@ public class FakeGameApiClient : IGameApiClient
 	];
 	private static IEnumerable<Game> AllGames => TopRated.Concat(Recent).Concat(Upcoming).Concat(SearchOnly);
 
+	// Gli studi della scheda di GTA V più uno di prova senza immagine né descrizione, con abbastanza giochi
+	// per due pagine. Ogni studio ha un gioco senza voto (Rating 0), per provare il voto medio
+	private static readonly Studio TestStudio = new Studio { Id = 900400, Name = "Studio di prova", Slug = "studio-di-prova" };
+	private static readonly List<(Studio Studio, int[] GameIds)> Studios =
+	[
+		(new Studio
+		{
+			Id = 3524,
+			Name = "Rockstar North",
+			Slug = "rockstar-north",
+			Image = GtaVCover,
+			About = "Rockstar North is a Scottish video game developer and a studio of Rockstar Games based in Edinburgh. " +
+				"The company was founded in 1987 as DMA Design and is best known for the Grand Theft Auto series.\n" +
+				"Testo finto del FakeGameApiClient: serve a provare la descrizione dello studio.",
+			Website = "https://www.rockstarnorth.com",
+		}, [3498, 900103]),
+		(new Studio { Id = 10, Name = "Rockstar Games", Slug = "rockstar-games", Image = SampleCover1 }, [3498, 900104, 900201]),
+		(TestStudio, [.. Enumerable.Range(900301, 25), 900202]),
+	];
+	private const int StudioGamesPageSize = 20;
+
 	// true: ogni metodo lancia ApiException, per provare ErrorMessage e "Riprova".
 	// Si attiva in Program.cs: AddScoped<IGameApiClient>(_ => new FakeGameApiClient { SimulateError = true })
 	public bool SimulateError { get; set; }
@@ -254,31 +274,7 @@ public class FakeGameApiClient : IGameApiClient
 			games = games.Where(g => g.ReleaseDate?.Year <= filter.ToYear);
 		if (filter.MinMetacritic is not null)
 			games = games.Where(g => g.Metacritic >= filter.MinMetacritic);
-		games = filter.Ordering switch
-		{
-			"rating" => games.OrderBy(g => g.Rating),
-			"-rating" => games.OrderByDescending(g => g.Rating),
-			"released" => games.OrderBy(g => g.ReleaseDate),
-			"-released" => games.OrderByDescending(g => g.ReleaseDate),
-			"name" => games.OrderBy(g => g.Name),
-			"-name" => games.OrderByDescending(g => g.Name),
-			"metacritic" => games.OrderBy(g => g.Metacritic),
-			"-metacritic" => games.OrderByDescending(g => g.Metacritic),
-			_ => games
-		};
-		var total = games.Count();
-		var items = games
-			.Skip((filter.Page - 1) * filter.PageSize)
-			.Take(filter.PageSize)
-			.ToList();
-		return new PagedResult<Game>
-		{
-			Items = items,
-			Total = total,
-			Page = filter.Page,
-			PageSize = filter.PageSize,
-			IsLast = filter.Page * filter.PageSize >= total,
-		};
+		return ToPage(Sort(games, filter.Ordering), filter.Page, filter.PageSize);
 	}
 
 	// Un id che non è in nessuna lista simula "non trovato" (la Web API risponderebbe 404)
@@ -290,7 +286,7 @@ public class FakeGameApiClient : IGameApiClient
 		if (game is null)
 			return null;
 
-		return new GameDetails
+		var details = new GameDetails
 		{
 			Id = game.Id,
 			Name = game.Name,
@@ -301,8 +297,36 @@ public class FakeGameApiClient : IGameApiClient
 			Metacritic = game.Metacritic,
 			Platforms = game.Platforms,
 			Genres = game.Genres,
-			About = $"Descrizione di prova per {game.Name}.",
 		};
+
+		// Solo GTA V ha la scheda completa: gli altri giochi servono a provare i dati mancanti
+		if (details.Id == 3498)
+		{
+			details.About =
+				"Rockstar Games went bigger, since their previous installment of the series. You get the complicated and realistic world-building from Liberty City of GTA4 in the setting of lively and diverse Los Santos, from an old fan favorite GTA San Andreas. 561 different vehicles (including every transport you can operate) and the amount is rising with every update.\n" +
+				"Simultaneous storytelling from three unique perspectives: follow Michael, ex-criminal living his life of leisure away from the past, Franklin, a kid that seeks the better future, and Trevor, the exact past Michael is trying to run away from.\n" +
+				"GTA Online will provide a lot of additional challenge even for the experienced players, coming fresh from the story mode. Now you will have other players around that can help you just as likely as ruin your mission. Every GTA mechanic up to date can be experienced by players through the unique customizable character, and community content paired with the leveling system tends to keep everyone busy and engaged.";
+			details.Screenshots =
+			[
+				"https://media.rawg.io/media/screenshots/5f5/5f5a38a222252d996b18962806eed707.jpg",
+				"https://media.rawg.io/media/screenshots/b98/b98adb52b2123a14d1c88e828a6b49f3.jpg",
+				"https://media.rawg.io/media/screenshots/a95/a95c031fe96063cc40ad377fd828d9ad.jpg",
+				"https://media.rawg.io/media/screenshots/1bb/1bb3f78f0fe43b5d5ca2f3da5b638840.jpg",
+			];
+			details.Developers =
+			[
+				new Studio { Id = 3524, Name = "Rockstar North", Slug = "rockstar-north" },
+				new Studio { Id = 10, Name = "Rockstar Games", Slug = "rockstar-games" },
+			];
+			details.Publishers = [new Studio { Id = 2155, Name = "Rockstar Games", Slug = "rockstar-games" }];
+		}
+		// I "Gioco di prova" portano allo studio di prova, quello con due pagine di giochi
+		else if (details.Name.StartsWith("Gioco di prova"))
+		{
+			details.Developers = [TestStudio];
+		}
+
+		return details;
 	}
 
 	public async Task<List<Genre>> GetGenresAsync(CancellationToken cancellationToken = default)
@@ -315,6 +339,67 @@ public class FakeGameApiClient : IGameApiClient
 	{
 		await DelayAsync(cancellationToken);
 		return Platforms;
+	}
+
+	// Un id che non è tra gli studi simula "non trovato" (la Web API risponderebbe 404)
+	public async Task<Studio?> GetStudioAsync(int id, CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+
+		var entry = Studios.FirstOrDefault(s => s.Studio.Id == id);
+		if (entry.Studio is null)
+			return null;
+
+		return new Studio
+		{
+			Id = entry.Studio.Id,
+			Name = entry.Studio.Name,
+			Slug = entry.Studio.Slug,
+			Image = entry.Studio.Image,
+			About = entry.Studio.About,
+			Website = entry.Studio.Website,
+			GamesCount = entry.GameIds.Length,
+		};
+	}
+
+	// Senza ordinamento i giochi restano nell'ordine dell'elenco, come la "rilevanza" di RAWG
+	public async Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, string? ordering, CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+
+		var gameIds = Studios.FirstOrDefault(s => s.Studio.Id == id).GameIds ?? [];
+		var games = AllGames.Where(g => gameIds.Contains(g.Id));
+		return ToPage(Sort(games, ordering), page, StudioGamesPageSize);
+	}
+
+	private static IEnumerable<Game> Sort(IEnumerable<Game> games, string? ordering) => ordering switch
+	{
+		"rating" => games.OrderBy(g => g.Rating),
+		"-rating" => games.OrderByDescending(g => g.Rating),
+		"released" => games.OrderBy(g => g.ReleaseDate),
+		"-released" => games.OrderByDescending(g => g.ReleaseDate),
+		"name" => games.OrderBy(g => g.Name),
+		"-name" => games.OrderByDescending(g => g.Name),
+		"metacritic" => games.OrderBy(g => g.Metacritic),
+		"-metacritic" => games.OrderByDescending(g => g.Metacritic),
+		_ => games
+	};
+
+	private static PagedResult<Game> ToPage(IEnumerable<Game> games, int page, int pageSize)
+	{
+		var total = games.Count();
+		var items = games
+			.Skip((page - 1) * pageSize)
+			.Take(pageSize)
+			.ToList();
+		return new PagedResult<Game>
+		{
+			Items = items,
+			Total = total,
+			Page = page,
+			PageSize = pageSize,
+			IsLast = page * pageSize >= total,
+		};
 	}
 
 	// Iniziali delle parole del nome: "Grand Theft Auto V" → "GTAV", così "gta" trova il gioco come su RAWG
