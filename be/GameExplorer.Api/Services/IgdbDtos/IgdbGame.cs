@@ -20,7 +20,7 @@ internal class IgdbGame
 	public IgdbImage? Cover { get; set; }
 
 	[JsonPropertyName("first_release_date")]
-	public DateOnly? Released { get; set; }
+	public long Released { get; set; }
 
 	[JsonPropertyName("platforms")]
 	public List<IgdbItem>? Platforms { get; set; }

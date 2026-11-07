@@ -11,14 +11,24 @@ internal static class IgdbMapper
 			.ToList()
 		?? new List<TOut>();
 	
+	public static DateOnly? FromUnix(long? unixSeconds) =>
+		unixSeconds is > 0
+			? DateOnly.FromDateTime(DateTimeOffset.FromUnixTimeSeconds(unixSeconds.Value).UtcDateTime)
+			: null;
+
+	public static long? ToUnix(DateOnly? date) =>
+		date is null
+			? null
+			: new DateTimeOffset(date.Value.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero).ToUnixTimeSeconds();
+	
 	public static Game				ToGame( this IgdbGame r ) => new()
 	{
 		Id = r.Id,
 		Slug = r.Slug,
 		Name = r.Name,
 		Rating = r.Rating,
-		Image = r.Cover.ToImage(),
-		ReleaseDate = r.Released,
+		Image = r.Cover!.ToImage(),
+		ReleaseDate = FromUnix(r.Released),
 
 		Platforms = r.Platforms.MapTo( p => new Platform
 		{
@@ -52,7 +62,7 @@ internal static class IgdbMapper
 		GamesCount = r.GamesCount,
 	};
 
-	public static GameDetails		ToDetails( IgdbGameDetails r )
+	public static GameDetails		ToDetails( this IgdbGameDetails r )
 	{
 		var _base = r.ToGame();
 

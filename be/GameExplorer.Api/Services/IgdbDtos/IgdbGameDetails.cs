@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using GameExplorer.Api.Services.Rawg;
+using GameExplorer.Api.Services.IgdbDtos;
 
 namespace GameExplorer.Api.Services.IgdbDtos;
 
