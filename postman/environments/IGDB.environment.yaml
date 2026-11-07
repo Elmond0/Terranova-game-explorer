@@ -6,3 +6,7 @@ values:
     value: ''
   - key: igdb_token
     value: ''
+  - key: igdb_domain
+    value: ''
+  - key: api_domain
+    value: ''
