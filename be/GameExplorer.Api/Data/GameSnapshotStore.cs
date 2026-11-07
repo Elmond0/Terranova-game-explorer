@@ -12,7 +12,7 @@ public class GameSnapshotStore(AppDbContext db)
 	{
 		GameSnapshot entry = new()
 		{
-			RawgId = game.Id,
+			GameId = game.Id,
 			Slug = game.Slug,
 			Name = game.Name,
 			Image = game.Image!.Url,
@@ -22,7 +22,7 @@ public class GameSnapshotStore(AppDbContext db)
 			UpdatedAt = DateTime.UtcNow,
 		};
 
-		GameSnapshot? existing = await db.GameSnapshots.FindAsync([entry.RawgId], ct);
+		GameSnapshot? existing = await db.GameSnapshots.FindAsync([entry.GameId], ct);
 		if (existing is null)
 			db.GameSnapshots.Add(entry);
 		else
@@ -34,7 +34,6 @@ public class GameSnapshotStore(AppDbContext db)
 		}
 		catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "pk_game_snapshots" })
 		{
-			// Another request saved the same game at the same moment: same data, nothing to do
 			db.Entry(entry).State = EntityState.Detached;
 		}
 	}

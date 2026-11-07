@@ -22,11 +22,34 @@ namespace GameExplorer.Api.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("GameExplorer.Api.Data.Entities.GameCacheEntry", b =>
+            modelBuilder.Entity("GameExplorer.Api.Data.Entities.Favorite", b =>
                 {
-                    b.Property<int>("RawgId")
+                    b.Property<string>("UserId")
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
+
+                    b.Property<int>("GameId")
                         .HasColumnType("integer")
-                        .HasColumnName("rawg_id");
+                        .HasColumnName("game_id");
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("added_at");
+
+                    b.HasKey("UserId", "GameId")
+                        .HasName("pk_favorites");
+
+                    b.HasIndex("GameId")
+                        .HasDatabaseName("ix_favorites_game_id");
+
+                    b.ToTable("favorites", (string)null);
+                });
+
+            modelBuilder.Entity("GameExplorer.Api.Data.Entities.GameSnapshot", b =>
+                {
+                    b.Property<int>("GameId")
+                        .HasColumnType("integer")
+                        .HasColumnName("game_id");
 
                     b.Property<string>("Details")
                         .HasColumnType("jsonb")
@@ -35,10 +58,6 @@ namespace GameExplorer.Api.Data.Migrations
                     b.Property<string>("Image")
                         .HasColumnType("text")
                         .HasColumnName("image");
-
-                    b.Property<int?>("Metacritic")
-                        .HasColumnType("integer")
-                        .HasColumnName("metacritic");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -62,15 +81,36 @@ namespace GameExplorer.Api.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.HasKey("RawgId")
+                    b.HasKey("GameId")
                         .HasName("pk_game_snapshots");
 
                     b.ToTable("game_snapshots", null, t =>
                         {
-                            t.HasCheckConstraint("ck_game_snapshots_metacritic", "metacritic BETWEEN 0 AND 100");
-
-                            t.HasCheckConstraint("ck_game_snapshots_rating", "rating BETWEEN 0 AND 5");
+                            t.HasCheckConstraint("ck_game_snapshots_rating", "rating BETWEEN 0 AND 100");
                         });
+                });
+
+            modelBuilder.Entity("GameExplorer.Api.Data.Entities.WishlistItem", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
+
+                    b.Property<int>("GameId")
+                        .HasColumnType("integer")
+                        .HasColumnName("game_id");
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("added_at");
+
+                    b.HasKey("UserId", "GameId")
+                        .HasName("pk_wishlist");
+
+                    b.HasIndex("GameId")
+                        .HasDatabaseName("ix_wishlist_game_id");
+
+                    b.ToTable("wishlist", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -315,6 +355,40 @@ namespace GameExplorer.Api.Data.Migrations
                         .HasName("pk_asp_net_user_tokens");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("GameExplorer.Api.Data.Entities.Favorite", b =>
+                {
+                    b.HasOne("GameExplorer.Api.Data.Entities.GameSnapshot", null)
+                        .WithMany()
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_favorites_game_snapshots_game_id");
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_favorites_asp_net_users_user_id");
+                });
+
+            modelBuilder.Entity("GameExplorer.Api.Data.Entities.WishlistItem", b =>
+                {
+                    b.HasOne("GameExplorer.Api.Data.Entities.GameSnapshot", null)
+                        .WithMany()
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_wishlist_game_snapshots_game_id");
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_wishlist_asp_net_users_user_id");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

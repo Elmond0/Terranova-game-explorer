@@ -101,4 +101,5 @@ account.MapPost("/logout", async (SignInManager<IdentityUser> signInManager) =>
 	return TypedResults.NoContent();
 }).RequireAuthorization();
 
+app.MapMeEndpoints();
 app.Run();

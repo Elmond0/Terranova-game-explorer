@@ -9,12 +9,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 	: IdentityDbContext<IdentityUser>(options)
 {
 	public DbSet<GameSnapshot> GameSnapshots => Set<GameSnapshot>();
-	
+	public DbSet<Favorite> Favorites => Set<Favorite>();
+	public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
+
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
-		base.OnModelCreating(modelBuilder);   // Identity tables
+		base.OnModelCreating(modelBuilder);  
 
-		// Each of our tables is configured in its own class (Data/Configurations/)
 		modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 	}
 }

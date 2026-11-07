@@ -31,7 +31,7 @@ public class GameSnapshotStoreTests(PostgresFixture pg) : IClassFixture<Postgres
 		await SaveAsync(NewGame(1, "one"));
 
 		await using AppDbContext db = pg.CreateContext();
-		GameSnapshot? entry = await db.GameSnapshots.AsNoTracking().SingleOrDefaultAsync(g => g.RawgId == 1);
+		GameSnapshot? entry = await db.GameSnapshots.AsNoTracking().SingleOrDefaultAsync(g => g.GameId == 1);
 
 		Assert.NotNull(entry);
 		Assert.Equal("one", entry.Slug);
@@ -49,14 +49,14 @@ public class GameSnapshotStoreTests(PostgresFixture pg) : IClassFixture<Postgres
 		await SaveAsync(changed);
 
 		await using AppDbContext db = pg.CreateContext();
-		GameSnapshot row = await db.GameSnapshots.SingleAsync(g => g.RawgId == 2);
+		GameSnapshot row = await db.GameSnapshots.SingleAsync(g => g.GameId == 2);
 		Assert.Equal("Renamed", row.Name);
 	}
 
 	[Fact]
-	public async Task Rating_7_is_rejected()
+	public async Task Rating_101_is_rejected()
 	{
-		var ex = await Assert.ThrowsAsync<DbUpdateException>(() => SaveAsync(NewGame(3, "three", rating: 7)));
+		var ex = await Assert.ThrowsAsync<DbUpdateException>(() => SaveAsync(NewGame(3, "three", rating: 101)));
 
 		Assert.Equal("ck_game_snapshots_rating", Assert.IsType<PostgresException>(ex.InnerException).ConstraintName);
 	}
