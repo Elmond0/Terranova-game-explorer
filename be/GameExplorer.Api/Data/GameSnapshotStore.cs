@@ -18,7 +18,6 @@ public class GameSnapshotStore(AppDbContext db)
 			Image = game.Image,
 			ReleaseDate = game.ReleaseDate,
 			Rating = game.Rating,
-			Metacritic = game.Metacritic,
 			Details = JsonSerializer.Serialize(game),
 			UpdatedAt = DateTime.UtcNow,
 		};
@@ -35,7 +34,6 @@ public class GameSnapshotStore(AppDbContext db)
 		}
 		catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "pk_game_snapshots" })
 		{
-			// Another request saved the same game at the same moment: same data, nothing to do
 			db.Entry(entry).State = EntityState.Detached;
 		}
 	}
