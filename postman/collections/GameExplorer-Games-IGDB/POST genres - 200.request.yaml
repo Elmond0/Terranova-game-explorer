@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{igdb_domain}}/genres"
+method: POST
+headers:
+  Client-ID: "{{igdb_client_id}}"
+  Authorization: Bearer {{igdb_token}}
+body:
+  type: text
+  content: "fields *;\r\nlimit 20;"
+order: 7000

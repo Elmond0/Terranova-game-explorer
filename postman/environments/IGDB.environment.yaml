@@ -1,0 +1,12 @@
+name: IGDB
+values:
+  - key: igdb_client_id
+    value: ''
+  - key: igdb_client_secret
+    value: ''
+  - key: igdb_token
+    value: ''
+  - key: igdb_domain
+    value: ''
+  - key: api_domain
+    value: ''

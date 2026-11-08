@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{igdb_domain}}/games"
+method: POST
+headers:
+  Client-ID: "{{igdb_client_id}}"
+  Authorization: Bearer {{igdb_token}}
+body:
+  type: text
+  content: "fields name;\r\nwhere id = 999999999;"
+order: 5000

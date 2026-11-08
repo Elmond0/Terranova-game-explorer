@@ -31,22 +31,30 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services.AddHybridCache();
-builder.Services.AddHttpClient<RawgService>(c =>
+
+builder.Services.AddOptions<IgdbOptions>()
+	.Bind(builder.Configuration.GetSection("Igdb"))
+	.ValidateDataAnnotations()
+	.ValidateOnStart();
+
+builder.Services.AddHttpClient<TwitchTokenProvider>(c =>
+	c.BaseAddress = new Uri("https://id.twitch.tv/oauth2/"));
+
+builder.Services.AddTransient<IgdbAuthHandler>();
+
+builder.Services.AddScoped<GameService>();
+
+builder.Services.AddHttpClient<IgdbClient>(c =>
 {
-	c.BaseAddress = new Uri("https://api.rawg.io/api/");
+	c.BaseAddress = new Uri("https://api.igdb.com/v4/");
 	c.Timeout = TimeSpan.FromSeconds(10);
 })
+.AddHttpMessageHandler<IgdbAuthHandler>()
 .AddStandardResilienceHandler(options =>
  {
 	options.Retry.MaxRetryAttempts = 2;
 	options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(3);
-	options.Retry.DisableForUnsafeHttpMethods();
  });
-
-builder.Services.AddOptions<RawgOptions>()
-	.Bind(builder.Configuration.GetSection("Rawg"))
-	.ValidateDataAnnotations()
-	.ValidateOnStart();
 
 // --- Database (Elmond0) ---
 // The backend connects as terranova_api (rows only); migrations run with db/scripts/migrate.sh

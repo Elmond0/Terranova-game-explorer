@@ -1,0 +1,8 @@
+$kind: http-request
+name: POST games/count
+url: "{{igdb_domain}}/games/count"
+method: POST
+headers:
+  Client-ID: "{{igdb_client_id}}"
+  Authorization: Bearer {{igdb_token}}
+order: 4000

@@ -1,0 +1,16 @@
+$kind: http-request
+url: https://api.igdb.com/v4/games
+method: POST
+headers:
+  Client-ID: "{{igdb_client_id}}"
+  Authorization: Bearer {{igdb_token}}
+body:
+  type: text
+  content: "fields name, rating, rating_count;\r
+
+    where rating_count > 100 & first_release_date > 1577836800;\r
+
+    sort rating desc;\r
+
+    limit 10;"
+order: 3000

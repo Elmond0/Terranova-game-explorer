@@ -15,7 +15,7 @@ public class GameSnapshotStore(AppDbContext db)
 			GameId = game.Id,
 			Slug = game.Slug,
 			Name = game.Name,
-			Image = game.Image,
+			Image = game.Image!.Url,
 			ReleaseDate = game.ReleaseDate,
 			Rating = game.Rating,
 			Details = JsonSerializer.Serialize(game),
