@@ -2,8 +2,10 @@ using System.Text.Json.Serialization;
 
 namespace GameExplorer.Api.Services.IgdbDtos;
 
-internal class IgdbStudio
+internal class IgdbStudio : IIgdbEntity
 {
+	public static string Url => "companies";
+	public static string Fields => "fields id, name, slug, rating, first_release_date, cover.*, genres.*, platforms.*;";
 	[JsonPropertyName("id")]
 	public int Id { get; set; }
 
@@ -13,9 +15,9 @@ internal class IgdbStudio
 	[JsonPropertyName("name")]
 	public string Name { get; set; } = "";
 
-	[JsonPropertyName("image_background")]
-	public string? BackgroundImage { get; set; }
-
 	[JsonPropertyName("games_count")]
-	public int GamesCount { get; set; }
+	public int GamesId { get; set; }
+	
+	[JsonPropertyName("country")]
+	public string Country { get; set; } = "";
 }

@@ -8,12 +8,12 @@ namespace GameExplorer.Api.Controllers;
 [Route("api/games")]
 public class GamesController( GameService gameService ) : ControllerBase
 {
-	// [HttpGet]
-	// public async Task<ActionResult<PagedResult<Game>>>	Search( [FromQuery] SearchFilter filter, CancellationToken ct )
-	// {
-	// 	PagedResult<Game>	p = await gameService.SearchAsync(filter, ct);
-	// 	return Ok(p);
-	// }
+	[HttpGet]
+	public async Task<ActionResult<PagedResult<Game>>>	Search( [FromQuery] SearchFilter filter, CancellationToken ct )
+	{
+		var	p = await gameService.SearchAsync(filter, ct);
+		return Ok(p);
+	}
 
 	[HttpGet("{id:int}")]
 	public async Task<ActionResult<GameDetails>>	GetGameDetails( int id, CancellationToken ct )

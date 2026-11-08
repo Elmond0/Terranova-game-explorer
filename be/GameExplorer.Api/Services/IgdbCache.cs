@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Caching.Hybrid;
+using GameExplorer.Shared.Models;
 namespace GameExplorer.Api.Services;
 
 public class IgdbCache
@@ -12,5 +13,5 @@ public class IgdbCache
     public static string GameKey( int id ) => $"game:{id}";
     public static string ScreenshotsKey( int id ) => $"game:{id}:screenshots";
     public const string TokenKey = "igdb:twitch-token";
-    
+    public static string SearchKey(SearchFilter filter)  => $"search:{filter}";
 }

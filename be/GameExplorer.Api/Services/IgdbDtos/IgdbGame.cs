@@ -2,8 +2,11 @@ using System.Text.Json.Serialization;
 
 namespace GameExplorer.Api.Services.IgdbDtos;
 
-internal class IgdbGame
+internal class IgdbGame : IIgdbEntity
 {
+	public static string Url => "games";
+	public static string Fields => "fields id, name, slug, rating, first_release_date, cover.*, genres.*, platforms.*;";
+	
 	[JsonPropertyName("id")]
 	public int Id { get; set; }
 

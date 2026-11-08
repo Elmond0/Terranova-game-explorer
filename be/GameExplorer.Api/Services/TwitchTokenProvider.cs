@@ -18,7 +18,7 @@ public sealed class TwitchTokenProvider( HttpClient http, HybridCache cache, IOp
             ["client_secret"] = opt.ClientSecret,
             ["grant_type"] = "client_credentials"
         });
-        using var response = await http.PostAsync("oauth2/token", query, ct);
+        using var response = await http.PostAsync("token", query, ct);
         response.EnsureSuccessStatusCode();
         
         var body = await response.Content.ReadFromJsonAsync<TokenResponse>(ct)

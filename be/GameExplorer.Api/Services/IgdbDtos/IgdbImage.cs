@@ -8,7 +8,7 @@ internal class IgdbImage
 	public int Id { get; set; }
 	
 	[JsonPropertyName("url")]
-	public string? Url { get; set; }
+	public string? Path { get; set; }
 
 	[JsonPropertyName("height")]
 	public int Height { get; set; }

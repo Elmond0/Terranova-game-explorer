@@ -1,5 +1,7 @@
 $kind: http-request
-url: "{{apiUrl}}/games?games?query=zelda&genreIds=4&genreIds=3&platformIds=7&fromYear=2017&toYear=2024&minMetacritic=80&storeIds=6&ordering=-rating&page=1&pageSize=20"
+url: "{{apiUrl}}/games?games?query=zelda&genreIds=4&genreIds=3&platformIds=7&fr\
+  omYear=2017&toYear=2024&minMetacritic=80&storeIds=6&ordering=-rating&page=1&p\
+  ageSize=20"
 method: GET
 queryParams:
   - key: games?query
@@ -88,17 +90,21 @@ scripts:
 
       \r
 
-      // Estrae gli id da una lista, sia piatta [{id}] sia annidata come RAWG [{platform:{id}}]\r
+      // Estrae gli id da una lista, sia piatta [{id}] sia annidata come RAWG
+      [{platform:{id}}]\r
 
-      const ids = list => (list ?? []).map(x => x.id ?? x.platform?.id ?? x.store?.id ?? x.genre?.id);\r
+      const ids = list => (list ?? []).map(x => x.id ?? x.platform?.id ??
+      x.store?.id ?? x.genre?.id);\r
 
       \r
 
-      // Esegue il test solo se il campo esiste negli elementi, altrimenti lo segna come skipped\r
+      // Esegue il test solo se il campo esiste negli elementi, altrimenti lo
+      segna come skipped\r
 
       const testIfField = (name, field, fn) => {\r
 
-      \    const hasField = items.length > 0 && items.every(i => i[field] !== undefined);\r
+      \    const hasField = items.length > 0 && items.every(i => i[field] !==
+      undefined);\r
 
       \    (hasField ? pm.test : pm.test.skip)(name, fn);\r
 
@@ -118,7 +124,8 @@ scripts:
 
       pm.test(\"Ha la struttura di PagedResult\", () => {\r
 
-      \    pm.expect(body).to.include.keys(\"items\", \"page\", \"pageSize\", \"totalCount\", \"totalPages\");\r
+      \    pm.expect(body).to.include.keys(\"items\", \"page\", \"pageSize\",
+      \"totalCount\", \"totalPages\");\r
 
       \    pm.expect(body.items).to.be.an(\"array\");\r
 
@@ -154,7 +161,8 @@ scripts:
 
       pm.test(\"totalPages coerente con totalCount\", () => {\r
 
-      \    pm.expect(body.totalPages).to.eql(Math.ceil(body.totalCount / body.pageSize));\r
+      \    pm.expect(body.totalPages).to.eql(Math.ceil(body.totalCount /
+      body.pageSize));\r
 
       });\r
 
@@ -172,7 +180,8 @@ scripts:
 
       if (query) {\r
 
-      \    testIfField(\"Il primo risultato contiene il testo cercato\", \"name\", () => {\r
+      \    testIfField(\"Il primo risultato contiene il testo cercato\",
+      \"name\", () => {\r
 
       \        pm.expect(items[0].name.toLowerCase()).to.include(query);\r
 
@@ -184,7 +193,8 @@ scripts:
 
       if (genreIds.length) {\r
 
-      \    testIfField(`Ogni gioco ha almeno uno dei generi ${genreIds}`, \"genres\", () => {\r
+      \    testIfField(`Ogni gioco ha almeno uno dei generi ${genreIds}`,
+      \"genres\", () => {\r
 
       \        items.forEach(g => {\r
 
@@ -202,13 +212,16 @@ scripts:
 
       if (platformIds.length) {\r
 
-      \    testIfField(`Ogni gioco è su una delle piattaforme ${platformIds}`, \"platforms\", () => {\r
+      \    testIfField(`Ogni gioco è su una delle piattaforme ${platformIds}`,
+      \"platforms\", () => {\r
 
       \        items.forEach(g => {\r
 
-      \            pm.expect(ids(g.platforms).some(id => platformIds.includes(id)),\r
+      \            pm.expect(ids(g.platforms).some(id =>
+      platformIds.includes(id)),\r
 
-      \                `${g.name} non è sulle piattaforme richieste`).to.be.true;\r
+      \                `${g.name} non è sulle piattaforme
+      richieste`).to.be.true;\r
 
       \        });\r
 
@@ -220,7 +233,8 @@ scripts:
 
       if (storeIds.length) {\r
 
-      \    testIfField(`Ogni gioco è in uno degli store ${storeIds}`, \"stores\", () => {\r
+      \    testIfField(`Ogni gioco è in uno degli store ${storeIds}`,
+      \"stores\", () => {\r
 
       \        items.forEach(g => {\r
 
@@ -238,17 +252,21 @@ scripts:
 
       if (fromYear || toYear) {\r
 
-      \    testIfField(`Anno di uscita tra ${fromYear} e ${toYear}`, \"released\", () => {\r
+      \    testIfField(`Anno di uscita tra ${fromYear} e ${toYear}`,
+      \"released\", () => {\r
 
       \        items.forEach(g => {\r
 
-      \            pm.expect(g.released, `${g.name} senza data`).to.not.be.null;\r
+      \            pm.expect(g.released, `${g.name} senza
+      data`).to.not.be.null;\r
 
       \            const year = new Date(g.released).getFullYear();\r
 
-      \            if (fromYear) pm.expect(year, g.name).to.be.at.least(fromYear);\r
+      \            if (fromYear) pm.expect(year,
+      g.name).to.be.at.least(fromYear);\r
 
-      \            if (toYear)   pm.expect(year, g.name).to.be.at.most(toYear);\r
+      \            if (toYear)   pm.expect(year,
+      g.name).to.be.at.most(toYear);\r
 
       \        });\r
 
@@ -260,13 +278,16 @@ scripts:
 
       if (minMetacritic) {\r
 
-      \    testIfField(`Metacritic almeno ${minMetacritic}`, \"metacritic\", () => {\r
+      \    testIfField(`Metacritic almeno ${minMetacritic}`, \"metacritic\", ()
+      => {\r
 
       \        items.forEach(g => {\r
 
-      \            pm.expect(g.metacritic, `${g.name} senza metacritic`).to.not.be.null;\r
+      \            pm.expect(g.metacritic, `${g.name} senza
+      metacritic`).to.not.be.null;\r
 
-      \            pm.expect(g.metacritic, g.name).to.be.at.least(minMetacritic);\r
+      \            pm.expect(g.metacritic,
+      g.name).to.be.at.least(minMetacritic);\r
 
       \        });\r
 
@@ -286,11 +307,14 @@ scripts:
 
       \r
 
-      \    testIfField(`Ordinati per ${field} ${desc ? \"decrescente\" : \"crescente\"}`, field, () => {\r
+      \    testIfField(`Ordinati per ${field} ${desc ? \"decrescente\" :
+      \"crescente\"}`, field, () => {\r
 
-      \        const values = items.map(g => g[field]).filter(v => v !== null);\r
+      \        const values = items.map(g => g[field]).filter(v => v !==
+      null);\r
 
-      \        const sorted = [...values].sort((a, b) => desc ? (b > a ? 1 : -1) : (a > b ? 1 : -1));\r
+      \        const sorted = [...values].sort((a, b) => desc ? (b > a ? 1 : -1)
+      : (a > b ? 1 : -1));\r
 
       \        pm.expect(values).to.eql(sorted);\r
 
@@ -298,4 +322,4 @@ scripts:
 
       }"
     language: text/javascript
-order: 9000
+order: 12652

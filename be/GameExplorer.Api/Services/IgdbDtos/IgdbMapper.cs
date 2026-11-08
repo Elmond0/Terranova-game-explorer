@@ -27,28 +27,28 @@ internal static class IgdbMapper
 		Slug = r.Slug,
 		Name = r.Name,
 		Rating = r.Rating,
-		Image = r.Cover!.ToImage(),
+		Image = r.Cover?.ToImage(),
 		ReleaseDate = FromUnix(r.Released),
 
 		Platforms = r.Platforms.MapTo( p => new Platform
 		{
-			Id = r.Id,
-			Slug = r.Slug,
-			Name = r.Name,
+			Id = p.Id,
+			Slug = p.Slug,
+			Name = p.Name,
 		}),
 
-		Genres = r.Genres.MapTo( p => new Genre
+		Genres = r.Genres.MapTo( g => new Genre
 		{
-			Id = r.Id,
-			Slug = r.Slug,
-			Name = r.Name,
+			Id = g.Id,
+			Slug = g.Slug,
+			Name = g.Name,
 		})
 	};
 	
 	public static Image ToImage( this IgdbImage r ) => new()
 	{
 		Id = r.Id,
-		Url = r.Url,
+		Url = r.Path,
 		Height = r.Height,
 		Width = r.Width
 	};
@@ -58,9 +58,14 @@ internal static class IgdbMapper
 		Id = r.Id,
 		Slug = r.Slug,
 		Name = r.Name,
-		Image = r.BackgroundImage,
-		GamesCount = r.GamesCount,
 	};
+	
+	// public static Studio ToPlatform( this IgdbItem r ) => new()
+	// {
+	// 	Id = r.Id,
+	// 	Slug = r.Slug,
+	// 	Name = r.Name,
+	// };
 
 	public static GameDetails		ToDetails( this IgdbGameDetails r )
 	{
@@ -81,20 +86,9 @@ internal static class IgdbMapper
 			Storyline = r.StoryLine,
 			Website = r.Websites?.FirstOrDefault(w => w.Type == 1)?.Url,
 			
-			Developers = r.Developers.MapTo(ToStudio),
-			
-			Publishers = r.Publishers.MapTo(ToStudio),
+			Developers = r.Studios.MapTo(ToStudio),
 
 			Screenshots = r.Screenshots.MapTo(ToImage)
 		};
 	}
-
-	public static PagedResult<TOut>	ToPage<TIn, TOut>( this IgdbList<TIn> r, int page, int pageSize, Func<TIn, TOut> map) => new()
-	{
-		Items = r.Results.MapTo(map),
-		Total = r.Count,
-		Page = page,
-		PageSize = pageSize,
-		IsLast = r.Next is null,
-	};
 }

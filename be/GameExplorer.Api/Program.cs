@@ -42,6 +42,8 @@ builder.Services.AddHttpClient<TwitchTokenProvider>(c =>
 
 builder.Services.AddTransient<IgdbAuthHandler>();
 
+builder.Services.AddScoped<GameService>();
+
 builder.Services.AddHttpClient<IgdbClient>(c =>
 {
 	c.BaseAddress = new Uri("https://api.igdb.com/v4/");
