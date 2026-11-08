@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
-# Run by the postgres image ONLY on first start (empty volume), after 01-app-user.sh.
-# Creates the runtime user of the backend: it can read and write rows,
-# but it cannot create, alter or drop tables (those belong to APP_DB_USER).
+
 set -euo pipefail
+
+api_password="$(cat /run/secrets/api_db_password)"
+: "${api_password:?/run/secrets/api_db_password is empty}"
 
 psql -v ON_ERROR_STOP=1 \
      --username "$POSTGRES_USER" \
      --dbname "$POSTGRES_DB" \
      -v api_user="$API_DB_USER" \
-     -v api_password="$API_DB_PASSWORD" \
+     -v api_password="$api_password" \
      -v app_user="$APP_DB_USER" \
      -v db_name="$POSTGRES_DB" <<'EOSQL'
     CREATE ROLE :"api_user" LOGIN PASSWORD :'api_password'

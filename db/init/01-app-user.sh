@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
-# Runs ONLY on first start (empty volume).
+
 set -euo pipefail
+
+app_password="$(cat /run/secrets/app_db_password)"
+: "${app_password:?/run/secrets/app_db_password is empty}"
+
 psql -v ON_ERROR_STOP=1 \
 	--username "$POSTGRES_USER" \
 	--dbname "$POSTGRES_DB" \
 	-v app_user="$APP_DB_USER" \
-	-v app_password="$APP_DB_PASSWORD" \
+	-v app_password="$app_password" \
 	-v db_name="$POSTGRES_DB" << 'EOSQL'
 	-- 1. Create the backend role
 	CREATE ROLE :"app_user" LOGIN PASSWORD :'app_password'

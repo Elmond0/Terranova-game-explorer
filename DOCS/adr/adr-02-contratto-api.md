@@ -50,4 +50,4 @@ I `GameDetails.WhereToBuy` vengono inviati come oggetto **StoreLink** che contie
 
 ## Fonti
 
-- [Model binding in ASP.NET Core](https://learn.microsoft.com/aspnet/core/mvc/models/model-binding) · [ProblemDetails](https://learn.microsoft.com/aspnet/core/web-api/handle-errors) · [RAWG API](https://api.rawg.io/docs/)
+- [Model binding in ASP.NET Core](https://learn.microsoft.com/aspnet/core/mvc/models/model-binding) · [ProblemDetails](https://learn.microsoft.com/aspnet/core/web-api/handle-errors) · [IGDB API](https://api-docs.igdb.com/)
