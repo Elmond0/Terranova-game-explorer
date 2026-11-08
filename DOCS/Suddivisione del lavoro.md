@@ -1,6 +1,8 @@
 # Suddivisione del lavoro – Guida ai videogiochi
 
-Chi fa cosa, fase per fase. Le regole su branch, commit e Pull Request sono in [`DOCS/come_lavoriamo.md`](come_lavoriamo.md); la traccia è in [`DOCS/subject/SUBJECT.md`](subject/SUBJECT.md).
+Chi fa cosa, fase per fase. Le regole su branch, commit e Pull Request sono in [`DOCS/come_lavoriamo.md`](come_lavoriamo.md); la traccia è in [`DOCS/subject/SUBJECT.md`](subject/SUBJECT.md). Come avviare il progetto: [`README.md`](../README.md).
+
+> **Nota (risposta 12 del 04/11):** la pubblicazione online non è richiesta, il progetto può girare solo in locale. Ci fermiamo alla fase 2: le fasi di pubblicazione restano come idea, non come impegno.
 
 ## Architettura
 
@@ -8,7 +10,7 @@ Lo stack è deciso in [ADR-01](adr/adr-01-stack.md). Il progetto è formato da *
 
 ```
 Browser ⇄ Client Blazor WebAssembly ──HTTP──▶ Web API ASP.NET Core ──▶ PostgreSQL
-                                                    ├──────────────▶ RAWG
+                                                    ├──────────────▶ IGDB
                                                     └──────────────▶ Steam, CheapShark, Reddit
 ```
 
@@ -23,7 +25,7 @@ Regole che derivano da questa scelta:
 - **Solo la Web API accede al database e alle API esterne.** Il client parla solo con la Web API.
 - **Il client WebAssembly gira nel browser e chiunque può scaricarlo e leggerlo:** niente chiavi, password o segreti nel client, neanche in `wwwroot/appsettings.json`.
 - **Il contratto tra le due app sono gli endpoint e i modelli in Shared**, non i metodi dei servizi.
-- **Ogni pagina che mostra dati di RAWG ha un link a RAWG**: lo chiedono le [condizioni d'uso](https://rawg.io/apidocs) del piano gratuito.
+- **Ogni pagina che mostra dati di IGDB cita IGDB come fonte**: da verificare nelle [condizioni d'uso](https://api-docs.igdb.com/) dell'uso non commerciale.
 
 ## Ruoli
 
@@ -31,7 +33,7 @@ Ognuno ha un'area di cui è responsabile, ma in ogni fase tutti e tre lavorano: 
 
 | Persona | Area di responsabilità | Cosa fa in pratica |
 | --- | --- | --- |
-| **A** – [`@K0ff33Blu3`](https://github.com/K0ff33Blu3) | Dati e servizi (Web API) | Imposta la soluzione, scrive nella Web API i servizi che chiamano le API esterne (RAWG, prezzi, Steam, Reddit), gli endpoint, la cache e i calcoli (DNA, indice di difficoltà) |
+| **A** – [`@K0ff33Blu3`](https://github.com/K0ff33Blu3) | Dati e servizi (Web API) | Imposta la soluzione, scrive nella Web API i servizi che chiamano le API esterne (IGDB, prezzi, Steam, Reddit), gli endpoint, la cache in memoria e i calcoli (DNA, indice di difficoltà) |
 | **B** – [`@fmartini02`](https://github.com/fmartini02) | Interfaccia e grafica (client) | Pagine e componenti Blazor, client HTTP verso la Web API, stile, tema chiaro/scuro, versione per smartphone, animazioni, tier list e Steam Wrapped |
 | **C** – [`@Elmond0`](https://github.com/Elmond0) | Database e account (Web API e pagine dell'account nel client) | PostgreSQL, Entity Framework e migrazioni, registrazione e login nella Web API, accesso con Steam, salvataggio di preferiti, wishlist e tier list, pubblicazione online |
 
@@ -55,7 +57,7 @@ Partite tutti e tre da C e C++, quindi le tre aree sono equivalenti come diffico
 - [ ] Preparare le cartelle: nella Web API `Controllers`, `Services`, `Data` (il codice del database, gestito da C); nel client `Pages`, `Layout`, `Shared`, `Services`; in Shared `Models`
 - [ ] Configurare il CORS nella Web API, per accettare le chiamate dall'indirizzo del client
 - [ ] Nel client, mettere l'indirizzo della Web API di sviluppo in `wwwroot/appsettings.Development.json` e registrare l'`HttpClient` con quell'indirizzo (sul sito pubblicato client e Web API hanno lo stesso indirizzo)
-- [ ] Richiedere le chiavi di RAWG e Steam Web API e salvarle negli User Secrets della **Web API**
+- [ ] Richiedere le chiavi di IGDB (Client ID e Client Secret di Twitch) e di Steam Web API e salvarle in `secrets/` (istruzioni in `db/README.md`): il Makefile le passa alla **Web API** come variabili d'ambiente
 
 **B – Interfaccia e grafica**
 
@@ -65,9 +67,9 @@ Partite tutti e tre da C e C++, quindi le tre aree sono equivalenti come diffico
 
 **C – Database e account**
 
-- [x] Avviare PostgreSQL con il `compose.yaml` del progetto (istruzioni in `db/README.md`)
+- [x] Avviare PostgreSQL con il `compose.yaml` del progetto (`make`, istruzioni in `README.md` e `db/README.md`)
 - [ ] Creare l'utente del database per la Web API, che legge e scrive i dati ma non può modificare le tabelle
-- [ ] Aggiungere Entity Framework Core con Npgsql alla Web API (cartella `Data`; i pacchetti con una PR piccola rivista da A) e la stringa di connessione negli User Secrets
+- [ ] Aggiungere Entity Framework Core con Npgsql alla Web API (cartella `Data`; i pacchetti con una PR piccola rivista da A) e la stringa di connessione (la costruisce il Makefile come variabile d'ambiente, con la password di `secrets/api_db_password.txt`)
 - [ ] Creare la prima migrazione, applicarla con `db/scripts/migrate.sh` e configurare ASP.NET Core Identity nella Web API (endpoint di registrazione e login), verificandola con il file `.http` o Postman
 - [ ] Creare il database online gratuito per la versione pubblicata: Neon, perché Supabase gratuito sospende i progetti dopo 7 giorni senza attività
 
@@ -79,15 +81,15 @@ Alla fine di ogni fase il sito funziona: se il tempo finisce, vi fermate lì con
 
 **Fatto quando:** si cerca un gioco con i filtri, si apre la sua scheda e da lì la pagina dello studio.
 
-- [ ] **A** – RawgService nella Web API: ricerca con filtri e ordinamento, dettaglio gioco con screenshot, liste della home, studi
-- [ ] **A** – Endpoint della Web API per tutte queste funzioni, con i modelli di Shared (`Game`, `GameDetails`, `Studio`, `Platform`, `Genre`, `PagedResult`, `SearchFilter`) e cache in memoria delle risposte di RAWG
+- [ ] **A** – servizio IGDB nella Web API: ricerca con filtri e ordinamento, dettaglio gioco con screenshot, liste della home, studi
+- [ ] **A** – Endpoint della Web API per tutte queste funzioni, con i modelli di Shared (`Game`, `GameDetails`, `Studio`, `Platform`, `Genre`, `PagedResult`, `SearchFilter`) e cache in memoria delle risposte di IGDB
 - [ ] **B** – Client HTTP verso la Web API (`IGameApiClient`) e una sua versione con dati finti
 - [ ] **B** – Home con barra di ricerca e selezioni (più apprezzati, recenti, in arrivo)
 - [ ] **B** – Pagina ricerca: risultati mentre si scrive, filtri, ordinamento
 - [ ] **B** – Scheda gioco: descrizione, galleria, generi, piattaforme, voti
 - [ ] **B** – Stati comuni: caricamento, nessun risultato, errore
 - [ ] **B** – Pagina casa produttrice (numero di giochi, voto medio, elenco), con i dati dall'endpoint degli studi (ADR-03)
-- [ ] **C** – Tabella di cache dei giochi nel database, per ridurre le chiamate a RAWG, con una piccola interfaccia che il RawgService di A usa per leggerla e scriverla
+- [ ] **C** – Tabella `game_snapshots` nel database: la copia dei giochi salvati dagli utenti, che serve alle liste di preferiti e wishlist (non è una cache della scheda, vedi [ADR-06](adr/adr-06-account-preferiti.md)). La scheda usa solo la cache in memoria di A
 
 ### Fase 2 – Account, preferiti e wishlist
 
@@ -154,7 +156,7 @@ La regola che evita le attese è questa: **all'inizio di ogni fase vi accordate 
 | Fase | Chi si accorda | Su cosa |
 | --- | --- | --- |
 | 1 | A e B | Modelli `Game`, `GameDetails`, `SearchFilter`, `PagedResult` ed endpoint (ricerca, dettaglio, liste home, generi, piattaforme) |
-| 1 | A e C | Quali dati dei giochi salvare nella cache del database ed endpoint degli studi |
+| 1 | A e C | Quali dati dei giochi salvare in `game_snapshots` ed endpoint degli studi |
 | 2 | C e B | Endpoint per aggiungere, togliere e leggere preferiti e wishlist, e come il client si autentica |
 | 3 | B e C | Formato della tier list salvata (gioco + fascia) e relativo endpoint |
 | 3 | A e B | Dati del prezzo (negozio, prezzo, sconto, link) e relativo endpoint |
@@ -174,7 +176,7 @@ Poche regole fisse evitano la maggior parte dei conflitti in un gruppo di tre.
 - **I modelli in Shared si cambiano solo d'accordo** tra chi li usa: sono il contratto tra Web API e client.
 - **Le decisioni prese insieme si scrivono in un ADR** in `DOCS/adr/` (contesto, decisione, alternative, conseguenze), con una PR rivista dagli altri due. È la documentazione delle scelte che la traccia chiede di motivare.
 - **Nei file degli altri si entra con una PR piccola** che il proprietario rivede (per esempio i pacchetti del database nel progetto della Web API, o le pagine di C nel client). Le cartelle di ognuno sono nella tabella iniziale di `DOCS/come_lavoriamo.md`.
-- **Chiavi delle API solo negli User Secrets della Web API** (in produzione nelle variabili d'ambiente), mai nel codice, nel client o su GitHub.
+- **Password e chiavi delle API solo in `secrets/`** (cartella ignorata da git): il Makefile le passa alla Web API come variabili d'ambiente, mai nel codice, nel client o su GitHub.
 - **Commit piccoli e frequenti**, con messaggi chiari ("Aggiunti filtri per piattaforma").
 - **Elenco dei compiti su GitHub Projects**: ogni voce di questo documento diventa una scheda, con le colonne Backlog, Todo, In Progress e Done.
 - **Riunione breve una volta a settimana**: cosa ho finito, cosa faccio ora, dove sono bloccato.
@@ -184,5 +186,5 @@ Poche regole fisse evitano la maggior parte dei conflitti in un gruppo di tre.
 
 - Traccia del progetto: [`DOCS/subject/SUBJECT.md`](subject/SUBJECT.md) · stack: [ADR-01](adr/adr-01-stack.md)
 - Microsoft: [Blazor WebAssembly](https://learn.microsoft.com/aspnet/core/blazor/) · [Web API con ASP.NET Core](https://learn.microsoft.com/aspnet/core/web-api/) · [EF Core](https://learn.microsoft.com/ef/core/) · [Blazor WebAssembly con Identity](https://learn.microsoft.com/aspnet/core/blazor/security/webassembly/standalone-with-identity/) · [User Secrets](https://learn.microsoft.com/aspnet/core/security/app-secrets) · [CORS](https://learn.microsoft.com/aspnet/core/security/cors)
-- Servizi esterni: [RAWG](https://rawg.io/apidocs) · [CheapShark](https://apidocs.cheapshark.com/) · [Steam Web API](https://developer.valvesoftware.com/wiki/Steam_Web_API) · [Neon, piani](https://neon.com/docs/introduction/plans)
+- Servizi esterni: [IGDB](https://api-docs.igdb.com/) · [CheapShark](https://apidocs.cheapshark.com/) · [Steam Web API](https://developer.valvesoftware.com/wiki/Steam_Web_API) · [Neon, piani](https://neon.com/docs/introduction/plans)
 - Libreria grafica: [MudBlazor](https://mudblazor.com/)

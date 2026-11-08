@@ -6,6 +6,7 @@ on:
     # Only when the database setup changes (this file included, so it checks itself)
     paths:
       - "compose.yaml"
+      - "Makefile"
       - ".env.example"
       - ".gitattributes"
       - "db/**"
@@ -16,6 +17,7 @@ on:
     branches: [main]
     paths:
       - "compose.yaml"
+      - "Makefile"
       - ".env.example"
       - ".gitattributes"
       - "db/**"
@@ -46,11 +48,7 @@ jobs:
         with:
           persist-credentials: false   # no git token left on disk
       - name: Validate compose.yaml
-        # No .env in CI: the required passwords come from here
-        env:
-          POSTGRES_PASSWORD: ci
-          APP_DB_PASSWORD: ci
-          API_DB_PASSWORD: ci
+        # No secrets/ in CI: compose only warns about the missing files
         run: docker compose config --quiet
 
   # Common mistakes in shell scripts and in workflow files
@@ -111,17 +109,20 @@ jobs:
       - name: Restore NuGet packages
         run: dotnet restore be/GameExplorer.Api
 
-      - name: Create .env like a new teammate (random passwords)
+      # secrets/ is git-ignored, so a fresh VM has none: create them like a new teammate
+      - name: Create secrets (random passwords) and .env
         run: |
+          mkdir -p secrets
+          for f in postgres_password app_db_password api_db_password; do
+            pw="$(openssl rand -hex 24)"
+            # Hide the passwords in the (public) logs
+            echo "::add-mask::$pw"
+            printf %s "$pw" > "secrets/$f.txt"
+          done
+          # Not used by the database job, but the Makefile and compose expect the files
+          printf %s ci > secrets/twitch_id.txt
+          printf %s ci > secrets/twitch_key.txt
           cp .env.example .env
-          pg_pw="$(openssl rand -hex 24)"
-          app_pw="$(openssl rand -hex 24)"
-          api_pw="$(openssl rand -hex 24)"
-          # Hide the passwords in the (public) logs
-          echo "::add-mask::$pg_pw"
-          echo "::add-mask::$app_pw"
-          echo "::add-mask::$api_pw"
-          sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$pg_pw/; s/^APP_DB_PASSWORD=.*/APP_DB_PASSWORD=$app_pw/; s/^API_DB_PASSWORD=.*/API_DB_PASSWORD=$api_pw/" .env
 
       # Fresh VM = empty volume, so the db/init scripts run
       - name: First start on an empty volume
@@ -234,8 +235,4 @@ jobs:
       # Only config: Windows runners cannot start Linux containers
       - name: Validate compose.yaml on Windows
         shell: bash
-        env:
-          POSTGRES_PASSWORD: ci
-          APP_DB_PASSWORD: ci
-          API_DB_PASSWORD: ci
         run: docker compose config --quiet

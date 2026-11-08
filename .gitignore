@@ -3,7 +3,10 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
-## backups db
+# passwords - keys
+secrets/
+
+# backups db
 db/backups/
 
 # dotenv files

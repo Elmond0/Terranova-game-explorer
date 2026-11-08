@@ -26,8 +26,8 @@ internal class IgdbGame : IIgdbEntity
 	public long Released { get; set; }
 
 	[JsonPropertyName("platforms")]
-	public List<IgdbItem>? Platforms { get; set; }
+	public List<IgdbPlatform>? Platforms { get; set; }
 
 	[JsonPropertyName("genres")]
-	public List<IgdbItem>? Genres { get; set; }
+	public List<IgdbGenre>? Genres { get; set; }
 }
