@@ -32,7 +32,7 @@ public static class MeEndpoints
 		return TypedResults.NoContent();
 	}
 
-	static async Task<IResult> AddFavorite(int gameId, ClaimsPrincipal user, UserManager<IdentityUser> users, RawgService games, GameSnapshotStore snapshots, AppDbContext db, CancellationToken ct)
+	static async Task<IResult> AddFavorite(int gameId, ClaimsPrincipal user, UserManager<IdentityUser> users, GameService games, GameSnapshotStore snapshots, AppDbContext db, CancellationToken ct)
 	{
 		string userId = users.GetUserId(user)!;
 
@@ -73,7 +73,7 @@ public static class MeEndpoints
 		return TypedResults.NoContent();
 	}
 
-	static async Task<IResult> AddToWishlist(int gameId, ClaimsPrincipal user, UserManager<IdentityUser> users, RawgService games, GameSnapshotStore snapshots, AppDbContext db, CancellationToken ct)
+	static async Task<IResult> AddToWishlist(int gameId, ClaimsPrincipal user, UserManager<IdentityUser> users, GameService games, GameSnapshotStore snapshots, AppDbContext db, CancellationToken ct)
 	{
 		string userId = users.GetUserId(user)!;
 

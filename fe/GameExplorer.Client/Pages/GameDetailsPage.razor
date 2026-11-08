@@ -29,7 +29,7 @@ else
 				<MudImage
 					Fluid="true"
 					Class="rounded-lg"
-					Src="@_game.Image"
+					Src="@_game.Image.Url"
 					Alt="@_game.Name"
 				/>
 			}
@@ -62,12 +62,12 @@ else
 					Nessun voto
 				</MudText>
 			}
-			@if (_game.Metacritic is int score)
-			{
-				<MudChip T="string" Variant="Variant.Filled" Color="MetacriticColor(score)">
-					Metacritic @score
-				</MudChip>
-			}
+			@* @if (_game.Rating is double score) *@
+			@* { *@
+			@* 	<MudChip T="string" Variant="Variant.Filled" Color="MetacriticColor(score)"> *@
+			@* 		Metacritic @score *@
+			@* 	</MudChip> *@
+			@* } *@
 			@if (_game.Genres.Count > 0)
 			{
 				<MudText Typo="Typo.subtitle2" Class="mt-4">
@@ -110,23 +110,23 @@ else
 					}
 				</MudStack>
 			}
-			@if (_game.Publishers.Count > 0)
-			{
-				<MudText Typo="Typo.subtitle2" Class="mt-4">
-					Publisher
-				</MudText>
-				<MudStack Row="true" Wrap="Wrap.Wrap">
-					@foreach (var publisher in _game.Publishers)
-					{
-						<MudChip T="string" Color="Color.Primary">
-							@publisher.Name
-						</MudChip>
-					}
-				</MudStack>
-			}
+			@* @if (_game.Publishers.Count > 0) *@
+			@* { *@
+			@* 	<MudText Typo="Typo.subtitle2" Class="mt-4"> *@
+			@* 		Publisher *@
+			@* 	</MudText> *@
+			@* 	<MudStack Row="true" Wrap="Wrap.Wrap"> *@
+			@* 		@foreach (var publisher in _game.Publishers) *@
+			@* 		{ *@
+			@* 			<MudChip T="string" Color="Color.Primary"> *@
+			@* 				@publisher.Name *@
+			@* 			</MudChip> *@
+			@* 		} *@
+			@* 	</MudStack> *@
+			@* } *@
 		</MudItem>
 	</MudGrid>
-	@if (!string.IsNullOrWhiteSpace(_game.About))
+	@if (!string.IsNullOrWhiteSpace(_game.Description))
 	{
 		<MudText
 			Typo="Typo.h5"
@@ -226,7 +226,7 @@ else
 		MaxWidth = MaxWidth.Large,
 		FullWidth = true,
 	};
-	private bool IsAboutLong => _game?.About?.Length > AboutPreviewLength;
+	private bool IsAboutLong => _game?.Description?.Length > AboutPreviewLength;
 	private List<string> ScreenshotUrls => _game?.Screenshots.OfType<string>().ToList() ?? [];
 	private void OpenViewer(int index)
 	{
@@ -246,7 +246,7 @@ else
 	{
 		get
 		{
-			var about = _game?.About ?? "";
+			var about = _game?.Description ?? "";
 			if (!IsAboutLong || _aboutExpanded)
 				return about;
 
