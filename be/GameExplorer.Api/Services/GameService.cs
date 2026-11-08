@@ -137,11 +137,11 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 		return raw.Count == 0 ? null : raw.FirstOrDefault()!.ToDetails() ;
 	}
 	
-	// internal async Task<List<Genre>?> GetGenresAsync( CancellationToken ct ) => 
-	// 	await GetCachedListAsync<IgdbItem, Genre>( "genres", "genres", "", IgdbMapper.ToGenre, IgdbCache.Lookup, ct );
-	//
-	// internal async Task<List<Platform>?> GetPlatformsAsync( CancellationToken ct ) => 
-	// 	await GetCachedListAsync<IgdbItem, Platform>( "platforms", "games", "", IgdbMapper.ToPlatform, IgdbCache.Lookup, ct );
+	internal async Task<List<Genre>?> GetGenresAsync( CancellationToken ct ) => 
+		await GetCachedListAsync<IgdbGenre, Genre>( "genres", IgdbGenre.Fields, IgdbMapper.ToGenre, IgdbCache.Lookup, ct );
+	
+	internal async Task<List<Platform>?> GetPlatformsAsync( CancellationToken ct ) => 
+		await GetCachedListAsync<IgdbPlatform, Platform>( "platforms", IgdbPlatform.Fields, IgdbMapper.ToPlatform, IgdbCache.Lookup, ct );
 	
 	internal async Task<List<Game>>	GetTopRatedAsync( CancellationToken ct ) =>
 		await GetCachedListAsync<IgdbGame, Game>( "top-rated", IgdbQueryFields.TopRated, IgdbMapper.ToGame, IgdbCache.Home, ct );

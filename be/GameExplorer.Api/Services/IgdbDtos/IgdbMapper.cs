@@ -60,12 +60,19 @@ internal static class IgdbMapper
 		Name = r.Name,
 	};
 	
-	// public static Studio ToPlatform( this IgdbItem r ) => new()
-	// {
-	// 	Id = r.Id,
-	// 	Slug = r.Slug,
-	// 	Name = r.Name,
-	// };
+	public static Genre ToGenre( this IgdbGenre r ) => new()
+	{
+		Id = r.Id,
+		Slug = r.Slug,
+		Name = r.Name,
+	};
+
+	public static Platform ToPlatform( this IgdbPlatform r ) => new()
+	{
+		Id = r.Id,
+		Slug = r.Slug,
+		Name = r.Name,
+	};
 
 	public static GameDetails		ToDetails( this IgdbGameDetails r )
 	{
