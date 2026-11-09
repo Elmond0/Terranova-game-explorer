@@ -2,7 +2,7 @@
 .cover {
 	display: block;
 	width: 100%;
-	aspect-ratio: 16 / 9;         /* rettangolo 16:9, come le copertine di RAWG */
+	aspect-ratio: 3 / 4;         /* verticale 3:4, come le copertine di IGDB */
 	object-fit: cover;            /* l'immagine viene ritagliata per riempire, non deformata */
 }
 

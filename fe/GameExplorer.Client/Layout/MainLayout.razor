@@ -1,5 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @inject IJSRuntime JS
+@inject CookieAuthenticationStateProvider Auth
+@inject NavigationManager Navigation
 <MudThemeProvider @bind-IsDarkMode="_isDarkMode"/>
 <MudPopoverProvider/>
 <MudDialogProvider />
@@ -19,6 +21,17 @@
             Color="Color.Inherit"
             aria-label="Cambia tema"
         />
+        <AuthorizeView>
+            <Authorized>
+                <MudText Class="mr-2">@context.User.Identity?.Name</MudText>
+                <MudButton Href="/profile" Color="Color.Inherit">Profilo</MudButton>
+                <MudButton OnClick="LogoutAsync" Color="Color.Inherit">Esci</MudButton>
+            </Authorized>
+            <NotAuthorized>
+                <MudButton Href="/account/login" Color="Color.Inherit">Accedi</MudButton>
+                <MudButton Href="/account/register" Color="Color.Inherit">Registrati</MudButton>
+            </NotAuthorized>
+        </AuthorizeView>
     </MudAppBar>
     <MudMainContent>
         <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="py-6">
@@ -37,8 +50,8 @@
         <footer class="py-4">
             <MudText Typo="Typo.body2" Align="Align.Center" Class="mud-text-secondary">
                 Dati forniti da
-                <MudLink Href="https://rawg.io" Target="_blank" rel="noopener">
-                    RAWG
+                <MudLink Href="https://www.igdb.com" Target="_blank" rel="noopener">
+                    IGDB
                 </MudLink>
             </MudText>
         </footer>
@@ -65,5 +78,10 @@
     {
         _isDarkMode = isDark;
         await JS.InvokeVoidAsync("localStorage.setItem", ThemeKey, isDark ? "dark" : "light");
+    }
+    private async Task LogoutAsync()
+    {
+        await Auth.LogoutAsync();
+        Navigation.NavigateTo("/");
     }
 }

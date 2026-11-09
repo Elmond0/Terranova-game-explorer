@@ -137,7 +137,7 @@ else
 				<MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
 					<MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Color="Color.Warning" />
 					<MudText Typo="Typo.body1">
-						Voto medio <strong>@AverageRating.ToString("0.0 / 5", ItalianCulture)</strong>
+						Voto medio <strong>@AverageRating.ToString("0.0 '/ 100'", ItalianCulture)</strong>
 					</MudText>
 				</MudStack>
 				<MudText Typo="Typo.body2" Class="mud-text-secondary">
@@ -178,12 +178,12 @@ else
 	[SupplyParameterFromQuery] string? Ordering { get; set; }
 	[SupplyParameterFromQuery] int? Page { get; set; }
 
-	// RAWG manda 20 giochi per pagina: serve solo se la Web API non riempie PageSize
+	// Giochi per pagina se la Web API non riempie PageSize
 	private const int DefaultPageSize = 20;
 	private const int AboutPreviewLength = 500;
 	private static readonly CultureInfo ItalianCulture = CultureInfo.GetCultureInfo("it-IT");
 
-	// "" vuol dire nessun ordinamento: l'ordine scelto da RAWG
+	// "" vuol dire nessun ordinamento: l'ordine scelto dalla Web API
 	private static readonly (string Value, string Label)[] OrderOptions =
 	[
 		("", "Rilevanza"),
@@ -191,7 +191,6 @@ else
 		("-released", "Più recenti"),
 		("released", "Meno recenti"),
 		("name", "Nome (A-Z)"),
-		("-metacritic", "Metacritic più alto"),
 	];
 
 	private Studio? _studio;
@@ -220,7 +219,7 @@ else
 		}
 	}
 
-	// Su RAWG Rating 0 vuol dire "nessun voto": quei giochi non entrano nella media
+	// Rating 0 vuol dire "nessun voto" (IGDB non ne ha uno): quei giochi non entrano nella media
 	private List<Game> RatedGames => _games?.Items?.Where(g => g.Rating > 0).ToList() ?? [];
 	private double AverageRating => RatedGames.Count > 0 ? RatedGames.Average(g => g.Rating) : 0;
 

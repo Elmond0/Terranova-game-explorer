@@ -13,9 +13,9 @@ public class SearchTests : PageTestBase
 	{
 		// MudSelect e MudTooltip hanno bisogno del provider, che nell'app sta nel layout
 		Ctx.Render<MudPopoverProvider>();
-		// Portal 2 è solo Puzzle (7): con il genere Action (4) non deve uscire
+		// Portal 2 è solo Puzzle (9): con il genere Shooter (5) non deve uscire
 		var navigation = Ctx.Services.GetRequiredService<NavigationManager>();
-		navigation.NavigateTo("/search?q=portal&genres=4");
+		navigation.NavigateTo("/search?q=portal&genres=5");
 		var cut = Ctx.Render<Search>();
 		cut.WaitForAssertion(() =>
 		{

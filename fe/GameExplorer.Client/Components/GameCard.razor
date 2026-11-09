@@ -2,9 +2,9 @@
 
 <a href="games/@Game.Id" class="game-card">
 	<MudCard Elevation="2" Class="full-height">
-		@if (Game.Image is not null)
+		@if (Game.Image?.Url is not null)
 		{
-			<img src="@Game.Image" alt="@Game.Name" loading="lazy" class="cover" />
+			<img src="@Game.Image.Url" alt="@Game.Name" loading="lazy" class="cover" />
 		}
 		else
 		{
@@ -33,7 +33,7 @@
 				<MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
 					<MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Color="Color.Warning" />
 					<MudText Typo="Typo.body2">
-						@Game.Rating.ToString("0.0")
+						@Game.Rating.ToString("0.0 '/ 100'", CultureInfo.GetCultureInfo("it-IT"))
 					</MudText>
 				</MudStack>
 			}
@@ -76,13 +76,25 @@
 
 	private static string GetPlatformFamily(string slug)
 	{
-		if (slug.StartsWith("pc"))
+		if (slug.StartsWith("win"))
 			return "PC";
-		if (slug.StartsWith("playstation"))
+		if (slug.StartsWith("mac"))
+			return "PC";
+		if (slug.StartsWith("linux"))
+			return "PC";
+		if (slug.StartsWith("ps"))
 			return "PlayStation";
 		if (slug.StartsWith("xbox"))
 			return "Xbox";
-		if (slug.StartsWith("nintendo"))
+		if (slug.StartsWith("series-x-s"))
+			return "Xbox";
+		if (slug.StartsWith("switch"))
+			return "Nintendo";
+		if (slug.StartsWith("wii"))
+			return "Nintendo";
+		if (slug.StartsWith("3ds"))
+			return "Nintendo";
+		if (slug.StartsWith("n64"))
 			return "Nintendo";
 		if (slug.StartsWith("ios") || slug.StartsWith("android"))
 			return "Mobile";

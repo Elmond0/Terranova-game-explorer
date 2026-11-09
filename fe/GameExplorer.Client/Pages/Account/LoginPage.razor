@@ -1,0 +1,57 @@
+@page "/account/login"
+@inject CookieAuthenticationStateProvider Auth
+@inject NavigationManager Navigation
+
+
+<PageTitle>Accedi</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small">
+	<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">Accedi</MudText>
+
+	<MudPaper Class="pa-6">
+		<form @onsubmit="SubmitAsync">
+			<MudTextField @bind-Value="_email" Label="Email" InputType="InputType.Email" Class="mb-3"/>
+			<MudTextField @bind-Value="_password" Label="Password" InputType="InputType.Password" Class="mb-3"/>
+
+			@if (_error is not null)
+			{
+				<MudAlert Severity="Severity.Error" Class="mb-3">@_error</MudAlert>
+			}
+
+			<MudButton ButtonType="ButtonType.Submit" Disabled="_busy" Variant="Variant.Filled" Color="Color.Primary">Accedi</MudButton>
+		</form>
+	</MudPaper>
+
+	<MudText Class="mt-4">
+		Non hai un account? <MudLink Href="/account/register">Registrati</MudLink>
+	</MudText>
+</MudContainer>
+
+@code{
+	private string _email = "";
+	private string _password = "";
+	private string? _error;
+	private bool _busy;
+
+	private async Task SubmitAsync()
+	{
+		_busy = true;
+		_error = null;
+		try
+		{
+			var res = await Auth.LoginAsync(_email, _password);
+			if (res)
+				Navigation.NavigateTo("/");
+			else
+				_error = "Email o password sbagliate";
+		}
+		catch (HttpRequestException)
+		{
+			_error = "Accesso non riuscito, riprova più tardi";
+		}
+		finally
+		{
+			_busy = false;
+		}
+	}
+}

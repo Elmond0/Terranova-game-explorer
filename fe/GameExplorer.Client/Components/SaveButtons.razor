@@ -1,0 +1,121 @@
+@inject IGameApiClient Api
+@inject NavigationManager Navigation
+
+<MudStack Row="true" Spacing="2" Class="my-2">
+	<MudButton
+		OnClick="ToggleFavoriteAsync"
+		Disabled="_busyFavorite || _loading"
+		Color="Color.Error"
+		Variant="@(_isFavorite ? Variant.Filled : Variant.Outlined)"
+		StartIcon="@(_isFavorite ? Icons.Material.Filled.Favorite : Icons.Material.Filled.FavoriteBorder)"
+		aria-pressed="@(_isFavorite ? "true" : "false")"
+	>
+		@(_isFavorite ? "Nei preferiti" : "Aggiungi ai preferiti")
+	</MudButton>
+	<MudButton
+		OnClick="ToggleWishlistAsync"
+		Disabled="_busyWishlist || _loading"
+		Color="Color.Primary"
+		Variant="@(_inWishlist ? Variant.Filled : Variant.Outlined)"
+		StartIcon="@(_inWishlist ? Icons.Material.Filled.Bookmark : Icons.Material.Filled.BookmarkBorder)"
+		aria-pressed="@(_inWishlist ? "true" : "false")"
+	>
+		@(_inWishlist ? "Nella wishlist" : "Aggiungi alla wishlist")
+	</MudButton>
+</MudStack>
+@if (_error is not null)
+{
+	<MudAlert Severity="Severity.Error" Dense="true">@_error</MudAlert>
+}
+
+@code {
+	[Parameter, EditorRequired] public int GameId { get; set; }
+	[CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+	private bool _isAuthenticated;
+	private bool _isFavorite;
+	private bool _inWishlist;
+	private bool _busyFavorite;
+	private bool _busyWishlist;
+	private bool _loading;
+	private string? _error;
+
+	protected override async Task OnParametersSetAsync()
+	{
+		_error = null;
+		var state = AuthState is null ? null : await AuthState;
+		_isAuthenticated = state?.User.Identity?.IsAuthenticated == true;
+		if (!_isAuthenticated)
+			return;
+		_loading = true;
+		try
+		{
+			var favorites = await Api.GetFavoritesAsync();
+			_isFavorite = favorites.Any(g => g.Id == GameId);
+			var wishlist = await Api.GetWishlistAsync();
+			_inWishlist = wishlist.Any(g => g.Id == GameId);
+		}
+		catch (ApiException)
+		{
+			_error = "Non è stato possibile leggere i tuoi giochi salvati.";
+		}
+		finally
+		{
+			_loading = false;
+		}
+	}
+	private async Task ToggleFavoriteAsync()
+	{
+		if (!_isAuthenticated)
+		{
+			Navigation.NavigateTo("/account/login");
+			return;
+		}
+
+		_busyFavorite = true;
+		_error = null;
+		try
+		{
+			if (_isFavorite)
+				await Api.RemoveFavoriteAsync(GameId);
+			else
+				await Api.AddFavoriteAsync(GameId);
+			_isFavorite = !_isFavorite;
+		}
+		catch (ApiException)
+		{
+			_error = "Non è stato possibile aggiornare i preferiti. Riprova.";
+		}
+		finally
+		{
+			_busyFavorite = false;
+		}
+	}
+	private async Task ToggleWishlistAsync()
+	{
+		if (!_isAuthenticated)
+		{
+			Navigation.NavigateTo("/account/login");
+			return;
+		}
+
+		_busyWishlist = true;
+		_error = null;
+		try
+		{
+			if (_inWishlist)
+				await Api.RemoveFromWishlistAsync(GameId);
+			else
+				await Api.AddToWishlistAsync(GameId);
+			_inWishlist = !_inWishlist;
+		}
+		catch (ApiException)
+		{
+			_error = "Non è stato possibile aggiornare la wishlist. Riprova.";
+		}
+		finally
+		{
+			_busyWishlist = false;
+		}
+	}
+}

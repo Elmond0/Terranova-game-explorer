@@ -3,30 +3,41 @@ namespace GameExplorer.Client.Services;
 
 public class FakeGameApiClient : IGameApiClient
 {
-	private static readonly Platform Pc = new Platform { Id = 4, Name = "PC", Slug = "pc" };
-	private static readonly Platform Ps5 = new Platform { Id = 187, Name = "PlayStation 5", Slug = "playstation5" };
-	private static readonly Platform Ps4 = new Platform { Id = 18, Name = "PlayStation 4", Slug = "playstation4" };
-	private static readonly Platform XboxSeries = new Platform { Id = 186, Name = "Xbox Series S/X", Slug = "xbox-series-x" };
-	private static readonly Platform XboxOne = new Platform { Id = 1, Name = "Xbox One", Slug = "xbox-one" };
-	private static readonly Platform Switch = new Platform { Id = 7, Name = "Nintendo Switch", Slug = "nintendo-switch" };
+	// Id, nomi e slug come li manda IGDB
+	private static readonly Platform Pc = new Platform { Id = 6, Name = "PC (Microsoft Windows)", Slug = "win" };
+	private static readonly Platform Ps5 = new Platform { Id = 167, Name = "PlayStation 5", Slug = "ps5" };
+	private static readonly Platform Ps4 = new Platform { Id = 48, Name = "PlayStation 4", Slug = "ps4--1" };
+	private static readonly Platform XboxSeries = new Platform { Id = 169, Name = "Xbox Series X|S", Slug = "series-x-s" };
+	private static readonly Platform XboxOne = new Platform { Id = 49, Name = "Xbox One", Slug = "xboxone" };
+	private static readonly Platform Switch = new Platform { Id = 130, Name = "Nintendo Switch", Slug = "switch" };
 	private static readonly List<Platform> Platforms = [Pc, Ps5, Ps4, XboxSeries, XboxOne, Switch];
 
-	private static readonly Genre Action = new Genre { Id = 4, Name = "Action", Slug = "action" };
-	private static readonly Genre Rpg = new Genre { Id = 5, Name = "RPG", Slug = "role-playing-games-rpg" };
-	private static readonly Genre Adventure = new Genre { Id = 3, Name = "Adventure", Slug = "adventure" };
-	private static readonly Genre Puzzle = new Genre { Id = 7, Name = "Puzzle", Slug = "puzzle" };
-	private static readonly Genre Indie = new Genre { Id = 51, Name = "Indie", Slug = "indie" };
+	// IGDB non ha un genere "Action": al suo posto c'è Shooter
+	private static readonly Genre Shooter = new Genre { Id = 5, Name = "Shooter", Slug = "shooter" };
+	private static readonly Genre Rpg = new Genre { Id = 12, Name = "Role-playing (RPG)", Slug = "role-playing-rpg" };
+	private static readonly Genre Adventure = new Genre { Id = 31, Name = "Adventure", Slug = "adventure" };
+	private static readonly Genre Puzzle = new Genre { Id = 9, Name = "Puzzle", Slug = "puzzle" };
+	private static readonly Genre Indie = new Genre { Id = 32, Name = "Indie", Slug = "indie" };
 
-	private static readonly List<Genre> Genres = [Action, Rpg, Adventure, Puzzle, Indie];
+	private static readonly List<Genre> Genres = [Shooter, Rpg, Adventure, Puzzle, Indie];
 
-	// Copertine vere di RAWG: le prime tre sono dei giochi omonimi, le altre servono per i titoli inventati
-	private const string Witcher3Cover = "https://media.rawg.io/media/games/618/618c2031a07bbff6b4f611f10b6bcdbc.jpg";
-	private const string Portal2Cover = "https://media.rawg.io/media/games/2ba/2bac0e87cf45e5b508f227d281c9252a.jpg";
-	private const string GtaVCover = "https://media.rawg.io/media/games/456/456dea5e1c7e3cd07060c14e96612001.jpg";
-	private const string SampleCover1 = "https://media.rawg.io/media/games/b7d/b7d3f1715fa8381a4e780173a197a615.jpg";
-	private const string SampleCover2 = "https://media.rawg.io/media/games/511/5118aff5091cb3efec399c808f8c598f.jpg";
-	private const string SampleCover3 = "https://media.rawg.io/media/games/d82/d82990b9c67ba0d2d09d4e6fa88885a7.jpg";
+	// Immagini vere di IGDB, già nella dimensione grande (t_cover_big, t_screenshot_big).
+	// Le prime quattro copertine sono dei giochi omonimi, le altre servono per i titoli inventati
+	private const string IgdbImages = "https://images.igdb.com/igdb/image/upload";
+	private static Image Cover(string imageId) =>
+		new Image { Url = $"{IgdbImages}/t_cover_big/{imageId}.jpg", Width = 264, Height = 374 };
+	private static Image Screenshot(string imageId) =>
+		new Image { Url = $"{IgdbImages}/t_screenshot_big/{imageId}.jpg", Width = 889, Height = 500 };
 
+	private const string Witcher3Cover = "coaarl";
+	private const string Portal2Cover = "co1rs4";
+	private const string GtaVCover = "co2lbd";
+	private const string ZeldaBotwCover = "co3p2d";
+	private const string SampleCover1 = "co670h";
+	private const string SampleCover2 = "co4jni";
+	private const string SampleCover3 = "co2ve1";
+	private readonly List<int> _favoriteIds = [];
+	private readonly List<int> _wishlistIds = [];
 	private static readonly List<Game> TopRated =
 	[
 		new Game
@@ -34,19 +45,19 @@ public class FakeGameApiClient : IGameApiClient
 			Id = 3328,
 			Name = "The Witcher 3: Wild Hunt",
 			Slug = "the-witcher-3-wild-hunt",
-			Rating = 4.65,
-			// Image = Witcher3Cover,
+			Rating = 93.8,
+			Image = Cover(Witcher3Cover),
 			ReleaseDate = new DateOnly(2015, 05, 18),
 			Platforms = [Pc, Ps4, XboxOne, Switch],
-			Genres = [Action, Rpg]
+			Genres = [Rpg, Adventure]
 		},
 		new Game
 		{
 			Id = 4200,
 			Name = "Portal 2",
 			Slug = "portal-2",
-			Rating = 4.61,
-			// Image = Portal2Cover,
+			Rating = 91.3,
+			Image = Cover(Portal2Cover),
 			ReleaseDate = new DateOnly(2011, 04, 18),
 			Platforms = [Pc],
 			Genres = [Puzzle]
@@ -56,18 +67,18 @@ public class FakeGameApiClient : IGameApiClient
 			Id = 3498,
 			Name = "Grand Theft Auto V",
 			Slug = "grand-theft-auto-v",
-			Rating = 4.47,
-			// Image = GtaVCover,
+			Rating = 89.6,
+			Image = Cover(GtaVCover),
 			ReleaseDate = new DateOnly(2013, 09, 17),
 			Platforms = [Pc, Ps5, Ps4, XboxSeries, XboxOne],
-			Genres = [Action, Adventure]
+			Genres = [Shooter, Adventure]
 		},
 		new Game
 		{
 			Id = 900001,
 			Name = "Lumen Drift",
 			Slug = "lumen-drift",
-			Rating = 4.2,
+			Rating = 84,
 			Image = null,
 			ReleaseDate = new DateOnly(2019, 03, 01),
 			Platforms = [Pc],
@@ -82,19 +93,19 @@ public class FakeGameApiClient : IGameApiClient
 			Id = 900101,
 			Name = "Stellar Courier",
 			Slug = "stellar-courier",
-			Rating = 3.9,
-			// Image = SampleCover1,
+			Rating = 78,
+			Image = Cover(SampleCover1),
 			ReleaseDate = new DateOnly(2026, 10, 20),
 			Platforms = [Ps5, XboxSeries, Pc],
-			Genres = [Action, Adventure]
+			Genres = [Shooter, Adventure]
 		},
 		new Game
 		{
 			Id = 900102,
 			Name = "La leggenda del cavaliere che attraversò le sette valli di cristallo alla ricerca della corona perduta",
 			Slug = "la-leggenda-del-cavaliere",
-			Rating = 4.1,
-			// Image = SampleCover2,
+			Rating = 82,
+			Image = Cover(SampleCover2),
 			ReleaseDate = new DateOnly(2026, 10, 12),
 			Platforms = [Switch],
 			Genres = [Rpg, Adventure]
@@ -105,7 +116,7 @@ public class FakeGameApiClient : IGameApiClient
 			Name = "Pixel Garden",
 			Slug = "pixel-garden",
 			Rating = 0,
-			// Image = SampleCover3,
+			Image = Cover(SampleCover3),
 			ReleaseDate = new DateOnly(2026, 10, 05),
 			Genres = []
 		},
@@ -114,7 +125,7 @@ public class FakeGameApiClient : IGameApiClient
 			Id = 900104,
 			Name = "Night Shift",
 			Slug = "night-shift",
-			Rating = 3.5,
+			Rating = 70,
 			Image = null,
 			ReleaseDate = new DateOnly(2026, 09, 30),
 			Platforms = [Pc],
@@ -130,10 +141,10 @@ public class FakeGameApiClient : IGameApiClient
 			Name = "Aurora Protocol",
 			Slug = "aurora-protocol",
 			Rating = 0,
-			// Image = SampleCover1,
+			Image = Cover(SampleCover1),
 			ReleaseDate = new DateOnly(2026, 11, 14),
 			Platforms = [Ps5, XboxSeries],
-			Genres = [Action]
+			Genres = [Shooter]
 		},
 		new Game
 		{
@@ -141,10 +152,10 @@ public class FakeGameApiClient : IGameApiClient
 			Name = "Frontiera Rossa",
 			Slug = "frontiera-rossa",
 			Rating = 0,
-			// Image = SampleCover3,
+			Image = Cover(SampleCover3),
 			ReleaseDate = new DateOnly(2027, 03, 02),
 			Platforms = [Pc, Ps5],
-			Genres = [Action, Adventure]
+			Genres = [Shooter, Adventure]
 		},
 		new Game
 		{
@@ -162,7 +173,7 @@ public class FakeGameApiClient : IGameApiClient
 			Name = "Kart Galattico",
 			Slug = "kart-galattico",
 			Rating = 0,
-			// Image = SampleCover2,
+			Image = Cover(SampleCover2),
 			ReleaseDate = new DateOnly(2027, 06, 18),
 			Platforms = [Switch],
 			Genres = [Indie]
@@ -176,18 +187,18 @@ public class FakeGameApiClient : IGameApiClient
 			Id = 22511,
 			Name = "The Legend of Zelda: Breath of the Wild",
 			Slug = "the-legend-of-zelda-breath-of-the-wild",
-			Rating = 4.5,
-			// Image = "https://media.rawg.io/media/games/511/5118aff5091cb3efec399c808f8c598f.jpg",
+			Rating = 92.5,
+			Image = Cover(ZeldaBotwCover),
 			ReleaseDate = new DateOnly(2017, 03, 03),
 			Platforms = [Switch],
-			Genres = [Action, Adventure],
+			Genres = [Puzzle, Adventure],
 		},
 		.. Enumerable.Range(1, 25).Select(i => new Game {
 				Id = 900300 + i,
 				Name = $"Gioco di prova {i}",
 				Slug = $"gioco-di-prova-{i}",
-				Rating = 3 + (i % 20) / 10.0,
-				// Image.Url = SampleCover2,
+				Rating = 60 + (i % 20) * 2,
+				Image = Cover(SampleCover2),
 				ReleaseDate = new DateOnly(2000 + i, 1, 1),
 				Platforms = [Platforms[i % 6]],
 				Genres = [Genres[i % 5]],
@@ -205,13 +216,13 @@ public class FakeGameApiClient : IGameApiClient
 			Id = 3524,
 			Name = "Rockstar North",
 			Slug = "rockstar-north",
-			Image = GtaVCover,
+			Image = Cover(GtaVCover).Url,
 			About = "Rockstar North is a Scottish video game developer and a studio of Rockstar Games based in Edinburgh. " +
 				"The company was founded in 1987 as DMA Design and is best known for the Grand Theft Auto series.\n" +
 				"Testo finto del FakeGameApiClient: serve a provare la descrizione dello studio.",
 			Website = "https://www.rockstarnorth.com",
 		}, [3498, 900103]),
-		(new Studio { Id = 10, Name = "Rockstar Games", Slug = "rockstar-games", Image = SampleCover1 }, [3498, 900104, 900201]),
+		(new Studio { Id = 10, Name = "Rockstar Games", Slug = "rockstar-games", Image = Cover(SampleCover1).Url }, [3498, 900104, 900201]),
 		(TestStudio, [.. Enumerable.Range(900301, 25), 900202]),
 	];
 	private const int StudioGamesPageSize = 20;
@@ -238,7 +249,7 @@ public class FakeGameApiClient : IGameApiClient
 		return Upcoming;
 	}
 
-	// Filtra, ordina e pagina come la Web API vera; sviluppatori, publisher e store li ignora
+	// Filtra, ordina e pagina come la Web API vera; sviluppatori e publisher li ignora
 	public async Task<PagedResult<Game>> SearchAsync(SearchFilter filter, CancellationToken cancellationToken = default)
 	{
 		await DelayAsync(cancellationToken);
@@ -295,19 +306,18 @@ public class FakeGameApiClient : IGameApiClient
 				"Rockstar Games went bigger, since their previous installment of the series. You get the complicated and realistic world-building from Liberty City of GTA4 in the setting of lively and diverse Los Santos, from an old fan favorite GTA San Andreas. 561 different vehicles (including every transport you can operate) and the amount is rising with every update.\n" +
 				"Simultaneous storytelling from three unique perspectives: follow Michael, ex-criminal living his life of leisure away from the past, Franklin, a kid that seeks the better future, and Trevor, the exact past Michael is trying to run away from.\n" +
 				"GTA Online will provide a lot of additional challenge even for the experienced players, coming fresh from the story mode. Now you will have other players around that can help you just as likely as ruin your mission. Every GTA mechanic up to date can be experienced by players through the unique customizable character, and community content paired with the leveling system tends to keep everyone busy and engaged.";
-			// details.Screenshots =
-			// [
-			// 	"https://media.rawg.io/media/screenshots/5f5/5f5a38a222252d996b18962806eed707.jpg",
-			// 	"https://media.rawg.io/media/screenshots/b98/b98adb52b2123a14d1c88e828a6b49f3.jpg",
-			// 	"https://media.rawg.io/media/screenshots/a95/a95c031fe96063cc40ad377fd828d9ad.jpg",
-			// 	"https://media.rawg.io/media/screenshots/1bb/1bb3f78f0fe43b5d5ca2f3da5b638840.jpg",
-			// ];
+			details.Screenshots =
+			[
+				Screenshot("sc10f91"),
+				Screenshot("sc10f92"),
+				Screenshot("sc10f93"),
+				Screenshot("n3t2agwuxlqggp3kryf9"),
+			];
 			details.Developers =
 			[
 				new Studio { Id = 3524, Name = "Rockstar North", Slug = "rockstar-north" },
 				new Studio { Id = 10, Name = "Rockstar Games", Slug = "rockstar-games" },
 			];
-			// details.Publishers = [new Studio { Id = 2155, Name = "Rockstar Games", Slug = "rockstar-games" }];
 		}
 		// I "Gioco di prova" portano allo studio di prova, quello con due pagine di giochi
 		else if (details.Name.StartsWith("Gioco di prova"))
@@ -351,7 +361,7 @@ public class FakeGameApiClient : IGameApiClient
 		};
 	}
 
-	// Senza ordinamento i giochi restano nell'ordine dell'elenco, come la "rilevanza" di RAWG
+	// Senza ordinamento i giochi restano nell'ordine dell'elenco, come quando la Web API non riceve un ordinamento
 	public async Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, string? ordering, CancellationToken cancellationToken = default)
 	{
 		await DelayAsync(cancellationToken);
@@ -369,8 +379,6 @@ public class FakeGameApiClient : IGameApiClient
 		"-released" => games.OrderByDescending(g => g.ReleaseDate),
 		"name" => games.OrderBy(g => g.Name),
 		"-name" => games.OrderByDescending(g => g.Name),
-		// "metacritic" => games.OrderBy(g => g.Metacritic),
-		// "-metacritic" => games.OrderByDescending(g => g.Metacritic),
 		_ => games
 	};
 
@@ -387,11 +395,10 @@ public class FakeGameApiClient : IGameApiClient
 			Total = total,
 			Page = page,
 			PageSize = pageSize,
-			// IsLast = page * pageSize >= total,
 		};
 	}
 
-	// Iniziali delle parole del nome: "Grand Theft Auto V" → "GTAV", così "gta" trova il gioco come su RAWG
+	// Iniziali delle parole del nome: "Grand Theft Auto V" → "GTAV", così "gta" trova il gioco
 	private static string Initials(string name) =>
 		string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(word => word[0]));
 
@@ -401,5 +408,40 @@ public class FakeGameApiClient : IGameApiClient
 		await Task.Delay(800, cancellationToken);
 		if (SimulateError)
 			throw new ApiException("Errore simulato dal FakeGameApiClient", null);
+	}
+	private static List<Game> ToGames(List<int> ids) => ids.Select(
+		id => AllGames.FirstOrDefault(g => g.Id == id)).OfType<Game>().ToList();
+
+	public async Task AddFavoriteAsync(int id, CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		if (!_favoriteIds.Contains(id))
+		_favoriteIds.Insert(0, id);
+	}
+	public async Task RemoveFavoriteAsync(int id, CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		_favoriteIds.Remove(id);
+	}
+	public async Task<List<Game>> GetFavoritesAsync(CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		return ToGames(_favoriteIds);
+	}
+	public async Task AddToWishlistAsync(int id, CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		if (!_wishlistIds.Contains(id))
+		_wishlistIds.Insert(0, id);
+	}
+	public async Task RemoveFromWishlistAsync(int id, CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		_wishlistIds.Remove(id);
+	}
+	public async Task<List<Game>> GetWishlistAsync(CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		return ToGames(_wishlistIds);
 	}
 }
