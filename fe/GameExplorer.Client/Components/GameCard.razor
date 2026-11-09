@@ -2,9 +2,9 @@
 
 <a href="games/@Game.Id" class="game-card">
 	<MudCard Elevation="2" Class="full-height">
-		@if (Game.Image is not null)
+		@if (Game.Image?.Url is not null)
 		{
-			<img src="@Game.Image" alt="@Game.Name" loading="lazy" class="cover" />
+			<img src="@Game.Image.Url" alt="@Game.Name" loading="lazy" class="cover" />
 		}
 		else
 		{
