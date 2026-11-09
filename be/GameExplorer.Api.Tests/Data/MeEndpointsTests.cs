@@ -1,5 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.RegularExpressions;
+using GameExplorer.Api.Services;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http.Resilience;
 using Microsoft.AspNetCore.Mvc.Testing;
 using GameExplorer.Api.Data;
 using Microsoft.EntityFrameworkCore;
@@ -13,22 +18,35 @@ public class MeEndpointsTests(PostgresFixture pg) : IClassFixture<PostgresFixtur
 	const int MissingGame = 404;
 	const int BrokenGame = 500;
 
-	WebApplicationFactory<Program> WithRealDatabase(ApiFactory api) =>
-			api.WithWebHostBuilder(b =>
-					b.UseSetting("ConnectionStrings:Default", pg.ConnectionString));
-
-	static FakeRawgHandler FakeGames() => new((request, _, _) =>
-	{
-		int id = int.Parse(request.RequestUri!.Segments[3].TrimEnd('/'));
-
-		HttpResponseMessage response = id switch
+	WebApplicationFactory<Program> WithRealDatabase(ApiFactory api, FakeRawgHandler igdb) =>
+		api.WithWebHostBuilder(b =>
 		{
-			MissingGame => FakeRawgHandler.Json(HttpStatusCode.NotFound, "{}"),
-			BrokenGame => FakeRawgHandler.Json(HttpStatusCode.InternalServerError, "{}"),
-			_ => FakeRawgHandler.Json(HttpStatusCode.OK, $$"""{"id":{{id}},"name":"Game {{id}}","slug":"game-{{id}}","results":[]}"""),
-		};
+			b.UseSetting("ConnectionStrings:Default", pg.ConnectionString);
+			b.UseSetting("Igdb:ClientId", "test-client");
+			b.UseSetting("Igdb:ClientSecret", "test-secret");
+			b.ConfigureTestServices(services =>
+			{
+				services.AddScoped<GameService>();
+				services.AddHttpClient<TwitchTokenProvider>().ConfigurePrimaryHttpMessageHandler(() => igdb);
+				services.AddHttpClient<IgdbClient>().ConfigurePrimaryHttpMessageHandler(() => igdb);
+				services.PostConfigure<HttpStandardResilienceOptions>("IgdbClient-standard", o => o.Retry.Delay = TimeSpan.Zero);
+			});
+		});
 
-		return Task.FromResult(response);
+	static FakeRawgHandler FakeGames() => new(async (request, _, _) =>
+	{
+		if (request.RequestUri!.Host == "id.twitch.tv")
+			return FakeRawgHandler.Json(HttpStatusCode.OK, """{"access_token":"test-token","expires_in":3600,"token_type":"bearer"}""");
+
+		string body = await request.Content!.ReadAsStringAsync();
+		int id = int.Parse(Regex.Match(body, @"where id = (\d+)").Groups[1].Value);
+
+		return id switch
+		{
+			MissingGame => FakeRawgHandler.Json(HttpStatusCode.OK, "[]"),
+			BrokenGame => FakeRawgHandler.Json(HttpStatusCode.InternalServerError, "{}"),
+			_ => FakeRawgHandler.Json(HttpStatusCode.OK, $$"""[{"id":{{id}},"name":"Game {{id}}","slug":"game-{{id}}"}]"""),
+		};
 	});
 
 	static async Task<HttpClient> LoggedInClient(WebApplicationFactory<Program> app)
@@ -93,8 +111,8 @@ public class MeEndpointsTests(PostgresFixture pg) : IClassFixture<PostgresFixtur
 	[Fact]
 	public async Task Api_down_put_returns_502_and_get_still_works()
 	{
-		FakeRawgHandler rawg = FakeGames();
-		await using var api = new ApiFactory(rawg);
+		FakeRawgHandler igdb = FakeGames();
+		await using var api = new ApiFactory(igdb);
 		var app = WithRealDatabase(api);
 		HttpClient client = await LoggedInClient(app);
 
@@ -103,11 +121,11 @@ public class MeEndpointsTests(PostgresFixture pg) : IClassFixture<PostgresFixtur
 		HttpResponseMessage put = await client.PutAsync($"/api/me/favorites/{BrokenGame}", null);
 		Assert.Equal(HttpStatusCode.BadGateway, put.StatusCode);
 
-		int callsBefore = rawg.Calls;
+		int callsBefore = igdb.Calls;
 		Assert.Equal([40], await Ids(client, "/api/me/favorites"));
-		Assert.Equal(callsBefore, rawg.Calls);
+		Assert.Equal(callsBefore, igdb.Calls);
 	}
-	
+
 	// Eight identical PUTs at the same time all return 204 and leave a single row
 	[Fact]
 	public async Task Eight_equal_puts_leave_one_row()
@@ -175,7 +193,7 @@ public class MeEndpointsTests(PostgresFixture pg) : IClassFixture<PostgresFixtur
 
 		Assert.Equal([21, 20], favorites!.Select(g => g.Id));
 	}
-	
+
 	// Deleting a user removes their rows; deleting a game that is still in a list is refused (23001)
 	[Fact]
 	public async Task Deleting_user_removes_rows_and_used_game_cannot_be_deleted()

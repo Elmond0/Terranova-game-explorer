@@ -1,3 +1,5 @@
+using GameExplorer.Shared.Models;
+
 namespace GameExplorer.Api.Data.Entities;
 
 public class GameSnapshot
@@ -8,6 +10,7 @@ public class GameSnapshot
 	public string? Image { get; set; }
 	public DateOnly? ReleaseDate { get; set; }
 	public double Rating { get; set; }
-	public string? Details { get; set; }
 	public DateTime UpdatedAt { get; set; }
+	public List<Genre> Genres { get; set; } = [];
+	public List<Platform> Platforms { get; set; } = [];
 }
