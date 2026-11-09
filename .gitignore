@@ -3,7 +3,10 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
-## backups db
+# passwords - keys
+secrets/
+
+# backups db
 db/backups/
 
 # dotenv files
@@ -13,6 +16,7 @@ db/backups/
 
 # chiave API
 API-key.txt
+IGDB-key.txt
 
 #appunti
 piano-backend.md

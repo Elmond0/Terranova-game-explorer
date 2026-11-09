@@ -1,0 +1,14 @@
+$kind: http-request
+url: https://api.igdb.com/v4/games
+method: POST
+headers:
+  Client-ID: "{{igdb_client_id}}"
+  Authorization: Bearer {{igdb_token}}
+body:
+  type: text
+  content: "fields name, rating, first_release_date, cover.image_id, genres.name, platforms.name;\r
+
+    search \"zelda\";\r
+
+    limit 5;"
+order: 2000

@@ -36,9 +36,8 @@ public class FakeGameApiClient : IGameApiClient
 			Name = "The Witcher 3: Wild Hunt",
 			Slug = "the-witcher-3-wild-hunt",
 			Rating = 4.65,
-			Image = Witcher3Cover,
+			// Image = Witcher3Cover,
 			ReleaseDate = new DateOnly(2015, 05, 18),
-			Metacritic = 92,
 			Platforms = [Pc, Ps4, XboxOne, Switch],
 			Genres = [Action, Rpg]
 		},
@@ -48,9 +47,8 @@ public class FakeGameApiClient : IGameApiClient
 			Name = "Portal 2",
 			Slug = "portal-2",
 			Rating = 4.61,
-			Image = Portal2Cover,
+			// Image = Portal2Cover,
 			ReleaseDate = new DateOnly(2011, 04, 18),
-			Metacritic = 95,
 			Platforms = [Pc],
 			Genres = [Puzzle]
 		},
@@ -60,9 +58,8 @@ public class FakeGameApiClient : IGameApiClient
 			Name = "Grand Theft Auto V",
 			Slug = "grand-theft-auto-v",
 			Rating = 4.47,
-			Image = GtaVCover,
+			// Image = GtaVCover,
 			ReleaseDate = new DateOnly(2013, 09, 17),
-			Metacritic = 92,
 			Platforms = [Pc, Ps5, Ps4, XboxSeries, XboxOne],
 			Genres = [Action, Adventure]
 		},
@@ -74,7 +71,6 @@ public class FakeGameApiClient : IGameApiClient
 			Rating = 4.2,
 			Image = null,
 			ReleaseDate = new DateOnly(2019, 03, 01),
-			Metacritic = 81,
 			Platforms = [Pc],
 			Genres = [Indie, Puzzle]
 		}
@@ -88,9 +84,8 @@ public class FakeGameApiClient : IGameApiClient
 			Name = "Stellar Courier",
 			Slug = "stellar-courier",
 			Rating = 3.9,
-			Image = SampleCover1,
+			// Image = SampleCover1,
 			ReleaseDate = new DateOnly(2026, 10, 20),
-			Metacritic = 78,
 			Platforms = [Ps5, XboxSeries, Pc],
 			Genres = [Action, Adventure]
 		},
@@ -100,7 +95,7 @@ public class FakeGameApiClient : IGameApiClient
 			Name = "La leggenda del cavaliere che attraversò le sette valli di cristallo alla ricerca della corona perduta",
 			Slug = "la-leggenda-del-cavaliere",
 			Rating = 4.1,
-			Image = SampleCover2,
+			// Image = SampleCover2,
 			ReleaseDate = new DateOnly(2026, 10, 12),
 			Platforms = [Switch],
 			Genres = [Rpg, Adventure]
@@ -111,7 +106,7 @@ public class FakeGameApiClient : IGameApiClient
 			Name = "Pixel Garden",
 			Slug = "pixel-garden",
 			Rating = 0,
-			Image = SampleCover3,
+			// Image = SampleCover3,
 			ReleaseDate = new DateOnly(2026, 10, 05),
 			Genres = []
 		},
@@ -123,7 +118,6 @@ public class FakeGameApiClient : IGameApiClient
 			Rating = 3.5,
 			Image = null,
 			ReleaseDate = new DateOnly(2026, 09, 30),
-			Metacritic = 70,
 			Platforms = [Pc],
 			Genres = [Indie]
 		}
@@ -137,7 +131,7 @@ public class FakeGameApiClient : IGameApiClient
 			Name = "Aurora Protocol",
 			Slug = "aurora-protocol",
 			Rating = 0,
-			Image = SampleCover1,
+			// Image = SampleCover1,
 			ReleaseDate = new DateOnly(2026, 11, 14),
 			Platforms = [Ps5, XboxSeries],
 			Genres = [Action]
@@ -148,7 +142,7 @@ public class FakeGameApiClient : IGameApiClient
 			Name = "Frontiera Rossa",
 			Slug = "frontiera-rossa",
 			Rating = 0,
-			Image = SampleCover3,
+			// Image = SampleCover3,
 			ReleaseDate = new DateOnly(2027, 03, 02),
 			Platforms = [Pc, Ps5],
 			Genres = [Action, Adventure]
@@ -169,7 +163,7 @@ public class FakeGameApiClient : IGameApiClient
 			Name = "Kart Galattico",
 			Slug = "kart-galattico",
 			Rating = 0,
-			Image = SampleCover2,
+			// Image = SampleCover2,
 			ReleaseDate = new DateOnly(2027, 06, 18),
 			Platforms = [Switch],
 			Genres = [Indie]
@@ -184,9 +178,8 @@ public class FakeGameApiClient : IGameApiClient
 			Name = "The Legend of Zelda: Breath of the Wild",
 			Slug = "the-legend-of-zelda-breath-of-the-wild",
 			Rating = 4.5,
-			Image = "https://media.rawg.io/media/games/511/5118aff5091cb3efec399c808f8c598f.jpg",
+			// Image = "https://media.rawg.io/media/games/511/5118aff5091cb3efec399c808f8c598f.jpg",
 			ReleaseDate = new DateOnly(2017, 03, 03),
-			Metacritic = 97,
 			Platforms = [Switch],
 			Genres = [Action, Adventure],
 		},
@@ -195,9 +188,8 @@ public class FakeGameApiClient : IGameApiClient
 				Name = $"Gioco di prova {i}",
 				Slug = $"gioco-di-prova-{i}",
 				Rating = 3 + (i % 20) / 10.0,
-				Image = SampleCover2,
+				// Image.Url = SampleCover2,
 				ReleaseDate = new DateOnly(2000 + i, 1, 1),
-				Metacritic = 60 + i,
 				Platforms = [Platforms[i % 6]],
 				Genres = [Genres[i % 5]],
 			}),
@@ -273,8 +265,6 @@ public class FakeGameApiClient : IGameApiClient
 			games = games.Where(g => g.ReleaseDate?.Year >= filter.FromYear);
 		if (filter.ToYear is not null)
 			games = games.Where(g => g.ReleaseDate?.Year <= filter.ToYear);
-		if (filter.MinMetacritic is not null)
-			games = games.Where(g => g.Metacritic >= filter.MinMetacritic);
 		return ToPage(Sort(games, filter.Ordering), filter.Page, filter.PageSize);
 	}
 
@@ -295,7 +285,6 @@ public class FakeGameApiClient : IGameApiClient
 			Rating = game.Rating,
 			Image = game.Image,
 			ReleaseDate = game.ReleaseDate,
-			Metacritic = game.Metacritic,
 			Platforms = game.Platforms,
 			Genres = game.Genres,
 		};
@@ -303,23 +292,23 @@ public class FakeGameApiClient : IGameApiClient
 		// Solo GTA V ha la scheda completa: gli altri giochi servono a provare i dati mancanti
 		if (details.Id == 3498)
 		{
-			details.About =
+			details.Description =
 				"Rockstar Games went bigger, since their previous installment of the series. You get the complicated and realistic world-building from Liberty City of GTA4 in the setting of lively and diverse Los Santos, from an old fan favorite GTA San Andreas. 561 different vehicles (including every transport you can operate) and the amount is rising with every update.\n" +
 				"Simultaneous storytelling from three unique perspectives: follow Michael, ex-criminal living his life of leisure away from the past, Franklin, a kid that seeks the better future, and Trevor, the exact past Michael is trying to run away from.\n" +
 				"GTA Online will provide a lot of additional challenge even for the experienced players, coming fresh from the story mode. Now you will have other players around that can help you just as likely as ruin your mission. Every GTA mechanic up to date can be experienced by players through the unique customizable character, and community content paired with the leveling system tends to keep everyone busy and engaged.";
-			details.Screenshots =
-			[
-				"https://media.rawg.io/media/screenshots/5f5/5f5a38a222252d996b18962806eed707.jpg",
-				"https://media.rawg.io/media/screenshots/b98/b98adb52b2123a14d1c88e828a6b49f3.jpg",
-				"https://media.rawg.io/media/screenshots/a95/a95c031fe96063cc40ad377fd828d9ad.jpg",
-				"https://media.rawg.io/media/screenshots/1bb/1bb3f78f0fe43b5d5ca2f3da5b638840.jpg",
-			];
+			// details.Screenshots =
+			// [
+			// 	"https://media.rawg.io/media/screenshots/5f5/5f5a38a222252d996b18962806eed707.jpg",
+			// 	"https://media.rawg.io/media/screenshots/b98/b98adb52b2123a14d1c88e828a6b49f3.jpg",
+			// 	"https://media.rawg.io/media/screenshots/a95/a95c031fe96063cc40ad377fd828d9ad.jpg",
+			// 	"https://media.rawg.io/media/screenshots/1bb/1bb3f78f0fe43b5d5ca2f3da5b638840.jpg",
+			// ];
 			details.Developers =
 			[
 				new Studio { Id = 3524, Name = "Rockstar North", Slug = "rockstar-north" },
 				new Studio { Id = 10, Name = "Rockstar Games", Slug = "rockstar-games" },
 			];
-			details.Publishers = [new Studio { Id = 2155, Name = "Rockstar Games", Slug = "rockstar-games" }];
+			// details.Publishers = [new Studio { Id = 2155, Name = "Rockstar Games", Slug = "rockstar-games" }];
 		}
 		// I "Gioco di prova" portano allo studio di prova, quello con due pagine di giochi
 		else if (details.Name.StartsWith("Gioco di prova"))
@@ -381,8 +370,8 @@ public class FakeGameApiClient : IGameApiClient
 		"-released" => games.OrderByDescending(g => g.ReleaseDate),
 		"name" => games.OrderBy(g => g.Name),
 		"-name" => games.OrderByDescending(g => g.Name),
-		"metacritic" => games.OrderBy(g => g.Metacritic),
-		"-metacritic" => games.OrderByDescending(g => g.Metacritic),
+		// "metacritic" => games.OrderBy(g => g.Metacritic),
+		// "-metacritic" => games.OrderByDescending(g => g.Metacritic),
 		_ => games
 	};
 
@@ -399,7 +388,7 @@ public class FakeGameApiClient : IGameApiClient
 			Total = total,
 			Page = page,
 			PageSize = pageSize,
-			IsLast = page * pageSize >= total,
+			// IsLast = page * pageSize >= total,
 		};
 	}
 

@@ -1,0 +1,18 @@
+Domande generali:
+1) Funzionalità extra: /studios/id conta come funzionalità o come bonus?
+2) L'app può essere deployata con docker compose? In tal caso è necessario presentare anche un container Postman?
+3) L'app deve andare online o basta in locale?
+4) Conviene fare 1 o 2 bonus molto accurati o tanti bonus semplici?
+5) Nel subject è citato nei riferimenti il GDPR ma non c'è nulla di richiesto riguardo. E' richiesta un'implementazione base delle normative GDPR?
+
+Backend:
+1) Gestione errori: l'app deve mostrare gli errori di Rawg o deve nasconderli gestendoli tutti allo stesso modo?
+2) Gestire le chiamate diversamente da quelle di Rawg è una buona scelta?
+3) E' controproducente fare chiamate http che ritornano liste e non pagine?
+
+DB:
+1) Migrazioni con EFCore e PostgreSQL: è una buona scelta?
+
+Frontend:
+1) Dispositivi o risoluzioni specifiche su cui testare il fe responsive?
+2) Si possono utilizzare immagini e font esterni (es Google Font, sfondi personalizzati)?

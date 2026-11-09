@@ -6,9 +6,9 @@
 
 | Ruolo | GitHub | Territorio (cartelle in cui scrive solo lui) | Label |
 |---|---|---|---|
-| **Dev A — backend** | [`@K0ff33Blu3`](https://github.com/K0ff33Blu3) | `be/` · `shared/` · `post-man/` · `GameExplorer.slnx` | `BE` · `API` |
+| **Dev A — backend** | [`@K0ff33Blu3`](https://github.com/K0ff33Blu3) | `be/` · `shared/` · `postman/` · `GameExplorer.slnx` | `BE` · `API` |
 | **Dev B — frontend** | [`@fmartini02`](https://github.com/fmartini02) | `fe/` | `FE` |
-| **Dev C — database** | [`@Elmond0`](https://github.com/Elmond0) | `db/` · `be/GameExplorer.Api/Data` · `fe/Pages/Account` · `fe/Services/Auth` · `compose.yaml` · `.env.example` · `.github/workflows/database.yml` | `DB` |
+| **Dev C — database** | [`@Elmond0`](https://github.com/Elmond0) | `db/` · `be/GameExplorer.Api/Data` · `fe/Pages/Account` · `fe/Services/Auth` · `compose.yaml` · `Makefile` · `.env.example` · `.github/workflows/database.yml` | `DB` |
 | **tutti** | | `DOCS/` · `README.md` · `.gitignore`: modifiche piccole, avvisando gli altri | |
 
 Repository: [`Elmond0/Terranova-game-explorer`](https://github.com/Elmond0/Terranova-game-explorer) · chi fa cosa: [`Suddivisione del lavoro`](Suddivisione%20del%20lavoro.md) · stack: [`adr/adr-01-stack.md`](adr/adr-01-stack.md)
@@ -32,27 +32,27 @@ Repository: [`Elmond0/Terranova-game-explorer`](https://github.com/Elmond0/Terra
 
 ## 1. Il giro completo di una scheda
 
-Un lavoro vero, da quando prendi la scheda a quando la chiudi. Negli esempi sei `@Elmond0` e lavori sulla scheda **#21** "tabella game_cache"; la PR che ne esce è la **#23**. I numeri sono inventati (la scheda vera di `game_cache` è la #27): issue e PR usano lo **stesso contatore**, e `gh` ti stampa quello vero quando le crei.
+Un lavoro vero, da quando prendi la scheda a quando la chiudi. Negli esempi sei `@Elmond0` e lavori sulla scheda **#21** "tabella game_snapshots"; la PR che ne esce è la **#23**. I numeri sono inventati: issue e PR usano lo **stesso contatore**, e `gh` ti stampa quello vero quando le crei.
 
 ```bash
 # ── Giorno 1: apro la scheda ───────────────────────────────
 git switch main && git pull
 gh issue list --assignee @me              # cosa devo fare
 gh issue view 21                          # leggo la scheda e il suo "Fatto quando"
-git switch -c db/game-cache               # apro il branch
+git switch -c db/game-snapshots               # apro il branch
 
 git diff                                  # controllo cosa ho cambiato
-git add be/GameExplorer.Api/Data/Entities/GameCacheEntry.cs
-git commit -m "feat(db): aggiunge l'entità GameCacheEntry"
-git push -u origin db/game-cache          # -u solo la prima volta
+git add be/GameExplorer.Api/Data/Entities/GameSnapshot.cs
+git commit -m "feat(db): aggiunge l'entità GameSnapshot"
+git push -u origin db/game-snapshots          # -u solo la prima volta
 gh pr create --draft                      # PR in bozza: gli altri vedono cosa tocco
 
 # ── Giorno 2: continuo sullo stesso branch ─────────────────
-git switch db/game-cache
+git switch db/game-snapshots
 git switch main && git pull && git switch -   # aggiorno main e torno indietro
 git merge main                                # mi porto dentro il lavoro degli altri
-git add be/GameExplorer.Api/Data/Configurations/GameCacheEntryConfiguration.cs
-git commit -m "feat(db): configura la tabella game_cache"
+git add be/GameExplorer.Api/Data/Configurations/GameSnapshotConfiguration.cs
+git commit -m "feat(db): configura la tabella game_snapshots"
 git push
 
 # ── Giorno 3: ho finito ────────────────────────────────────
@@ -64,7 +64,7 @@ git switch main && git pull               # e passo alla scheda dopo
 ```
 
 > **Le due regole che non stanno nei comandi**
-> 1. **`git diff` prima di ogni `git add`.** Dieci secondi che ti evitano di pushare una riga di prova, il `.env` o la chiave RAWG.
+> 1. **`git diff` prima di ogni `git add`.** Dieci secondi che ti evitano di pushare una riga di prova, il `.env`, la cartella `secrets/` o una chiave.
 > 2. **Pusha anche a metà lavoro.** Quello che non hai pushato esiste solo sul tuo portatile.
 
 ---
@@ -162,12 +162,12 @@ gh issue create                     # aprirne una nuova (titolo come un commit)
 | Area | Quando |
 |---|---|
 | `be` · `fe` · `db` | lavori nella cartella del backend, del frontend o del database |
-| `api` | `post-man/` o il contratto degli endpoint |
+| `api` | `postman/` o il contratto degli endpoint |
 | `docs` | `DOCS/`, README |
 | `setup` | configurazione del repo (`.gitignore`, soluzione) |
 | `fix` | correggi un bug |
 
-Il "cosa" è di 2–4 parole, minuscole, con i trattini: `db/game-cache`, `be/rawg-service`, `fe/search-page`. **No** a `db/modifiche`, `be/fix2`, `prova`, o al tuo nome: branch così restano aperti per mesi. Il numero della scheda non va nel nome: il collegamento lo fa `Closes #21` nella PR.
+Il "cosa" è di 2–4 parole, minuscole, con i trattini: `db/game-snapshots`, `be/igdb-service`, `fe/search-page`. **No** a `db/modifiche`, `be/fix2`, `prova`, o al tuo nome: branch così restano aperti per mesi. Il numero della scheda non va nel nome: il collegamento lo fa `Closes #21` nella PR.
 
 > Se non sai quale area scrivere, non hai ancora capito quale cartella stai per toccare. Controlla che sia la tua.
 
@@ -185,7 +185,7 @@ Seguiamo [Conventional Commits](https://www.conventionalcommits.org/it/v1.0.0/).
 | `ci` | workflow di GitHub Actions |
 | `chore` | manutenzione e configurazione |
 
-Esempi: `feat(be): aggiunge la ricerca in RawgService` · `ci(db): controlla le migrazioni sulle PR`.
+Esempi: `feat(be): aggiunge la ricerca nel servizio IGDB` · `ci(db): controlla le migrazioni sulle PR`.
 
 **Il titolo dice cosa, il corpo dice perché.** Il cosa si vede dal codice; il perché fra due mesi non se lo ricorda nessuno:
 
@@ -194,7 +194,7 @@ git commit -m "fix(db): salva le date in UTC" \
            -m "Npgsql rifiuta le date non UTC nelle colonne timestamptz."
 ```
 
-**Commit piccoli e frequenti**, e **mai `git add .` alla cieca**: aggiungi i file per nome, così non ti porti dietro `bin/`, `obj/`, file di prova o il `.env`.
+**Commit piccoli e frequenti**, e **mai `git add .` alla cieca**: aggiungi i file per nome, così non ti porti dietro `bin/`, `obj/`, file di prova, il `.env` o `secrets/`.
 
 ---
 
@@ -230,7 +230,7 @@ chi stava aspettando questo lavoro (se nessuno, togli la sezione)
 i comandi esatti che il compagno deve lanciare per provarla
 ```
 
-**"Come verificare" è la sezione più importante:** dice al compagno come controllare il tuo lavoro in pochi minuti. Per il backend sono spesso le richieste della collection Postman in `post-man/`.
+**"Come verificare" è la sezione più importante:** dice al compagno come controllare il tuo lavoro in pochi minuti. Per il backend sono spesso le richieste della collection Postman in `postman/`.
 
 > **Tieni le PR piccole.** Una PR da 40 file non viene rivista davvero: viene timbrata.
 
@@ -244,14 +244,14 @@ gh pr diff 23                                  # cosa ha cambiato
 gh pr checkout 23                              # provarla sul tuo computer...
 git switch -                                   # ...e tornare al tuo lavoro
 gh pr review 23 --approve
-gh pr review 23 --request-changes -b "Se RAWG risponde 404 qui va in errore"
+gh pr review 23 --request-changes -b "Se IGDB risponde 404 qui va in errore"
 ```
 
 Cosa guardare, in quest'ordine:
 
 1. Fa quello che dice? Soddisfa il "Fatto quando"?
 2. Tocca solo le cartelle che doveva toccare?
-3. C'è roba che non c'entra (`bin/`, `obj/`, file di prova, `.env`, chiavi)?
+3. C'è roba che non c'entra (`bin/`, `obj/`, file di prova, `.env`, `secrets/`, chiavi)?
 4. I nomi si capiscono senza chiedere?
 
 E soprattutto **provala davvero**, seguendo "Come verificare": è anche il modo per capire il codice degli altri, che all'esame ognuno deve saper spiegare. Se il codice funziona ma l'avresti scritto diversamente, approva e parlagliene a voce. **Non approvare mai una PR che non hai guardato.**
@@ -325,7 +325,7 @@ Un conflitto **non è un errore** e non si perde niente: Git ti dice che tu e un
 **Il territorio.** I conflitti nascono quando due persone toccano le stesse righe dello stesso file, non quando lavorano nello stesso momento. Per questo ognuno scrive solo nelle sue cartelle (tabella in cima).
 
 - **Se devi modificare un file fuori dal tuo territorio, avvisa il proprietario prima di iniziare**, e fai una PR piccola che rivede lui: per esempio i pacchetti del database nel `.csproj` della Web API, o le pagine di Dev C dentro `fe/`.
-- **`compose.yaml` lo modifica solo `@Elmond0`:** se ti serve un servizio nuovo, aprigli una scheda.
+- **`compose.yaml` e il `Makefile` li modifica solo `@Elmond0`:** se ti serve un servizio nuovo, aprigli una scheda.
 - **`shared/` è il contratto tra backend e frontend:** se cambia un campo, si rompe il codice degli altri. Ogni modifica si annuncia sul gruppo **prima** della PR.
 
 **Le decisioni si scrivono negli ADR.** Quando decidete insieme qualcosa che tocca più persone (il contratto delle API, dove va un pezzo di codice, come si fa il login), lo scrivete in un ADR in `DOCS/adr/`: contesto, decisione, alternative scartate, conseguenze. Si aggiunge con una PR `docs(adr): ...` rivista dagli altri due. Un ADR accettato non si riscrive: se la decisione cambia, ne serve uno nuovo ([cosa sono gli ADR](https://adr.github.io/)).
@@ -345,9 +345,9 @@ Un conflitto **non è un errore** e non si perde niente: Git ti dice che tu e un
 
 | Argomento | Chi |
 |---|---|
-| Web API, RAWG, classi in `shared/`, Postman | `@K0ff33Blu3` |
+| Web API, IGDB, classi in `shared/`, Postman | `@K0ff33Blu3` |
 | Pagine Blazor, MudBlazor, grafica | `@fmartini02` |
-| PostgreSQL, EF Core e migrazioni, Docker, `.env`, login | `@Elmond0` |
+| PostgreSQL, EF Core e migrazioni, Docker, Makefile, `.env`, `secrets/`, login | `@Elmond0` |
 | Impostazioni del repository GitHub | `@Elmond0` (proprietario) |
 | Priorità, scadenze, chi fa cosa | tutti e tre, alla riunione della settimana |
 
@@ -365,7 +365,7 @@ Un conflitto **non è un errore** e non si perde niente: Git ti dice che tu e un
 | Hai committato su `main` (senza pushare) | `git switch -c <area>/<cosa>` (il commit viene con te), `git switch main`, `git reset --hard origin/main`, `git switch -` |
 | Vuoi buttare le modifiche a un file | `git restore <file>` (non si recupera) · solo togliere dall'area di staging: `git restore --staged <file>` |
 | Messaggio dell'ultimo commit sbagliato (non pushato) | `git commit --amend -m "messaggio giusto"` |
-| Hai committato una password o una chiave | **non** basta un altro commit: avvisa subito il gruppo e rigenera la chiave (per RAWG su [rawg.io/apidocs](https://rawg.io/apidocs)). Poi si decide insieme come ripulire |
+| Hai committato una password o una chiave | **non** basta un altro commit: avvisa subito il gruppo e rigenera la chiave (per IGDB dalla [console Twitch](https://dev.twitch.tv/console)). Poi si decide insieme come ripulire |
 | `gh`: `GraphQL: Projects (classic) is being deprecated` | `gh` vecchio: aggiornalo (§2, passo 2) |
 | `gh`: `No commits between main and <branch>` | non hai committato, o hai dimenticato `git push` |
 | `gh`: `Can not approve your own pull request` | serve un compagno |
@@ -386,7 +386,7 @@ Oggi `main` non è protetto: le regole valgono perché le rispettiamo noi. Per f
 | Allowed merge methods | solo **Squash** |
 | Require status checks to pass | **no**: `database.yml` parte solo sulle PR che toccano il database, e un controllo obbligatorio che non parte lascia le altre PR bloccate su "Waiting for status to be reported" |
 
-Da quel momento un push diretto su `main` viene rifiutato, e il pulsante di merge resta grigio finché un compagno non approva. La CI del backend non c'è (#37 tolta il 01/11/2026): prima di ogni PR si lanciano `dotnet build` e `dotnet test` in locale, con Docker acceso, e lo si scrive in "Come verificare".
+Da quel momento un push diretto su `main` viene rifiutato, e il pulsante di merge resta grigio finché un compagno non approva. La CI del backend non c'è (#37 tolta il 01/11/2026): prima di ogni PR si lanciano `dotnet build` e `dotnet test` (o `make test`) in locale, con Docker acceso, e lo si scrive in "Come verificare".
 
 ---
 
@@ -404,6 +404,8 @@ Da quel momento un push diretto su `main` viene rifiutato, e il pulsante di merg
 | [`Suddivisione del lavoro`](Suddivisione%20del%20lavoro.md) | chi fa cosa, fase per fase |
 | [`subject/SUBJECT.md`](subject/SUBJECT.md) | la traccia del progetto |
 | [`adr/`](adr/) | le decisioni del team con le motivazioni (ADR): `adr-01-stack.md` e i successivi |
-| [`rawg-api.md`](rawg-api.md) | le chiamate dell'API RAWG |
-| [`../db/README.md`](../db/README.md) | come si avvia il database locale |
+| [`qa-and-igdb-guide.md`](qa-and-igdb-guide.md) | risposte della traccia e guida a IGDB |
+| [`rawg-api.md`](rawg-api.md) | le chiamate dell'API RAWG (vecchia fonte dati, non più usata) |
+| [`../README.md`](../README.md) | come si avvia il progetto e come lanciare i test |
+| [`../db/README.md`](../db/README.md) | database locale: segreti, Makefile, migrazioni, backup |
 | [Issues](https://github.com/Elmond0/Terranova-game-explorer/issues) | tutte le schede |

@@ -1,0 +1,14 @@
+$kind: http-request
+url: "  https://id.twitch.tv/oauth2/token?client_id={{igdb_client_id}}&client_secret={{igdb_client_secret}}&grant_type=client_credentials"
+method: POST
+queryParams:
+  client_id: "{{igdb_client_id}}"
+  client_secret: "{{igdb_client_secret}}"
+  grant_type: client_credentials
+scripts:
+  - type: afterResponse
+    code: "const json = pm.response.json();\r
+
+      pm.environment.set(\"igdb_token\", json.access_token);"
+    language: text/javascript
+order: 1000

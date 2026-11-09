@@ -22,7 +22,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
 		builder.UseSetting("ConnectionStrings:Default", "Host=localhost;Port=1;Database=not_used;Username=test;Password=test");
 				builder.ConfigureServices(services =>
 			{
-				services.AddHttpClient<RawgService>()
+				services.AddHttpClient<GameService>()
 					.ConfigurePrimaryHttpMessageHandler(() => _rawg )
 					.ConfigureHttpClient(c =>
 						{

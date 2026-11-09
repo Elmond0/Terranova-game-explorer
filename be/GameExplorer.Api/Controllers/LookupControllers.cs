@@ -6,18 +6,12 @@ namespace GameExplorer.Api.Controllers;
 
 [ApiController]
 [Route("api")]
-public class LookupController : ControllerBase
+public class LookupController( GameService gameService ) : ControllerBase
 {
-	readonly RawgService _rawg;
-	public LookupController( RawgService rawg )
-	{
-		_rawg = rawg;	
-	}
-
 	[HttpGet("genres")]
 	public async Task<ActionResult<List<Genre>>>	GetGenres( CancellationToken ct )
 	{
-		List<Genre>? g = await _rawg.GetGenresAsync(ct);
+		List<Genre>? g = await gameService.GetGenresAsync(ct);
 		if (g is null)
 			return NotFound();
 		return Ok(g);
@@ -26,7 +20,7 @@ public class LookupController : ControllerBase
 	[HttpGet("platforms")]
 	public async Task<ActionResult<List<Platform>>>	GetPlatform( CancellationToken ct )
 	{
-		List<Platform>? g = await _rawg.GetPlatformsAsync(ct);
+		List<Platform>? g = await gameService.GetPlatformsAsync(ct);
 		if (g is null)
 			return NotFound();
 		return Ok(g);

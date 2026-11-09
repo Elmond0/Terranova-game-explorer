@@ -21,7 +21,7 @@ builder.Services.AddScoped<CookieAuthenticationStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CookieAuthenticationStateProvider>());
 // true: dati finti, finché gli endpoint della Home non sono su main.
 // false: Web API vera all'indirizzo Api:BaseUrl.
-var useFakeApi = true;
+var useFakeApi = false;
 if (useFakeApi)
 {
 	builder.Services.AddScoped<IGameApiClient, FakeGameApiClient>();

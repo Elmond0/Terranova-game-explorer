@@ -1,0 +1,325 @@
+$kind: http-request
+url: "{{apiUrl}}/games?games?query=zelda&genreIds=4&genreIds=3&platformIds=7&fr\
+  omYear=2017&toYear=2024&minMetacritic=80&storeIds=6&ordering=-rating&page=1&p\
+  ageSize=20"
+method: GET
+queryParams:
+  - key: games?query
+    value: zelda
+    disabled: false
+    description: ""
+  - key: genreIds
+    value: "4"
+    disabled: false
+    description: ""
+  - key: genreIds
+    value: "3"
+    disabled: false
+    description: ""
+  - key: platformIds
+    value: "7"
+    disabled: false
+    description: ""
+  - key: fromYear
+    value: "2017"
+    disabled: false
+    description: ""
+  - key: toYear
+    value: "2024"
+    disabled: false
+    description: ""
+  - key: minMetacritic
+    value: "80"
+    disabled: false
+    description: ""
+  - key: storeIds
+    value: "6"
+    disabled: false
+    description: ""
+  - key: ordering
+    value: -rating
+    disabled: false
+    description: ""
+  - key: page
+    value: "1"
+    disabled: false
+    description: ""
+  - key: pageSize
+    value: "20"
+    disabled: false
+    description: ""
+scripts:
+  - type: afterResponse
+    code: "const body  = pm.response.json();\r
+
+      const items = body.items ?? [];\r
+
+      \r
+
+      const q    = pm.request.url.query;\r
+
+      const get  = key => q.get(key);\r
+
+      const getAll = key => q.all()\r
+
+      \    .filter(p => p.key === key && !p.disabled)\r
+
+      \    .map(p => Number(p.value));\r
+
+      \r
+
+      const query         = (get(\"query\") ?? \"\").toLowerCase();\r
+
+      const genreIds      = getAll(\"genreIds\");\r
+
+      const platformIds   = getAll(\"platformIds\");\r
+
+      const storeIds      = getAll(\"storeIds\");\r
+
+      const fromYear      = Number(get(\"fromYear\"));\r
+
+      const toYear        = Number(get(\"toYear\"));\r
+
+      const minMetacritic = Number(get(\"minMetacritic\"));\r
+
+      const ordering      = get(\"ordering\");\r
+
+      const page          = Number(get(\"page\") ?? 1);\r
+
+      const pageSize      = Number(get(\"pageSize\") ?? 20);\r
+
+      \r
+
+      // Estrae gli id da una lista, sia piatta [{id}] sia annidata come RAWG
+      [{platform:{id}}]\r
+
+      const ids = list => (list ?? []).map(x => x.id ?? x.platform?.id ??
+      x.store?.id ?? x.genre?.id);\r
+
+      \r
+
+      // Esegue il test solo se il campo esiste negli elementi, altrimenti lo
+      segna come skipped\r
+
+      const testIfField = (name, field, fn) => {\r
+
+      \    const hasField = items.length > 0 && items.every(i => i[field] !==
+      undefined);\r
+
+      \    (hasField ? pm.test : pm.test.skip)(name, fn);\r
+
+      };\r
+
+      \r
+
+      // ===== Status e struttura =====\r
+
+      pm.test(\"200 OK\", () => {\r
+
+      \    pm.response.to.have.status(200);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Ha la struttura di PagedResult\", () => {\r
+
+      \    pm.expect(body).to.include.keys(\"items\", \"page\", \"pageSize\",
+      \"totalCount\", \"totalPages\");\r
+
+      \    pm.expect(body.items).to.be.an(\"array\");\r
+
+      });\r
+
+      \r
+
+      // ===== Paginazione =====\r
+
+      pm.test(\"La pagina è quella richiesta\", () => {\r
+
+      \    pm.expect(body.page).to.eql(page);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"pageSize è quello richiesto\", () => {\r
+
+      \    pm.expect(body.pageSize).to.eql(pageSize);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Non più elementi di pageSize\", () => {\r
+
+      \    pm.expect(items.length).to.be.at.most(pageSize);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"totalPages coerente con totalCount\", () => {\r
+
+      \    pm.expect(body.totalPages).to.eql(Math.ceil(body.totalCount /
+      body.pageSize));\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Ci sono risultati\", () => {\r
+
+      \    pm.expect(items.length).to.be.above(0);\r
+
+      });\r
+
+      \r
+
+      // ===== Filtri =====\r
+
+      if (query) {\r
+
+      \    testIfField(\"Il primo risultato contiene il testo cercato\",
+      \"name\", () => {\r
+
+      \        pm.expect(items[0].name.toLowerCase()).to.include(query);\r
+
+      \    });\r
+
+      }\r
+
+      \r
+
+      if (genreIds.length) {\r
+
+      \    testIfField(`Ogni gioco ha almeno uno dei generi ${genreIds}`,
+      \"genres\", () => {\r
+
+      \        items.forEach(g => {\r
+
+      \            pm.expect(ids(g.genres).some(id => genreIds.includes(id)),\r
+
+      \                `${g.name} non ha i generi richiesti`).to.be.true;\r
+
+      \        });\r
+
+      \    });\r
+
+      }\r
+
+      \r
+
+      if (platformIds.length) {\r
+
+      \    testIfField(`Ogni gioco è su una delle piattaforme ${platformIds}`,
+      \"platforms\", () => {\r
+
+      \        items.forEach(g => {\r
+
+      \            pm.expect(ids(g.platforms).some(id =>
+      platformIds.includes(id)),\r
+
+      \                `${g.name} non è sulle piattaforme
+      richieste`).to.be.true;\r
+
+      \        });\r
+
+      \    });\r
+
+      }\r
+
+      \r
+
+      if (storeIds.length) {\r
+
+      \    testIfField(`Ogni gioco è in uno degli store ${storeIds}`,
+      \"stores\", () => {\r
+
+      \        items.forEach(g => {\r
+
+      \            pm.expect(ids(g.stores).some(id => storeIds.includes(id)),\r
+
+      \                `${g.name} non è negli store richiesti`).to.be.true;\r
+
+      \        });\r
+
+      \    });\r
+
+      }\r
+
+      \r
+
+      if (fromYear || toYear) {\r
+
+      \    testIfField(`Anno di uscita tra ${fromYear} e ${toYear}`,
+      \"released\", () => {\r
+
+      \        items.forEach(g => {\r
+
+      \            pm.expect(g.released, `${g.name} senza
+      data`).to.not.be.null;\r
+
+      \            const year = new Date(g.released).getFullYear();\r
+
+      \            if (fromYear) pm.expect(year,
+      g.name).to.be.at.least(fromYear);\r
+
+      \            if (toYear)   pm.expect(year,
+      g.name).to.be.at.most(toYear);\r
+
+      \        });\r
+
+      \    });\r
+
+      }\r
+
+      \r
+
+      if (minMetacritic) {\r
+
+      \    testIfField(`Metacritic almeno ${minMetacritic}`, \"metacritic\", ()
+      => {\r
+
+      \        items.forEach(g => {\r
+
+      \            pm.expect(g.metacritic, `${g.name} senza
+      metacritic`).to.not.be.null;\r
+
+      \            pm.expect(g.metacritic,
+      g.name).to.be.at.least(minMetacritic);\r
+
+      \        });\r
+
+      \    });\r
+
+      }\r
+
+      \r
+
+      // ===== Ordinamento =====\r
+
+      if (ordering) {\r
+
+      \    const desc  = ordering.startsWith(\"-\");\r
+
+      \    const field = ordering.replace(\"-\", \"\");\r
+
+      \r
+
+      \    testIfField(`Ordinati per ${field} ${desc ? \"decrescente\" :
+      \"crescente\"}`, field, () => {\r
+
+      \        const values = items.map(g => g[field]).filter(v => v !==
+      null);\r
+
+      \        const sorted = [...values].sort((a, b) => desc ? (b > a ? 1 : -1)
+      : (a > b ? 1 : -1));\r
+
+      \        pm.expect(values).to.eql(sorted);\r
+
+      \    });\r
+
+      }"
+    language: text/javascript
+order: 12652
