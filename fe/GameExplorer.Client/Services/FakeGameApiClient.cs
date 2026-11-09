@@ -26,7 +26,8 @@ public class FakeGameApiClient : IGameApiClient
 	private const string SampleCover1 = "https://media.rawg.io/media/games/b7d/b7d3f1715fa8381a4e780173a197a615.jpg";
 	private const string SampleCover2 = "https://media.rawg.io/media/games/511/5118aff5091cb3efec399c808f8c598f.jpg";
 	private const string SampleCover3 = "https://media.rawg.io/media/games/d82/d82990b9c67ba0d2d09d4e6fa88885a7.jpg";
-
+	private readonly List<int> _favoriteIds = [];
+	private readonly List<int> _wishlistIds = [];
 	private static readonly List<Game> TopRated =
 	[
 		new Game
@@ -412,5 +413,40 @@ public class FakeGameApiClient : IGameApiClient
 		await Task.Delay(800, cancellationToken);
 		if (SimulateError)
 			throw new ApiException("Errore simulato dal FakeGameApiClient", null);
+	}
+	private static List<Game> ToGames(List<int> ids) => ids.Select(
+		id => AllGames.FirstOrDefault(g => g.Id == id)).OfType<Game>().ToList();
+
+	public async Task AddFavoriteAsync(int id, CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		if (!_favoriteIds.Contains(id))
+		_favoriteIds.Insert(0, id);
+	}
+	public async Task RemoveFavoriteAsync(int id, CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		_favoriteIds.Remove(id);
+	}
+	public async Task<List<Game>> GetFavoritesAsync(CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		return ToGames(_favoriteIds);
+	}
+	public async Task AddToWishlistAsync(int id, CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		if (!_wishlistIds.Contains(id))
+		_wishlistIds.Insert(0, id);
+	}
+	public async Task RemoveFromWishlistAsync(int id, CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		_wishlistIds.Remove(id);
+	}
+	public async Task<List<Game>> GetWishlistAsync(CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		return ToGames(_wishlistIds);
 	}
 }

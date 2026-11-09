@@ -13,5 +13,10 @@ public interface IGameApiClient
 	Task<List<Platform>> GetPlatformsAsync(CancellationToken cancellationToken = default);
 	Task<Studio?> GetStudioAsync(int id, CancellationToken cancellationToken = default);
 	Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, string? ordering, CancellationToken cancellationToken = default);
-
+	Task<List<Game>> GetFavoritesAsync(CancellationToken cancellationToken = default);
+	Task AddFavoriteAsync(int id, CancellationToken cancellationToken = default);
+	Task RemoveFavoriteAsync(int id, CancellationToken cancellationToken = default);
+	Task<List<Game>> GetWishlistAsync(CancellationToken cancellationToken = default);
+	Task AddToWishlistAsync(int id, CancellationToken cancellationToken = default);
+	Task RemoveFromWishlistAsync(int id, CancellationToken cancellationToken = default);
 }

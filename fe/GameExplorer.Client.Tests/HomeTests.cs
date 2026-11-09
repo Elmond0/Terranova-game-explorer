@@ -47,6 +47,18 @@ public class HomeTests : PageTestBase
 			_fake.GetPlatformsAsync(cancellationToken);
 		public Task<Studio?> GetStudioAsync(int id, CancellationToken cancellationToken = default) =>
 			_fake.GetStudioAsync(id, cancellationToken);
+		public Task<List<Game>> GetFavoritesAsync(CancellationToken cancellationToken = default) =>
+			_fake.GetFavoritesAsync(cancellationToken);
+		public Task AddFavoriteAsync(int id, CancellationToken cancellationToken = default) =>
+			_fake.AddFavoriteAsync(id, cancellationToken);
+		public Task RemoveFavoriteAsync(int id, CancellationToken cancellationToken = default) =>
+			_fake.RemoveFavoriteAsync(id, cancellationToken);
+		public Task<List<Game>> GetWishlistAsync(CancellationToken cancellationToken = default) =>
+			_fake.GetWishlistAsync(cancellationToken);
+		public Task AddToWishlistAsync(int id, CancellationToken cancellationToken = default) =>
+			_fake.AddToWishlistAsync(id, cancellationToken);
+		public Task RemoveFromWishlistAsync(int id, CancellationToken cancellationToken = default) =>
+			_fake.RemoveFromWishlistAsync(id, cancellationToken);
 		public Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, string? ordering, CancellationToken cancellationToken = default) =>
 			_fake.GetStudioGamesAsync(id, page, ordering, cancellationToken);
 	}

@@ -70,6 +70,41 @@ public class GameApiClient : IGameApiClient
 		return games ?? new PagedResult<Game>();
 	}
 
+	private async Task SendAsync(HttpMethod method, string url, CancellationToken cancellationToken)
+	{
+		try
+		{
+			using var request = new HttpRequestMessage(method, url);
+			var response = await _http.SendAsync(request, cancellationToken);
+			response.EnsureSuccessStatusCode();
+		}
+		catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+		{
+			throw;
+		}
+		catch (Exception ex)
+		{
+			throw new ApiException($"Chiamata {method} a {url} fallita", ex);
+		}
+	}
+	public async Task<List<Game>> GetFavoritesAsync(CancellationToken cancellationToken = default)
+	{
+		var games = await GetAsync<List<Game>>("api/me/favorites", cancellationToken);
+		return games ?? [];
+	}
+	public async Task<List<Game>> GetWishlistAsync(CancellationToken cancellationToken = default)
+	{
+		var games = await GetAsync<List<Game>>("api/me/wishlist", cancellationToken);
+		return games ?? [];
+	}
+	public Task AddFavoriteAsync(int id, CancellationToken cancellationToken = default) =>
+		SendAsync(HttpMethod.Put, $"api/me/favorites/{id}", cancellationToken);
+	public Task RemoveFavoriteAsync(int id, CancellationToken cancellationToken = default) =>
+		SendAsync(HttpMethod.Delete, $"api/me/favorites/{id}", cancellationToken);
+	public Task AddToWishlistAsync(int id, CancellationToken cancellationToken = default) =>
+		SendAsync(HttpMethod.Put, $"api/me/wishlist/{id}", cancellationToken);
+	public Task RemoveFromWishlistAsync(int id, CancellationToken cancellationToken = default) =>
+		SendAsync(HttpMethod.Delete, $"api/me/wishlist/{id}", cancellationToken);
 	// 404 → null, annullamento chiesto dalla pagina → passa così com'è, qualsiasi altro errore → ApiException
 	private async Task<T?> GetAsync<T>(string url, CancellationToken cancellationToken)
 	{
