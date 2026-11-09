@@ -19,9 +19,4 @@ psql -v ON_ERROR_STOP=1 \
 	ALTER DATABASE :"db_name" OWNER TO :"app_user";
 	-- 3. Nobody else can connect
 	REVOKE ALL ON DATABASE :"db_name" FROM PUBLIC;
-
-	-- 4. Create pg_trgm as the app user, so it owns it
-	SET ROLE :"app_user";
-	CREATE EXTENSION IF NOT EXISTS pg_trgm;
-	RESET ROLE;
 EOSQL
