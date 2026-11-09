@@ -14,6 +14,7 @@ public class GameSnapshotConfiguration : IEntityTypeConfiguration<GameSnapshot>
 		builder.HasKey(g => g.GameId);
 		builder.Property(g => g.GameId).ValueGeneratedNever();
 
-		builder.Property(g => g.Details).HasColumnType("jsonb");
+		builder.ComplexCollection(g => g.Genres, b => b.ToJson());
+		builder.ComplexCollection(g => g.Platforms, b => b.ToJson());
 	}
 }

@@ -13,6 +13,6 @@ public class WishlistItemConfiguration : IEntityTypeConfiguration<WishlistItem>
 
 		builder.HasKey(f => new { f.UserId, f.GameId });
 		builder.HasOne<IdentityUser>().WithMany().HasForeignKey(f => f.UserId).OnDelete(DeleteBehavior.Cascade);
-		builder.HasOne<GameSnapshot>().WithMany().HasForeignKey(f => f.GameId).OnDelete(DeleteBehavior.Restrict);
+		builder.HasOne(f => f.Game).WithMany().HasForeignKey(f => f.GameId).OnDelete(DeleteBehavior.Restrict);
 	}
 }

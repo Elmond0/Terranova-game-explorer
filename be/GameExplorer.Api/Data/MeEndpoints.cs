@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using System.Text.Json;
 using GameExplorer.Api.Services;
 using GameExplorer.Shared.Models;
 using Microsoft.AspNetCore.Identity;
@@ -47,21 +46,17 @@ public static class MeEndpoints
 		return TypedResults.NoContent();
 	}
 
-	static async Task<IResult> GetFavorites(ClaimsPrincipal user, UserManager<IdentityUser> users, AppDbContext db, CancellationToken ct)
+	static async Task<IResult> GetFavorites(int[] platformIds, string? ordering, ClaimsPrincipal user, UserManager<IdentityUser> users, AppDbContext db, GameSnapshotStore snapshots, CancellationToken ct)
 	{
+		if (!GameSnapshotStore.IsValidOrdering(ordering))
+			return TypedResults.ValidationProblem(new Dictionary<string, string[]> { ["Ordering"] = ["Ordering not valid."] });
+
 		string userId = users.GetUserId(user)!;
+		List<Game> games = await snapshots.GetListAsync(db.Favorites.Where(f => f.UserId == userId), platformIds, ordering, ct);
 
-		List<string?> details = await db.Favorites
-			.Where(f => f.UserId == userId)
-			.Join(db.GameSnapshots, f => f.GameId, g => g.GameId, (f, g) => new { f.AddedAt, g.Details })
-			.OrderByDescending(x => x.AddedAt)
-			.Select(x => x.Details)
-			.ToListAsync(ct);
-
-		List<Game> favorites = details.Select(d => JsonSerializer.Deserialize<Game>(d!)!).ToList();
-
-		return TypedResults.Ok(favorites);
+		return TypedResults.Ok(games);
 	}
+
 	static async Task<IResult> RemoveFromWishlist(int gameId, ClaimsPrincipal user, UserManager<IdentityUser> users, AppDbContext db, CancellationToken ct)
 	{
 		string userId = users.GetUserId(user)!;
@@ -88,19 +83,14 @@ public static class MeEndpoints
 		return TypedResults.NoContent();
 	}
 
-	static async Task<IResult> GetWishlist(ClaimsPrincipal user, UserManager<IdentityUser> users, AppDbContext db, CancellationToken ct)
+	static async Task<IResult> GetWishlist(int[] platformIds, string? ordering, ClaimsPrincipal user, UserManager<IdentityUser> users, AppDbContext db, GameSnapshotStore snapshots, CancellationToken ct)
 	{
+		if (!GameSnapshotStore.IsValidOrdering(ordering))
+			return TypedResults.ValidationProblem(new Dictionary<string, string[]> { ["Ordering"] = ["Ordering not valid."] });
+
 		string userId = users.GetUserId(user)!;
+		List<Game> games = await snapshots.GetListAsync(db.WishlistItems.Where(w => w.UserId == userId), platformIds, ordering, ct);
 
-		List<string?> details = await db.WishlistItems
-				.Where(w => w.UserId == userId)
-				.Join(db.GameSnapshots, w => w.GameId, g => g.GameId, (w, g) => new { w.AddedAt, g.Details })
-				.OrderByDescending(x => x.AddedAt)
-				.Select(x => x.Details)
-				.ToListAsync(ct);
-
-		List<Game> wishlist = details.Select(d => JsonSerializer.Deserialize<Game>(d!)!).ToList();
-
-		return TypedResults.Ok(wishlist);
+		return TypedResults.Ok(games);
 	}
 }
