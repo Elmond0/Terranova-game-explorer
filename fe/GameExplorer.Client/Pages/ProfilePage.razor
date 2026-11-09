@@ -1,0 +1,156 @@
+@page "/profile"
+@inject IGameApiClient Api
+@inject NavigationManager Navigation
+
+<PageTitle>Profilo</PageTitle>
+<MudText
+	Typo="Typo.h4"
+	HtmlTag="h1"
+	Class="mb-4">
+		Il mio profilo
+</MudText>
+@if (_error)
+{
+	<ErrorMessage OnRetry="LoadAsync"/>
+}
+else if (_favorites is null || _wishlist is null)
+{
+	<Loading />
+}
+else
+{
+	@if(_removeError is not null)
+	{
+		<MudAlert
+			Severity="Severity.Error"
+			Dense="true"
+			Class="mb-3">
+				@_removeError
+		</MudAlert>
+	}
+	<MudTabs Elevation="0" Rounded="true" PanelClass="pt-4">
+		<MudTabPanel Text="@($"Preferiti ({_favorites.Count})")">
+			@if(_favorites.Count == 0)
+			{
+				<NoResults Message="Non hai ancora giochi nei preferiti." />
+				<MudStack AlignItems="AlignItems.Center">
+					<MudButton
+						Href="/search"
+						Variant="Variant.Filled"
+						Color="Color.Primary">
+							Cerca un gioco
+					</MudButton>
+				</MudStack>
+			}
+			else
+			{
+				<MudGrid Spacing="3">
+					@foreach (var game in _favorites)
+					{
+						<MudItem xs="12" sm="6" lg="4">
+							<GameCard Game="game" />
+							<MudButton
+								OnClick="() => RemoveFavoriteAsync(game)"
+								StartIcon="@Icons.Material.Filled.Delete"
+								Color="Color.Error" Size="Size.Small" Class="mt-1">
+									Togli
+							</MudButton>
+						</MudItem>
+					}
+				</MudGrid>
+			}
+		</MudTabPanel>
+		<MudTabPanel Text="@($"Wishlist ({_wishlist.Count})")">
+			@if(_wishlist.Count == 0)
+			{
+				<NoResults Message="Non hai ancora giochi nella wishlist." />
+				<MudStack AlignItems="AlignItems.Center">
+					<MudButton
+						Href="/search"
+						Variant="Variant.Filled"
+						Color="Color.Primary">
+							Cerca un gioco
+					</MudButton>
+				</MudStack>
+			}
+			else
+			{
+				<MudGrid Spacing="3">
+					@foreach (var game in _wishlist)
+					{
+						<MudItem xs="12" sm="6" lg="4">
+							<GameCard Game="game" />
+							<MudButton
+								OnClick="() => RemoveFromWishlistAsync(game)"
+								StartIcon="@Icons.Material.Filled.Delete"
+								Color="Color.Error" Size="Size.Small" Class="mt-1">
+									Togli
+							</MudButton>
+						</MudItem>
+					}
+				</MudGrid>
+			}
+		</MudTabPanel>
+	</MudTabs>
+}
+
+@code {
+	[CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+	private List<Game>? _favorites;
+	private List<Game>? _wishlist;
+	private bool _error;
+	private string? _removeError;
+
+	protected override async Task OnInitializedAsync()
+	{
+		var state = AuthState is null ? null : await AuthState;
+		if (state?.User.Identity?.IsAuthenticated != true)
+		{
+			Navigation.NavigateTo("/account/login", replace: true);
+			return;
+		}
+		await LoadAsync();
+	}
+	private async Task LoadAsync()
+	{
+		_error = false;
+		_favorites = null;
+		_wishlist = null;
+		try
+		{
+			_favorites = await Api.GetFavoritesAsync();
+			_wishlist = await Api.GetWishlistAsync();
+		}
+		catch (ApiException)
+		{
+			_error = true;
+		}
+	}
+	private async Task RemoveFavoriteAsync(Game game)
+	{
+		_removeError = null;
+		try
+		{
+			await Api.RemoveFavoriteAsync(game.Id);
+			_favorites?.Remove(game);
+		}
+		catch (ApiException)
+		{
+			_removeError = "Non è stato possibile togliere il gioco. Riprova.";
+		}
+	}
+	private async Task RemoveFromWishlistAsync(Game game)
+	{
+		_removeError = null;
+		try
+		{
+			await Api.RemoveFromWishlistAsync(game.Id);
+			_wishlist?.Remove(game);
+		}
+		catch (ApiException)
+		{
+			_removeError = "Non è stato possibile togliere il gioco. Riprova.";
+		}
+	}
+}
