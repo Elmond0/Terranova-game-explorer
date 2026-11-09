@@ -24,7 +24,7 @@ else
 {
 	<MudGrid>
 		<MudItem xs="12" md="4">
-			@if (_game.Image is not null)
+			@if (_game.Image?.Url is not null)
 			{
 				<MudImage
 					Fluid="true"
@@ -62,12 +62,6 @@ else
 					Nessun voto
 				</MudText>
 			}
-			@* @if (_game.Rating is double score) *@
-			@* { *@
-			@* 	<MudChip T="string" Variant="Variant.Filled" Color="MetacriticColor(score)"> *@
-			@* 		Metacritic @score *@
-			@* 	</MudChip> *@
-			@* } *@
 			<SaveButtons GameId="_game.Id" />
 			@if (_game.Genres.Count > 0)
 			{
@@ -228,7 +222,7 @@ else
 		FullWidth = true,
 	};
 	private bool IsAboutLong => _game?.Description?.Length > AboutPreviewLength;
-	private List<string> ScreenshotUrls => _game?.Screenshots.OfType<string>().ToList() ?? [];
+	private List<string> ScreenshotUrls => _game?.Screenshots.Select(s => s?.Url).OfType<string>().ToList() ?? [];
 	private void OpenViewer(int index)
 	{
 		_viewerIndex = index;
@@ -292,14 +286,6 @@ else
 		}
 		catch (OperationCanceledException) when (token.IsCancellationRequested)
 		{ }
-	}
-	private static Color MetacriticColor(int score)
-	{
-		if (score >= 75)
-			return Color.Success;
-		else if (score >= 50 && score <= 74)
-			return Color.Warning;
-		return Color.Error;
 	}
 	public void Dispose()
 	{

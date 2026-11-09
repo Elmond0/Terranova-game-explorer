@@ -109,13 +109,12 @@
 @code {
 	private const int PageSize = 20;
 
-	// Le voci del menu "Ordina per": valore RAWG senza "-" e testo da mostrare
+	// Le voci del menu "Ordina per": valore accettato dalla Web API (SearchFilter.Ordering) senza "-" e testo da mostrare
 	private static readonly (string Value, string Label)[] OrderFields =
 	[
 		("name", "Nome"),
 		("released", "Data di uscita"),
 		("rating", "Voto"),
-		("metacritic", "Metacritic"),
 	];
 
 	[SupplyParameterFromQuery(Name = "q")] string? Query { get; set; }
@@ -123,7 +122,6 @@
 	[SupplyParameterFromQuery] int[]? Platforms { get; set; }
 	[SupplyParameterFromQuery] int? FromYear { get; set; }
 	[SupplyParameterFromQuery] int? ToYear { get; set; }
-	[SupplyParameterFromQuery] int? Metacritic { get; set; }
 	[SupplyParameterFromQuery] string? Ordering { get; set; }
 	[SupplyParameterFromQuery] int? Page { get; set; }
 	private PagedResult<Game>? _result;
@@ -150,7 +148,7 @@
 	private int ActiveFilterCount =>
 		(Genres?.Length > 0 ? 1 : 0) + (Platforms?.Length > 0 ? 1 : 0)
 		+ (FromYear is not null ? 1 : 0) + (ToYear is not null ? 1 : 0)
-		+ (Metacritic is not null ? 1 : 0) + (Ordering is not null ? 1 : 0);
+		+ (Ordering is not null ? 1 : 0);
 
 	// Lo stesso pannello compare due volte: nella colonna (schermi grandi) e nel MudDrawer (smartphone)
 	// @key: MudSelect calcola il testo ("Action, Adventure") una volta sola, quindi si ricrea quando arrivano gli elenchi
@@ -211,17 +209,6 @@
 				Variant="Variant.Outlined"
 			/>
 		</MudStack>
-		<MudNumericField
-			T="int?"
-			Label="Metacritic minimo"
-			Value="Metacritic"
-			ValueChanged="@((int? v) => NavigateWith("metacritic", v))"
-			Min="0"
-			Max="100"
-			DebounceInterval="500"
-			HideSpinButtons="true"
-			Variant="Variant.Outlined"
-		/>
 		<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
 			<MudSelect
 				T="string"
@@ -369,7 +356,6 @@
 			["platforms"] = null,
 			["fromYear"] = null,
 			["toYear"] = null,
-			["metacritic"] = null,
 			["ordering"] = null,
 			["page"] = null,
 		});

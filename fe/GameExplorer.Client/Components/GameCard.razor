@@ -33,7 +33,7 @@
 				<MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
 					<MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Color="Color.Warning" />
 					<MudText Typo="Typo.body2">
-						@Game.Rating.ToString("0.0")
+						@Game.Rating.ToString("0.0 '/ 100'", CultureInfo.GetCultureInfo("it-IT"))
 					</MudText>
 				</MudStack>
 			}

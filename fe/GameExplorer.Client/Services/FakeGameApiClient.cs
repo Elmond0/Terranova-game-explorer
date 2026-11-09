@@ -352,7 +352,7 @@ public class FakeGameApiClient : IGameApiClient
 		};
 	}
 
-	// Senza ordinamento i giochi restano nell'ordine dell'elenco, come la "rilevanza" di RAWG
+	// Senza ordinamento i giochi restano nell'ordine dell'elenco, come quando la Web API non riceve un ordinamento
 	public async Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, string? ordering, CancellationToken cancellationToken = default)
 	{
 		await DelayAsync(cancellationToken);
@@ -392,7 +392,7 @@ public class FakeGameApiClient : IGameApiClient
 		};
 	}
 
-	// Iniziali delle parole del nome: "Grand Theft Auto V" → "GTAV", così "gta" trova il gioco come su RAWG
+	// Iniziali delle parole del nome: "Grand Theft Auto V" → "GTAV", così "gta" trova il gioco
 	private static string Initials(string name) =>
 		string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(word => word[0]));
 
