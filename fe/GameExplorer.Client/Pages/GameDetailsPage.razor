@@ -52,7 +52,7 @@ else
 				<MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
 					<MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Color="Color.Warning" />
 					<MudText Typo="Typo.body2">
-						@_game.Rating.ToString("0.0 / 5", CultureInfo.GetCultureInfo("it-IT"))
+						@_game.Rating.ToString("0.0 '/ 100'", CultureInfo.GetCultureInfo("it-IT"))
 					</MudText>
 				</MudStack>
 			}
@@ -68,6 +68,7 @@ else
 			@* 		Metacritic @score *@
 			@* 	</MudChip> *@
 			@* } *@
+			<SaveButtons GameId="_game.Id" />
 			@if (_game.Genres.Count > 0)
 			{
 				<MudText Typo="Typo.subtitle2" Class="mt-4">

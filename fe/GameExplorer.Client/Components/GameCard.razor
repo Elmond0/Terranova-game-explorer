@@ -76,13 +76,25 @@
 
 	private static string GetPlatformFamily(string slug)
 	{
-		if (slug.StartsWith("pc"))
+		if (slug.StartsWith("win"))
 			return "PC";
-		if (slug.StartsWith("playstation"))
+		if (slug.StartsWith("mac"))
+			return "PC";
+		if (slug.StartsWith("linux"))
+			return "PC";
+		if (slug.StartsWith("ps"))
 			return "PlayStation";
 		if (slug.StartsWith("xbox"))
 			return "Xbox";
-		if (slug.StartsWith("nintendo"))
+		if (slug.StartsWith("series-x-s"))
+			return "Xbox";
+		if (slug.StartsWith("switch"))
+			return "Nintendo";
+		if (slug.StartsWith("wii"))
+			return "Nintendo";
+		if (slug.StartsWith("3ds"))
+			return "Nintendo";
+		if (slug.StartsWith("n64"))
 			return "Nintendo";
 		if (slug.StartsWith("ios") || slug.StartsWith("android"))
 			return "Mobile";
