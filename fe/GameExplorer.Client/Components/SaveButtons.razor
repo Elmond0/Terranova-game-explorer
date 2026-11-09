@@ -4,21 +4,21 @@
 <MudStack Row="true" Spacing="2" Class="my-2">
 	<MudButton
 		OnClick="ToggleFavoriteAsync"
-		Disabled="_busyFavorite"
+		Disabled="_busyFavorite || _loading"
 		Color="Color.Error"
 		Variant="@(_isFavorite ? Variant.Filled : Variant.Outlined)"
 		StartIcon="@(_isFavorite ? Icons.Material.Filled.Favorite : Icons.Material.Filled.FavoriteBorder)"
-		aria-pressed="@_isFavorite"
+		aria-pressed="@(_isFavorite ? "true" : "false")"
 	>
 		@(_isFavorite ? "Nei preferiti" : "Aggiungi ai preferiti")
 	</MudButton>
 	<MudButton
 		OnClick="ToggleWishlistAsync"
-		Disabled="_busyWishlist"
+		Disabled="_busyWishlist || _loading"
 		Color="Color.Primary"
 		Variant="@(_inWishlist ? Variant.Filled : Variant.Outlined)"
 		StartIcon="@(_inWishlist ? Icons.Material.Filled.Bookmark : Icons.Material.Filled.BookmarkBorder)"
-		aria-pressed="@_inWishlist"
+		aria-pressed="@(_inWishlist ? "true" : "false")"
 	>
 		@(_inWishlist ? "Nella wishlist" : "Aggiungi alla wishlist")
 	</MudButton>
@@ -37,6 +37,7 @@
 	private bool _inWishlist;
 	private bool _busyFavorite;
 	private bool _busyWishlist;
+	private bool _loading;
 	private string? _error;
 
 	protected override async Task OnParametersSetAsync()
@@ -46,6 +47,7 @@
 		_isAuthenticated = state?.User.Identity?.IsAuthenticated == true;
 		if (!_isAuthenticated)
 			return;
+		_loading = true;
 		try
 		{
 			var favorites = await Api.GetFavoritesAsync();
@@ -56,6 +58,10 @@
 		catch (ApiException)
 		{
 			_error = "Non è stato possibile leggere i tuoi giochi salvati.";
+		}
+		finally
+		{
+			_loading = false;
 		}
 	}
 	private async Task ToggleFavoriteAsync()

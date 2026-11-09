@@ -1,4 +1,5 @@
 using Bunit;
+using Bunit.TestDoubles;              // esiste già (pacchetto bunit): BunitAuthorizationContext
 using GameExplorer.Client.Services;   // esiste già: IGameApiClient, FakeGameApiClient
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor.Services;             // esiste già (pacchetto MudBlazor): AddMudServices
@@ -13,8 +14,10 @@ public abstract class PageTestBase : IAsyncLifetime
 	protected BunitContext Ctx { get; } = new();
 	// Lo stesso oggetto che riceve la pagina: il test può cambiarlo (es. SimulateError = true)
 	protected FakeGameApiClient Api { get; } = new();
+	protected BunitAuthorizationContext Auth { get; }
 	protected PageTestBase()
 	{
+		Auth = Ctx.AddAuthorization();
 		// Il client finto risponde dopo 800 ms: 1 secondo di attesa (il valore di base) è troppo poco
 		BunitContext.DefaultWaitTimeout = TimeSpan.FromSeconds(5);
 		Ctx.Services.AddMudServices();
