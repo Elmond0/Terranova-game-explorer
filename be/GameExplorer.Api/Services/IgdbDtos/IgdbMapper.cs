@@ -5,6 +5,9 @@ namespace GameExplorer.Api.Services.IgdbDtos;
 
 internal static class IgdbMapper
 {
+	public const string CoverSize = "t_cover_big";
+	public const string ScreenshotSize = "t_screenshot_big";
+	
 	private static List<TOut> MapTo<TIn, TOut>(this IEnumerable<TIn>? source, Func<TIn, TOut> map) =>
 		source?
 			.Select(map)
@@ -27,7 +30,7 @@ internal static class IgdbMapper
 		Slug = r.Slug,
 		Name = r.Name,
 		Rating = r.Rating,
-		Image = r.Cover?.ToImage(),
+		Image = r.Cover?.ToImage(CoverSize),
 		ReleaseDate = FromUnix(r.Released),
 
 		Platforms = r.Platforms.MapTo( p => new Platform
@@ -44,12 +47,21 @@ internal static class IgdbMapper
 			Name = g.Name,
 		})
 	};
+
+	private static string? ToImageUrl(this string? url, string size)
+	{
+		if (string.IsNullOrWhiteSpace(url))
+			return null;
+		var result = url.Replace("t_thumb", size);
+		if (result.StartsWith("//"))
+			result = "https:" + result;
+		return result;
+	}
 	
-	
-	public static Image ToImage( this IgdbImage r ) => new()
+	public static Image ToImage( this IgdbImage r, string size ) => new()
 	{
 		Id = r.Id,
-		Url = r.Path,
+		Url = r.Path.ToImageUrl(size),
 		Height = r.Height,
 		Width = r.Width
 	};
@@ -96,7 +108,7 @@ internal static class IgdbMapper
 			
 			Developers = r.Studios.MapTo(ToStudio),
 
-			Screenshots = r.Screenshots.MapTo(ToImage)
+			Screenshots = r.Screenshots.MapTo(s => s.ToImage(ScreenshotSize))
 		};
 	}
 }
