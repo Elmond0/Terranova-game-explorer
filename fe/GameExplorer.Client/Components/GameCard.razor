@@ -65,6 +65,10 @@
 	[Parameter]
 	public bool HighlightDate { get; set; }
 
+	private static readonly string[] PcSlugs = ["win", "mac", "linux"];
+	private static readonly string[] NintendoSlugs = ["switch", "switch-2", "wii", "wiiu", "3ds", "nds", "ngc", "n64", "nes", "snes", "gb", "gba", "gbc"];
+	private static readonly string[] MobileSlugs = ["ios", "android"];
+
 	private string ReleaseDateText => Game.ReleaseDate is null
 		? "Data da annunciare"
 		: Game.ReleaseDate.Value.ToString("d MMM yyyy", CultureInfo.GetCultureInfo("it-IT"));
@@ -76,27 +80,15 @@
 
 	private static string GetPlatformFamily(string slug)
 	{
-		if (slug.StartsWith("win"))
-			return "PC";
-		if (slug.StartsWith("mac"))
-			return "PC";
-		if (slug.StartsWith("linux"))
+		if (PcSlugs.Contains(slug))
 			return "PC";
 		if (slug.StartsWith("ps"))
 			return "PlayStation";
-		if (slug.StartsWith("xbox"))
+		if (slug.StartsWith("xbox") || slug.StartsWith("series-x-s"))
 			return "Xbox";
-		if (slug.StartsWith("series-x-s"))
-			return "Xbox";
-		if (slug.StartsWith("switch"))
+		if (NintendoSlugs.Contains(slug))
 			return "Nintendo";
-		if (slug.StartsWith("wii"))
-			return "Nintendo";
-		if (slug.StartsWith("3ds"))
-			return "Nintendo";
-		if (slug.StartsWith("n64"))
-			return "Nintendo";
-		if (slug.StartsWith("ios") || slug.StartsWith("android"))
+		if (MobileSlugs.Contains(slug))
 			return "Mobile";
 		return "Altro";
 	}
