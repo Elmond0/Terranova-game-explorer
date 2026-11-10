@@ -3,6 +3,7 @@
 @inject CookieAuthenticationStateProvider Auth
 @inject NavigationManager Navigation
 @inject SearchFocusService SearchFocus
+@inject IBrowserViewportService Viewport
 
 <MudThemeProvider @bind-IsDarkMode="_isDarkMode"/>
 <MudPopoverProvider/>
@@ -36,23 +37,23 @@
 		Variant="DrawerVariant.Responsive"
 		ClipMode="DrawerClipMode.Always"
 		Elevation="1"
-	>
-		<MudNavMenu>
-			<MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-			<MudNavLink OnClick="FocusSearchAsync" Icon="@Icons.Material.Filled.Search">Cerca</MudNavLink>
-			<MudDivider Class="my-2" />
-			<AuthorizeView>
-				<Authorized>
-					<MudText Class="px-4 py-2" Typo="Typo.subtitle2">@context.User.Identity?.Name</MudText>
-					<MudNavLink Href="/profile" Icon="@Icons.Material.Filled.Person">Profilo</MudNavLink>
-					<MudNavLink OnClick="LogoutAsync" Icon="@Icons.Material.Filled.Logout">Esci</MudNavLink>
-				</Authorized>
-				<NotAuthorized>
-					<MudNavLink Href="/account/login" Icon="@Icons.Material.Filled.Login">Accedi</MudNavLink>
-					<MudNavLink Href="/account/register" Icon="@Icons.Material.Filled.PersonAdd">Registrati</MudNavLink>
-				</NotAuthorized>
-			</AuthorizeView>
-		</MudNavMenu>
+		Breakpoint="Breakpoint.Md">
+			<MudNavMenu>
+				<MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+				<MudNavLink OnClick="FocusSearchAsync" Icon="@Icons.Material.Filled.Search">Cerca</MudNavLink>
+				<MudDivider Class="my-2" />
+				<AuthorizeView>
+					<Authorized>
+						<MudText Class="px-4 py-2" Typo="Typo.subtitle2">@context.User.Identity?.Name</MudText>
+						<MudNavLink Href="/profile" Icon="@Icons.Material.Filled.Person">Profilo</MudNavLink>
+						<MudNavLink OnClick="LogoutAsync" Icon="@Icons.Material.Filled.Logout">Esci</MudNavLink>
+					</Authorized>
+					<NotAuthorized>
+						<MudNavLink Href="/account/login" Icon="@Icons.Material.Filled.Login">Accedi</MudNavLink>
+						<MudNavLink Href="/account/register" Icon="@Icons.Material.Filled.PersonAdd">Registrati</MudNavLink>
+					</NotAuthorized>
+				</AuthorizeView>
+			</MudNavMenu>
 	</MudDrawer>
 	<MudMainContent>
 		<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="py-6">
@@ -114,6 +115,8 @@
 
 	private async Task FocusSearchAsync()
 	{
+		if (await Viewport.IsBreakpointWithinWindowSizeAsync(Breakpoint.SmAndDown))
+			_drawerOpen = false;
 		await SearchFocus.RequestAsync();
 		if (!SearchFocus.HasSearchBar)
 			Navigation.NavigateTo("/");
