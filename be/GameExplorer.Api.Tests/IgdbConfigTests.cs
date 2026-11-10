@@ -5,7 +5,7 @@ using Xunit;
 
 namespace GameExplorer.Api.Tests;
 
-public class RawgConfigTests
+public class IgdbConfigTests
 {
     [Fact]
     public void App_does_not_start_without_Rawg_ApiKey()

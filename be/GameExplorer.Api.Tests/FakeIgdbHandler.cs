@@ -6,12 +6,12 @@ using System.Text.Json.Nodes;
 
 namespace GameExplorer.Api.Tests;
 
-public sealed class FakeRawgHandler : HttpMessageHandler
+public sealed class FakeIgdbHandler : HttpMessageHandler
 {
 	private int _calls;
 	private Func<HttpRequestMessage, int, CancellationToken, Task<HttpResponseMessage>> _respond;
 
-	public FakeRawgHandler( Func<HttpRequestMessage, int, CancellationToken, Task<HttpResponseMessage>> respond ) { _respond = respond; }
+	public FakeIgbdHandler( Func<HttpRequestMessage, int, CancellationToken, Task<HttpResponseMessage>> respond ) { _respond = respond; }
 	public int Calls => _calls;
 
 	protected override Task<HttpResponseMessage> SendAsync( HttpRequestMessage request, CancellationToken ct )
@@ -23,15 +23,15 @@ public sealed class FakeRawgHandler : HttpMessageHandler
 	public static HttpResponseMessage Json( HttpStatusCode code, string body )
 		=> new(code) { Content = new StringContent( body, Encoding.UTF8, "application/json") };
 
-	public static FakeRawgHandler Status( HttpStatusCode code, string body = "{}")
+	public static FakeIgbdHandler Status( HttpStatusCode code, string body = "{}")
 		=> new((_, _, _)
 			=> Task.FromResult(Json(code, body)));
 
-	public static FakeRawgHandler Throws( Exception e )
+	public static FakeIgbdHandler Throws( Exception e )
 		=> new((_, _, _)
 			=> Task.FromException<HttpResponseMessage>(e));
 
-	public static FakeRawgHandler Hangs()
+	public static FakeIgbdHandler Hangs()
 		=> new(async (_, _, ct)
 			=>	{
 					await Task.Delay(Timeout.InfiniteTimeSpan, ct);

@@ -45,6 +45,7 @@ internal static class IgdbMapper
 		})
 	};
 	
+	
 	public static Image ToImage( this IgdbImage r ) => new()
 	{
 		Id = r.Id,
