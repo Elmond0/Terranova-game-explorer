@@ -19,6 +19,7 @@ builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<CookieAuthenticationStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CookieAuthenticationStateProvider>());
+builder.Services.AddScoped<SearchFocusService>();
 var useFakeApi = builder.Configuration.GetValue<bool>("Api:UseFake");
 if (useFakeApi)
 {

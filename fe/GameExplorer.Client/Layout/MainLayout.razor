@@ -2,6 +2,8 @@
 @inject IJSRuntime JS
 @inject CookieAuthenticationStateProvider Auth
 @inject NavigationManager Navigation
+@inject SearchFocusService SearchFocus
+
 <MudThemeProvider @bind-IsDarkMode="_isDarkMode"/>
 <MudPopoverProvider/>
 <MudDialogProvider />
@@ -37,7 +39,7 @@
 	>
 		<MudNavMenu>
 			<MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-			<MudNavLink Href="/search" Icon="@Icons.Material.Filled.Search">Cerca</MudNavLink>
+			<MudNavLink OnClick="FocusSearchAsync" Icon="@Icons.Material.Filled.Search">Cerca</MudNavLink>
 			<MudDivider Class="my-2" />
 			<AuthorizeView>
 				<Authorized>
@@ -108,5 +110,12 @@
 	private void ToggleDrawer()
 	{
 		_drawerOpen = !_drawerOpen;
+	}
+
+	private async Task FocusSearchAsync()
+	{
+		await SearchFocus.RequestAsync();
+		if (!SearchFocus.HasSearchBar)
+			Navigation.NavigateTo("/");
 	}
 }
