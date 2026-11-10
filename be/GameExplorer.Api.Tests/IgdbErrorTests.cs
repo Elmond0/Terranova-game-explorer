@@ -7,7 +7,7 @@ using Xunit;
 
 namespace GameExplorer.Api.Tests;
 
-public class RawgErrorTests : TestData
+public class IgdbErrorTests : TestData
 {
 	private static async Task AssertBadGateway( HttpResponseMessage res )
 	{
@@ -27,7 +27,7 @@ public class RawgErrorTests : TestData
 	[MemberData(nameof(EndpointsPerCode))]
 	public async Task App_responds502whenRawgRespondsError( string url, HttpStatusCode errorCode )
 	{
-		await using var app = new ApiFactory(FakeRawgHandler.Status(errorCode, """{"error":"error"}"""));
+		await using var app = new ApiFactory(FakeIgbdHandler.Status(errorCode, """{"error":"error"}"""));
 		var res = await app.CreateClient().GetAsync(url);
 
 		await AssertBadGateway(res);
@@ -37,7 +37,7 @@ public class RawgErrorTests : TestData
 	[MemberData(nameof(OnlyEndpoints))]
 	public async Task App_responds502whenRawgDoesNotRespond( string url )
 	{
-		await using var app = new ApiFactory(FakeRawgHandler.Throws(new HttpRequestException("Connection denied.")));
+		await using var app = new ApiFactory(FakeIgbdHandler.Throws(new HttpRequestException("Connection denied.")));
 		var res = await app.CreateClient().GetAsync(url);
 
 		await AssertBadGateway(res);
@@ -47,7 +47,7 @@ public class RawgErrorTests : TestData
 	[MemberData(nameof(OnlyEndpoints))]
 	public async Task App_responds502whenRawgInTimeout( string url )
 	{
-		await using var app = new ApiFactory(FakeRawgHandler.Hangs(), timeout: TimeSpan.FromMilliseconds(300));
+		await using var app = new ApiFactory(FakeIgbdHandler.Hangs(), timeout: TimeSpan.FromMilliseconds(300));
 		var res = await app.CreateClient().GetAsync(url);
 
 		await AssertBadGateway(res);
@@ -57,7 +57,7 @@ public class RawgErrorTests : TestData
 	[MemberData(nameof(OnlyEndpoints))]
 	public async Task App_responds502whenJsonIsBroken( string url )
 	{
-		await using var app = new ApiFactory(FakeRawgHandler.Status(HttpStatusCode.OK, "This is not Jason D:"));
+		await using var app = new ApiFactory(FakeIgbdHandler.Status(HttpStatusCode.OK, "This is not Jason D:"));
 		var res = await app.CreateClient().GetAsync(url);
 
 		await AssertBadGateway(res);
@@ -66,7 +66,7 @@ public class RawgErrorTests : TestData
 	[Fact]
 	public async Task App_responds404whenGameDoesNotExist()
 	{
-		await using var app = new ApiFactory(FakeRawgHandler.Status(HttpStatusCode.NotFound));
+		await using var app = new ApiFactory(FakeIgbdHandler.Status(HttpStatusCode.NotFound));
 		var res = await app.CreateClient().GetAsync("/api/games/99999999");
 
 		Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
