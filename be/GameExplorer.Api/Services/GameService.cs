@@ -152,6 +152,8 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 	internal async Task<List<Game>>	GetUpcomingAsync( CancellationToken ct ) =>
 		await GetCachedListAsync<IgdbGame, Game>( "upcoming", IgdbQueryFields.Upcoming, IgdbMapper.ToGame, IgdbCache.Home, ct );
 
+	internal async Task<List<Game>>	GetStudioUpcomingAsync( int id, CancellationToken ct ) =>
+		await GetCachedListAsync<IgdbGame, Game>( $"studio:{id}:upcoming", IgdbQueryFields.StudioUpcoming(id), IgdbMapper.ToGame, IgdbCache.Home, ct );
 // 	internal async Task<List<string?>?> GetScreenshotsAsync( int id, CancellationToken ct ) =>
 // 		await _cache.GetOrCreateAsync( RawgCache.ScreenshotsKey(id), async cancel => await LoadScreenshotsAsync(id, cancel), RawgCache.Details, cancellationToken: ct);
 //

@@ -36,4 +36,24 @@ public record IgdbQueryFields()
                    $"limit 20;";
         }
     }
+    
+    public static string StudioUpcoming(int id)
+    {
+        var now = DateTimeOffset.UtcNow;
+        return $"where id = {id}" + 
+                   $"& first_release_date > {now.ToUnixTimeSeconds()} +" +
+                   $"& version_parent = null;\n" +
+                   $"sort first_release_date asc;\n" +
+                   $"limit 20;";
+    }
+
+    public static string StudioGames(int id)
+    {
+        var now = DateTimeOffset.UtcNow;
+        return $"where id = {id}" +
+               $"& first_release_date <= {now.ToUnixTimeSeconds()}" +
+               $"& cover != null\n" +
+               $"sort rating desc;\n" +
+               $"                                                                         limit 20;";
+    }
 };

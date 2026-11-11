@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json.Serialization;
 
 namespace GameExplorer.Api.Services.IgdbDtos;
@@ -5,7 +6,7 @@ namespace GameExplorer.Api.Services.IgdbDtos;
 internal class IgdbStudio : IIgdbEntity
 {
 	public static string Url => "companies";
-	public static string Fields => "fields id, name, slug, rating, first_release_date, cover.*, genres.*, platforms.*;";
+	public static string Fields => "fields id, name, slug, websites.*, description, logo.*, country, start_date, status;";
 	[JsonPropertyName("id")]
 	public int Id { get; set; }
 
@@ -15,9 +16,21 @@ internal class IgdbStudio : IIgdbEntity
 	[JsonPropertyName("name")]
 	public string Name { get; set; } = "";
 
-	[JsonPropertyName("games_count")]
-	public int GamesId { get; set; }
+	[JsonPropertyName("Websites")]
+	public List<IgdbWebsite> Websites { get; set; } = [];
+	
+	[JsonPropertyName("description")]
+	public string Description { get; set; } = "";
+	
+	[JsonPropertyName("logo")]
+	public IgdbImage? Logo { get; set; }
 	
 	[JsonPropertyName("country")]
-	public string Country { get; set; } = "";
+	public int? CountryId { get; set; }
+	
+	[JsonPropertyName("start_date")]
+	public long StartDate { get; set; }
+	
+	[JsonPropertyName("status")]
+	public int Status { get; set; }
 }
