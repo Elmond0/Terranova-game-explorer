@@ -33,13 +33,33 @@
 	}
 	else
 	{
-		<div class="game-row">
-			@foreach(var game in _games)
-			{
-				<div class="game-row-item">
-					<GameCard Game="game" HighlightDate="HighlightDate"/>
-				</div>
-			}
+		<div class="carousel">
+			<div class="game-row" @ref="_row">
+				@if (Loop)
+				{
+					foreach(var game in _games.TakeLast(Visible))
+					{
+						<div class="game-row-item" inert>
+							<GameCard Game="game" HighlightDate="HighlightDate"/>
+						</div>
+					}
+				}
+				@foreach(var game in _games)
+				{
+					<div class="game-row-item">
+						<GameCard Game="game" HighlightDate="HighlightDate"/>
+					</div>
+				}
+				@if (Loop)
+				{
+					foreach(var game in _games.Take(Visible))
+					{
+						<div class="game-row-item" inert>
+							<GameCard Game="game" HighlightDate="HighlightDate"/>
+						</div>
+					}
+				}
+			</div>
 		</div>
 	}
 </section>
@@ -52,6 +72,9 @@
 	private List<Game>? _games;
 	private bool _error;
 	private readonly CancellationTokenSource _cts = new();
+	private const int Visible = 4;
+	private bool Loop => _games is not null && _games.Count > Visible;
+	private ElementReference _row;
 	private async Task LoadAsync()
 	{
 		_error = false;
