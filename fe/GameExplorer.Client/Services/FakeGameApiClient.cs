@@ -216,13 +216,13 @@ public class FakeGameApiClient : IGameApiClient
 			Id = 3524,
 			Name = "Rockstar North",
 			Slug = "rockstar-north",
-			Image = Cover(GtaVCover).Url,
+			Image = Cover(GtaVCover),
 			About = "Rockstar North is a Scottish video game developer and a studio of Rockstar Games based in Edinburgh. " +
 				"The company was founded in 1987 as DMA Design and is best known for the Grand Theft Auto series.\n" +
 				"Testo finto del FakeGameApiClient: serve a provare la descrizione dello studio.",
 			Website = "https://www.rockstarnorth.com",
 		}, [3498, 900103]),
-		(new Studio { Id = 10, Name = "Rockstar Games", Slug = "rockstar-games", Image = Cover(SampleCover1).Url }, [3498, 900104, 900201]),
+		(new Studio { Id = 10, Name = "Rockstar Games", Slug = "rockstar-games", Image = Cover(SampleCover1)}, [3498, 900104, 900201]),
 		(TestStudio, [.. Enumerable.Range(900301, 25), 900202]),
 	];
 	private const int StudioGamesPageSize = 20;
@@ -369,7 +369,6 @@ public class FakeGameApiClient : IGameApiClient
 			Image = entry.Studio.Image,
 			About = entry.Studio.About,
 			Website = entry.Studio.Website,
-			GamesCount = entry.GameIds.Length,
 		};
 	}
 

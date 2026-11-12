@@ -40,7 +40,7 @@ else
 				<div class="logo">
 					<MudImage
 						Class="rounded-lg"
-						Src="@_studio.Image"
+						Src="@_studio.Image.Url"
 						Alt="@_studio.Name"
 					/>
 				</div>
@@ -57,7 +57,10 @@ else
 				@_studio.Name
 			</MudText>
 			<MudText Typo="Typo.body1" Class="mud-text-secondary">
-				@GamesWord(_studio.GamesCount)
+				@if (_games is not null)
+				{
+					@GamesWord(_games.Total)
+				}
 			</MudText>
 			@if (!string.IsNullOrWhiteSpace(_studio.Website))
 			{
