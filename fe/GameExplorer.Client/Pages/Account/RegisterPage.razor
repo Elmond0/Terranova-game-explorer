@@ -25,6 +25,14 @@
 				Validation="@(new Func<string, string?>(ValidatePassword))"
 				DebounceInterval="600"
 			/>
+			<MudTextField
+				@bind-Value="_passwordConfirmation"
+				Label="Conferma password"
+				InputType="InputType.Password"
+				Class="mb-3"
+				Validation="@(new Func<string, string?>(c => c != _password ? PasswordDiffMessage : null))"
+				DebounceInterval="600"
+			/>
 
 			@if (_error is not null)
 			{
@@ -51,12 +59,14 @@
 </MudContainer>
 
 @code{
+	private const string PasswordDiffMessage = "Le password non coincidono";
 	private const string PasswordLengthMessage = "La password deve avere da 8 a 128 caratteri";
 	private const string PasswordUpperMessage = "La password deve contenere almeno una lettera maiuscola";
 	private const string PasswordSpecialMessage = "La password deve contenere almeno un carattere speciale";
 
 	private string _email = "";
 	private string _password = "";
+	private string _passwordConfirmation = "";
 	private string? _error;
 	private bool _busy;
 
@@ -65,6 +75,11 @@
 		if (ValidatePassword(_password) is { } passwordError)
 		{
 			_error = passwordError;
+			return;
+		}
+		if (_password != _passwordConfirmation)
+		{
+			_error = PasswordDiffMessage;
 			return;
 		}
 		_busy = true;
