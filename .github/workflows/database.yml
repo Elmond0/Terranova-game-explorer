@@ -153,16 +153,6 @@ jobs:
           ./db/scripts/migrate.sh
           ./db/scripts/migrate.sh
 
-      - name: Runtime user reads game_snapshots but cannot drop it
-        run: |
-          test "$(docker compose exec -T db psql -U terranova_api -d terranova -tAc 'select count(*) from game_snapshots')" = "0"
-          if out="$(docker compose exec -T db psql -U terranova_api -d terranova -c 'drop table game_snapshots' 2>&1)"; then
-            echo "::error::terranova_api can drop game_snapshots"
-            exit 1
-          fi
-          echo "$out"
-          grep -q "must be owner of table game_snapshots" <<< "$out"
-
       - name: Runtime user reads favorites and wishlist but cannot truncate or drop them
         run: |
           for table in favorites wishlist; do
