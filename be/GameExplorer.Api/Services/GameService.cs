@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.DataProtection.KeyManagement.Internal;
 using Polly;
 using Polly.Timeout;
 using Microsoft.AspNetCore.Mvc.Diagnostics;
+using Microsoft.Net.Http.Headers;
 
 namespace GameExplorer.Api.Services;
 
@@ -60,25 +61,19 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 			sort = "sort ";
 			var desc = filter.Ordering.StartsWith('-');
 			var criteria = filter.Ordering.TrimStart('-');
-			switch (criteria)
+			var field = criteria switch
 			{
-				case "name":
-					sort += $"name ";
-					break;
-				case "released":
-					sort += $"first_release_date ";
-					break;
-				case "created":
-					sort += $"created_at ";
-					break;
-				case "updated":
-					sort += $"updated_at ";
-					break;
-				case "rating":
-					sort += $"rating ";
-					break;
-			}
-			sort += desc ? "desc;" : "asc;";
+				"name"       => "name",
+				"released"   => "first_release_date",
+				"created"    => "created_at",
+				"updated"    => "updated_at",
+				"rating"     => "rating",
+				"popularity" => "total_rating_count",
+				"added"		 => "created_at",
+				_            => null
+			};
+			if (field is not null)
+				sort = $"sort {field} {(desc ? "desc" : "asc")};";
 		}
 
 		return (query, pagination, sort);
@@ -173,4 +168,24 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 // 		return shots;
 // 	}
 // }
+
+	internal async Task<Studio?> GetStudioDetailsAsync(int id, CancellationToken ct) =>
+		await cache.GetOrCreateAsync(
+			IgdbCache.StudioKey(id),
+			async cancel =>
+			{
+				var raw = await igdb.QueryAsync<IgdbStudio>($"{IgdbStudio.Fields} where id = {id};", cancel);
+				return raw.Count == 0 ? null : raw.FirstOrDefault()!.ToStudio();
+			},
+			IgdbCache.Details,
+			cancellationToken: ct);
+
+
+	internal async Task<List<Game>?> GetStudioUpcomingAsync(int id, CancellationToken ct) =>
+		await GetCachedListAsync<IgdbGame, Game>(IgdbCache.StudioUpcomingKey(id),
+			IgdbQueryFields.StudioUpcoming(id), IgdbMapper.ToGame, IgdbCache.Details, ct);
+	
+	internal async Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, int pageSize, CancellationToken ct) =>
+		await GetCachedPagedResultAsync<IgdbGame, Game>(IgdbCache.StudioGamesKey(id),
+			IgdbQueryFields.StudioGames(id, page, pageSize), page, pageSize, IgdbMapper.ToGame, IgdbCache.Details, ct);
 }

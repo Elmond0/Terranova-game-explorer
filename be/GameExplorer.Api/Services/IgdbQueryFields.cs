@@ -36,4 +36,29 @@ public record IgdbQueryFields()
                    $"limit 20;";
         }
     }
+    
+    public static string StudioUpcoming( int id )
+    {
+        var now = DateTimeOffset.UtcNow;
+        return $"where involved_companies.company = {id}" +
+               $"&first_release_date > {now.ToUnixTimeSeconds()} " +
+               $"& cover != null\n" +
+               $"& version_parent = null;\n" +
+               $"sort first_release_date asc;\n" +
+               $"limit 5;";
+    }
+    
+    public static (string, string, string) StudioGames( int id, int page, int pageSize )
+    {
+        var now = DateTimeOffset.UtcNow;
+        var query = $"where involved_companies.company = {id}" +
+                    $"&first_release_date <= {now.ToUnixTimeSeconds()} " +
+                    $"& cover != null\n" +
+                    $"& version_parent = null;\n";
+        var sort = "sort total_rating_count desc;\n";
+        var offset = (page - 1) * pageSize;
+        var pagination = $"limit {pageSize};" +
+                         $"offset {offset};";
+        return (query, pagination, sort);
+    }
 };
