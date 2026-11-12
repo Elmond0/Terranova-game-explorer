@@ -19,4 +19,5 @@ public interface IGameApiClient
 	Task<List<Game>> GetWishlistAsync(CancellationToken cancellationToken = default);
 	Task AddToWishlistAsync(int id, CancellationToken cancellationToken = default);
 	Task RemoveFromWishlistAsync(int id, CancellationToken cancellationToken = default);
+	Task<List<Game>> GetPlatformHighlightsAsync(int platformId, CancellationToken cancellationToken = default);
 }

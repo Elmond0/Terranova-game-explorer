@@ -31,6 +31,12 @@ public class GameApiClient : IGameApiClient
 		return games ?? [];
 	}
 
+	public async Task<List<Game>> GetPlatformHighlightsAsync(int platformId, CancellationToken cancellationToken = default)
+	{
+		var games = await GetAsync<List<Game>>($"api/games/platform/{platformId}/highlights", cancellationToken);
+		return games ?? [];
+	}
+
 	public async Task<PagedResult<Game>> SearchAsync(SearchFilter filter, CancellationToken cancellationToken = default)
 	{
 		var page = await GetAsync<PagedResult<Game>>($"api/games?{BuildQueryString(filter)}", cancellationToken);

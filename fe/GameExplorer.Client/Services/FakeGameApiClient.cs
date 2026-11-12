@@ -249,6 +249,18 @@ public class FakeGameApiClient : IGameApiClient
 		return Upcoming;
 	}
 
+	// I giochi della piattaforma, i più votati per primi. Il numero di voti non lo abbiamo,
+	// quindi il filtro "solo giochi noti" della Web API vera qui non si imita
+	public async Task<List<Game>> GetPlatformHighlightsAsync(int platformId, CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		return AllGames
+			.Where(g => g.Platforms.Any(p => p.Id == platformId))
+			.OrderByDescending(g => g.Rating)
+			.Take(20)
+			.ToList();
+	}
+
 	// Filtra, ordina e pagina come la Web API vera; sviluppatori e publisher li ignora
 	public async Task<PagedResult<Game>> SearchAsync(SearchFilter filter, CancellationToken cancellationToken = default)
 	{
