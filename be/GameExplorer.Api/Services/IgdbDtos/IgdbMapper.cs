@@ -7,6 +7,7 @@ internal static class IgdbMapper
 {
 	public const string CoverSize = "t_cover_big";
 	public const string ScreenshotSize = "t_screenshot_big";
+	public const string LogoSize = "t_logo_big";
 	
 	private static List<TOut> MapTo<TIn, TOut>(this IEnumerable<TIn>? source, Func<TIn, TOut> map) =>
 		source?
@@ -71,9 +72,9 @@ internal static class IgdbMapper
 		Id = r.Id,
 		Slug = r.Slug,
 		Name = r.Name,
-		Image = r.Logo.ToImage(LogoSize),
+		Image = (r.Logo is not null ? r.Logo.ToImage(LogoSize) : null),
 		About = r.Description,
-		CountrId = r.CountryId,
+		CountryId = r.CountryId,
 		StartDate = FromUnix(r.StartDate),
 		StatusId = r.Status,
 		Website = r.Websites?.FirstOrDefault(w => w.Type == 1)?.Url

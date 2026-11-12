@@ -11,7 +11,9 @@ public class IgdbCache
     public static readonly HybridCacheEntryOptions Token = new() { Expiration = TimeSpan.FromDays(1), LocalCacheExpiration = TimeSpan.FromDays(1), Flags = HybridCacheEntryFlags.DisableDistributedCache};
 
     public static string GameKey( int id ) => $"game:{id}";
-    public static string ScreenshotsKey( int id ) => $"game:{id}:screenshots";
+    public static string StudioKey( int id ) => $"studio:{id}";
+    public static string StudioUpcomingKey( int id ) => $"studio:{id}:upcoming";
+    public static string StudioGamesKey( int id ) => $"studio:{id}:games";
     public const string TokenKey = "igdb:twitch-token";
     public static string SearchKey(SearchFilter filter)  => $"search:{filter}";
 }
