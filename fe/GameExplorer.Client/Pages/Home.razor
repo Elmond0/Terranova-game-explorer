@@ -1,10 +1,22 @@
 ﻿@page "/"
 @inject IGameApiClient Api
 @inject NavigationManager Navigation
+@inject SearchFocusService SearchFocus
+
+@implements IDisposable
 
 <PageTitle>Home</PageTitle>
-<MudText Typo="Typo.h3" HtmlTag="h1" Align="Align.Center">
-	Ricerca giochi
+<MudText
+	Typo="Typo.h3"
+	HtmlTag="h1"
+	Align="Align.Center">
+		Game Explorer
+</MudText>
+<MudText
+	Typo="Typo.body1"
+	Align="Align.Center"
+	Class="mud-text-secondary mb-4">
+		Cerca tra migliaia di videogiochi, filtra per genere, piattaforma e anno, leggi schede, voti e studi di sviluppo, e salva i tuoi preferiti.
 </MudText>
 <div class="search-box">
 	<MudTextField
@@ -17,6 +29,7 @@
 		AdornmentIcon="@Icons.Material.Filled.Search"
 		OnAdornmentClick="Search"
 		AdornmentAriaLabel="Cerca"
+		@ref="_searchField"
 	/>
 </div>
 <GameSection
@@ -39,6 +52,7 @@
 
 @code {
 	private string? _query;
+	private MudTextField<string>? _searchField;
 
 	private void Search()
 	{
@@ -51,5 +65,26 @@
 	{
 		if (e.Key == "Enter")
 			Search();
+	}
+
+	private async Task FocusSearchFieldAsync()
+	{
+		if (_searchField is not null)
+			await _searchField.FocusAsync();
+	}
+	protected override void OnInitialized()
+	{
+		SearchFocus.Requested += FocusSearchFieldAsync;
+	}
+
+	public void Dispose()
+	{
+		SearchFocus.Requested -= FocusSearchFieldAsync;
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender && SearchFocus.ConsumePending())
+			await FocusSearchFieldAsync();
 	}
 }

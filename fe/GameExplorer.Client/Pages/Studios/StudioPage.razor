@@ -37,16 +37,17 @@ else
 		<MudItem xs="12" md="4">
 			@if (_studio.Image is not null)
 			{
-				<MudImage
-					Fluid="true"
-					Class="rounded-lg"
-					Src="@_studio.Image"
-					Alt="@_studio.Name"
-				/>
+				<div class="logo">
+					<MudImage
+						Class="rounded-lg"
+						Src="@_studio.Image"
+						Alt="@_studio.Name"
+					/>
+				</div>
 			}
 			else
 			{
-				<div class="cover cover-placeholder rounded-lg">
+				<div class="cover-placeholder rounded-lg">
 					<MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Large" />
 				</div>
 			}

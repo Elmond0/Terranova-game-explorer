@@ -22,6 +22,7 @@ public abstract class PageTestBase : IAsyncLifetime
 		BunitContext.DefaultWaitTimeout = TimeSpan.FromSeconds(5);
 		Ctx.Services.AddMudServices();
 		Ctx.Services.AddSingleton<IGameApiClient>(Api);
+		Ctx.Services.AddScoped<SearchFocusService>();
 		// Nessun browser: le chiamate JS di MudBlazor ricevono una risposta vuota invece di un errore
 		Ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 	}
