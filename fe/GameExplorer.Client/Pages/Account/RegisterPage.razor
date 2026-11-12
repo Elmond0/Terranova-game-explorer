@@ -20,7 +20,7 @@
 				@bind-Value="_password"
 				Label="Password"
 				InputType="InputType.Password"
-				HelperText="Almeno 6 caratteri, con maiuscola, minuscola, numero e simbolo"
+				HelperText="Da 8 a 128 caratteri, con almeno una lettera maiuscola e un carattere speciale"
 				Class="mb-3"
 			/>
 
@@ -81,9 +81,21 @@
 		{
 			return "Questa email è già registrata";
 		}
-		if (errors.Any(e => e.StartsWith("Password")))
+		if (errors.Contains("InvalidEmail"))
 		{
-			return "La password deve avere almeno 6 caratteri, una maiuscola, una minuscola, un numero e un simbolo";
+			return "Email non valida";
+		}
+		if (errors.Contains("PasswordLength"))
+		{
+			return "La password deve avere da 8 a 128 caratteri";
+		}
+		if (errors.Contains("PasswordRequiresUpper"))
+		{
+			return "La password deve contenere almeno una lettera maiuscola";
+		}
+		if (errors.Contains("PasswordRequiresNonAlphanumeric"))
+		{
+			return "La password deve contenere almeno un carattere speciale";
 		}
 		return "Registrazione non riuscita";
 	}
