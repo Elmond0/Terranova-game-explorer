@@ -24,15 +24,6 @@ public class GamesController( GameService gameService ) : ControllerBase
 		return Ok(gd);
 	}
 
-	// [HttpGet("{id:int}/screenshots")]
-	// public async Task<ActionResult<List<string?>>>			GetScreenshots( int id, CancellationToken ct )
-	// {
-	// 	List<string?>? ss = await gameService.GetScreenshotsAsync(id, ct);
-	// 	if (ss is null)
-	// 		return NotFound();
-	// 	return Ok(ss);
-	// }
-
 	[HttpGet("top-rated")]
 	public async Task<ActionResult<List<Game>>>	GetTopRated( CancellationToken ct ) => Ok(await gameService.GetTopRatedAsync(ct));
 
