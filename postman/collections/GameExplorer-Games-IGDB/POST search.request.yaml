@@ -6,7 +6,8 @@ headers:
   Authorization: Bearer {{igdb_token}}
 body:
   type: text
-  content: "fields name, rating, first_release_date, cover.image_id, genres.name, platforms.name;\r
+  content: "fields name, rating, first_release_date, cover.image_id, genres.name,
+    platforms.name;\r
 
     search \"zelda\";\r
 
