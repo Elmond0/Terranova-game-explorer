@@ -28,11 +28,9 @@ public class StudiosController( GameService gameService ) : ControllerBase
     }
     
     [HttpGet("{id:int}/games")]
-    public async Task<ActionResult<PagedResult<Game>>> GetStudioGames(int id, int page, int pageSize, CancellationToken ct)
+    public async Task<ActionResult<PagedResult<Game>>> GetStudioGames(int id, [FromQuery] int page, [FromQuery] int pageSize, CancellationToken ct)
     {
         var stg = await gameService.GetStudioGamesAsync(id, page, pageSize, ct);
-        if (stg.Items is [] or null)
-            return NotFound();
         return Ok(stg);
     }
 }
