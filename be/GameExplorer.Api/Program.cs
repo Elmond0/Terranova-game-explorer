@@ -1,7 +1,10 @@
 using GameExplorer.Api.Data;
 using GameExplorer.Api.Services;
 using GameExplorer.Api.Errors;
-using Microsoft.AspNetCore.Identity;
+using GameExplorer.Api.Auth;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Http.Resilience;
@@ -57,22 +60,35 @@ builder.Services.AddHttpClient<IgdbClient>(c =>
  });
 
 // --- Database (Elmond0) ---
-// The backend connects as terranova_api (rows only); migrations run with db/scripts/migrate.sh
 var connectionString = builder.Configuration.GetConnectionString("Default")
-	?? throw new InvalidOperationException("Missing ConnectionStrings:Default (set it with dotnet user-secrets, see db/README.md)");
+	?? throw new InvalidOperationException("Missing ConnectionStrings:Default (start the API with `make dev`, or export the variables described in db/README.md#backend-secrets)");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
 	options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention();
 
-	// Parameter values in logs: development only
 	if (builder.Environment.IsDevelopment())
 		options.EnableSensitiveDataLogging().EnableDetailedErrors();
 });
-builder.Services.AddScoped<GameSnapshotStore>();
 
-// --- Login (ASP.NET Core Identity, cookies: ADR-04) ---
-builder.Services.AddIdentityApiEndpoints<IdentityUser>().AddEntityFrameworkStores<AppDbContext>();
+// --- Login (Elmond0) ---
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+	.AddCookie(o =>
+	{
+		o.Cookie.Name = "terranova.auth";
+		o.Events.OnValidatePrincipal = AuthEndpoints.ValidateSessionAsync;
+		o.Events.OnRedirectToLogin = c => { c.Response.StatusCode = StatusCodes.Status401Unauthorized; return Task.CompletedTask; };
+		o.Events.OnRedirectToAccessDenied = c => { c.Response.StatusCode = StatusCodes.Status403Forbidden; return Task.CompletedTask; };
+	});
+builder.Services.AddAuthorization();
+
+builder.Services.AddRateLimiter(o =>
+{
+	o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+	o.AddPolicy("auth", http => RateLimitPartition.GetFixedWindowLimiter(
+		http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+		_ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+});
 
 var app = builder.Build();
 
@@ -90,18 +106,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapControllers();
 
-// --- Login endpoints ---
-var account = app.MapGroup("/api/account");
-account.MapIdentityApi<IdentityUser>();
-account.MapPost("/logout", async (SignInManager<IdentityUser> signInManager) =>
-{
-	await signInManager.SignOutAsync();
-	return TypedResults.NoContent();
-}).RequireAuthorization();
-
+app.MapAuthEndpoints();
 app.MapMeEndpoints();
 app.Run();
