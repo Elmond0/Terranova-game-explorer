@@ -71,7 +71,14 @@ internal static class IgdbMapper
 		Id = r.Id,
 		Slug = r.Slug,
 		Name = r.Name,
+		Image = r.Logo.ToImage(LogoSize),
+		About = r.Description,
+		CountrId = r.CountryId,
+		StartDate = FromUnix(r.StartDate),
+		StatusId = r.Status,
+		Website = r.Websites?.FirstOrDefault(w => w.Type == 1)?.Url
 	};
+
 	
 	public static Genre ToGenre( this IgdbGenre r ) => new()
 	{
