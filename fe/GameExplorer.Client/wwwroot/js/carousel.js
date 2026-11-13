@@ -2,25 +2,32 @@
 // Arrivati sulle copie si salta di un giro sui giochi veri: il salto non si vede.
 window.carousel = {
 		init(el, clones) {
-			// 1. misure (ricalcolate: le card cambiano larghezza col ridimensionamento)
+			// 1. misure (ricalcolate: le card cambiano larghezza col ridimensionamento).
+			//    getBoundingClientRect e non offsetLeft: offsetLeft arrotonda all'intero, e con card
+			//    larghe ad es. 180,5 px la riga partiva sulle copie e lì restava bloccata.
+			//    realStart e realWidth si misurano, non si moltiplicano: anche mezzo pixel
+			//    di errore, moltiplicato per 20 giochi, diventa 10 px
 			function metrics(){
-				const step = el.children[1].offsetLeft - el.children[0].offsetLeft;
-				const realStart = clones * step;
-				const realWidth = (el.children.length - 2 * clones) * step;
+				const x = i => el.children[i].getBoundingClientRect().left;     // bordo sinistro della card i
+				const step = x(1) - x(0);                                        // una card + lo spazio
+				const realStart = x(clones) - x(0);                              // dove inizia il primo gioco vero
+				const realWidth = x(el.children.length - clones) - x(clones);    // un giro: tutti i giochi veri
 				return {step, realStart, realWidth};
 			}
 
 			// 2. si parte dal primo gioco vero
 			el.scrollLeft = metrics().realStart;
 
-			// 3. se la riga è sulle copie salta di un giro; restituisce lo spostamento fatto
+			// 3. se la riga è sulle copie salta di un giro; restituisce lo spostamento fatto.
+			//    Margine di mezza card: il browser arrotonda scrollLeft ai pixel interi e un
+			//    confronto esatto può sbagliare di una frazione; così una riga ferma non è mai in bilico
 			function wrap() {
-				const { realStart, realWidth} = metrics();
-				if (el.scrollLeft < realStart){
+				const { step, realStart, realWidth } = metrics();
+				if (el.scrollLeft < realStart - step / 2){
 					el.scrollLeft += realWidth;
 					return realWidth;
 				}
-				if (el.scrollLeft >= realStart + realWidth){
+				if (el.scrollLeft > realStart + realWidth - step / 2){
 					el.scrollLeft -= realWidth;
 					return -realWidth;
 				}
@@ -31,7 +38,9 @@ window.carousel = {
 			let timer;
 			function onScrollEnd(){
 				wrap();
-				if (!down)
+				// dragging resta solo mentre si sta trascinando (tasto premuto e riga mossa):
+				// chi tiene premuto senza muovere non deve restare con la manina chiusa
+				if (!down || !moved)
 					el.classList.remove('dragging');
 			}
 			el.addEventListener('scroll', () => {
@@ -59,6 +68,11 @@ window.carousel = {
 				if (!down){
 					return;
 				}
+				// tasto rilasciato fuori dalla riga: lì il pointerup non arriva, se ne accorge ora
+				if ((e.buttons & 1) === 0){
+					endDrag();
+					return;
+				}
 				const dx = e.clientX - startX;
 				if (!moved){
 					if (Math.abs(dx) < 5) return;   // sotto i 5 px è un click
@@ -79,7 +93,7 @@ window.carousel = {
 				if (moved){
 					const { step } = metrics();
 					const target = Math.round(el.scrollLeft / step) * step;
-					if (target === el.scrollLeft)
+					if (Math.abs(target - el.scrollLeft) < 1)   // con i decimali, "uguale" è "a meno di 1 px"
 						el.classList.remove('dragging');   // già al suo posto: nessuno scroll
 					else
 						el.scrollTo({ left: target, behavior: 'smooth' });

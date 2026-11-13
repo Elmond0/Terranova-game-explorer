@@ -18,6 +18,8 @@
 /* 4 card per riga: la larghezza meno i 3 spazi da 16px, divisa per 4 */
 .game-row-item {
 	flex: 0 0 calc((100% - 3 * 16px) / 4);
+	min-width: 0;                     /* di base un elemento flex non si stringe sotto il suo contenuto: 5 icone o una
+	                                     parola lunga allargavano la card, e il carosello conta su card tutte uguali */
 	scroll-snap-align: start;
 }
 
@@ -28,8 +30,9 @@
 	}
 }
 
-/* Manina aperta: solo sulla riga vera, non sullo scheletro */
-.carousel .game-row {
+/* Manina aperta: solo sulla riga che si trascina davvero (giro continuo, più di 4 giochi),
+   non sullo scheletro né su una riga di 4 giochi o meno, dove il JavaScript non parte */
+.carousel-loop .game-row {
 	cursor: grab;
 }
 

@@ -36,12 +36,15 @@
 	{
 		<div class="carousel @(Loop ? "carousel-loop" : "")">
 			<div class="game-row" @ref="_row">
+				@* Copie per il giro continuo. Non inert: a volte si vedono (es. ultimo gioco + primi tre)
+				   e devono aprirsi col click. Però i lettori di schermo non le leggono (aria-hidden)
+				   e il Tab le salta (IsClone) *@
 				@if (Loop)
 				{
 					foreach(var game in _games.TakeLast(Visible))
 					{
-						<div class="game-row-item" inert>
-							<GameCard Game="game" HighlightDate="HighlightDate"/>
+						<div class="game-row-item" aria-hidden="true">
+							<GameCard Game="game" HighlightDate="HighlightDate" IsClone="true"/>
 						</div>
 					}
 				}
@@ -55,8 +58,8 @@
 				{
 					foreach(var game in _games.Take(Visible))
 					{
-						<div class="game-row-item" inert>
-							<GameCard Game="game" HighlightDate="HighlightDate"/>
+						<div class="game-row-item" aria-hidden="true">
+							<GameCard Game="game" HighlightDate="HighlightDate" IsClone="true"/>
 						</div>
 					}
 				}
