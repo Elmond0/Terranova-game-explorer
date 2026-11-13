@@ -163,4 +163,27 @@ public class GameApiClient : IGameApiClient
 		foreach (var id in ids)
 			parts.Add($"{key}={id}");
 	}
+
+	public async Task<ProfileResponse> GetProfileAsync(CancellationToken cancellationToken = default)
+	{
+		return await GetAsync<ProfileResponse>("api/me/profile", cancellationToken) ?? throw new ApiException("Profilo non trovato", null, HttpStatusCode.NotFound);
+	}
+
+	public async Task UpdateProfileAsync(UpdateProfileRequest request, CancellationToken cancellationToken = default)
+	{
+		try
+		{
+			using var response = await _http.PutAsJsonAsync("api/me/profile", request, cancellationToken);
+			if (!response.IsSuccessStatusCode)
+				throw new ApiException("Modifica profilo fallita", null, response.StatusCode);
+		}
+		catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+		{
+			throw;
+		}
+		catch (Exception ex) when (ex is not ApiException)
+		{
+			throw new ApiException("Chiamata PUT a api/me/profile fallita", ex);
+		}
+	}
 }

@@ -1,3 +1,4 @@
+using System.Net;
 using GameExplorer.Shared.Models;
 namespace GameExplorer.Client.Services;
 
@@ -38,6 +39,10 @@ public class FakeGameApiClient : IGameApiClient
 	private const string SampleCover3 = "co2ve1";
 	private readonly List<int> _favoriteIds = [];
 	private readonly List<int> _wishlistIds = [];
+	// Profilo finto: UpdateProfileAsync lo sostituisce, GetProfileAsync lo restituisce
+	private ProfileResponse _profile = new("tester@example.com", "Tester", "ninja");
+	// Nickname che il fake considera già preso, per provare il messaggio del 409
+	private const string TakenNickname = "preso";
 	private static readonly List<Game> TopRated =
 	[
 		new Game
@@ -454,5 +459,17 @@ public class FakeGameApiClient : IGameApiClient
 	{
 		await DelayAsync(cancellationToken);
 		return ToGames(_wishlistIds);
+	}
+	public async Task<ProfileResponse> GetProfileAsync(CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		return _profile;
+	}
+	public async Task UpdateProfileAsync(UpdateProfileRequest request, CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		if (request.DisplayName == TakenNickname)
+			throw new ApiException("Nickname già preso (simulato dal FakeGameApiClient)", null, HttpStatusCode.Conflict);
+		_profile = _profile with { DisplayName = request.DisplayName, Avatar = request.Avatar };
 	}
 }
