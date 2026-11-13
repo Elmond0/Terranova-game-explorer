@@ -13,7 +13,7 @@ public sealed class RawgExceptionHandler : IExceptionHandler
 
 	public async ValueTask<bool> TryHandleAsync( HttpContext context, Exception e, CancellationToken ct )
 	{
-		if (e is not RawgException)
+		if (e is not IgdbException)
 			return false;
 
 		_logger.LogWarning(e, "Rawg does not respond");

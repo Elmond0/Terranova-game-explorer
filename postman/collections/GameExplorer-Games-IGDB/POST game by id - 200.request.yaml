@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{igdb_domain}}/games"
+url: "{{igdb_domain}}games"
 method: POST
 headers:
   Client-ID: "{{igdb_client_id}}"
