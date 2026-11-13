@@ -1,4 +1,5 @@
 @implements IDisposable
+@inject IJSRuntime JS
 
 <section class="mb-8">
 	<MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
@@ -75,10 +76,12 @@
 	private const int Visible = 4;
 	private bool Loop => _games is not null && _games.Count > Visible;
 	private ElementReference _row;
+	private bool _carouselReady;
 	private async Task LoadAsync()
 	{
 		_error = false;
 		_games = null;
+		_carouselReady = false;
 		try
 		{
 			_games = await Load(_cts.Token);
@@ -90,6 +93,15 @@
 		catch (OperationCanceledException){}
 	}
 	protected override Task OnInitializedAsync() => LoadAsync();
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (Loop && !_carouselReady)
+		{
+			_carouselReady = true;
+			await JS.InvokeVoidAsync("carousel.init", _row, Visible);
+		}
+	}
 	public void Dispose()
 	{
 		_cts.Cancel();
