@@ -1,6 +1,9 @@
 @page "/profile"
 @inject IGameApiClient Api
 @inject NavigationManager Navigation
+@inject CookieAuthenticationStateProvider Auth
+@inject ISnackbar Snackbar
+@using System.Net
 
 <PageTitle>Profilo</PageTitle>
 <MudText
@@ -13,12 +16,68 @@
 {
 	<ErrorMessage OnRetry="LoadAsync"/>
 }
-else if (_favorites is null || _wishlist is null)
+else if (_favorites is null || _wishlist is null || _profile is null)
 {
 	<Loading />
 }
 else
 {
+	<MudStack
+		Row="true"
+		AlignItems="AlignItems.Center"
+		Class="mb-4">
+			<UserAvatar
+				Avatar="@_selectedAvatar"
+				Size="Size.Large"
+			/>
+			<div>
+				<MudText Typo="Typo.h6">@(_profile.DisplayName ?? _profile.Email)</MudText>
+				<MudText Typo="Typo.body2" Class="mud-text-secondary">@_profile.Email</MudText>
+			</div>
+	</MudStack>
+	<MudTextField
+		@bind-Value="_nickname"
+		Label="Nickname"
+		Validation="@(new Func<string, string?>(ValidateNickname))"
+		Immediate="true"
+		MaxLength="30"
+		Class="mb-4"
+	/>
+	<MudText Typo="Typo.subtitle2" Class="mb-2">Scegli il tuo avatar</MudText>
+	<MudStack
+		Row="true"
+		Wrap="Wrap.Wrap"
+		Spacing="2"
+		Class="mb-4">
+			@foreach (var avatar in Avatars.All)
+			{
+				<button
+					type="button"
+					class="avatar-option @(avatar == _selectedAvatar ? "selected" : "")"
+					aria-label="@($"Avatar {avatar}")"
+					aria-pressed="@(avatar == _selectedAvatar ? "true" : "false")"
+					@onclick="() => _selectedAvatar = avatar">
+						<UserAvatar Avatar="@avatar" />
+				</button>
+			}
+	</MudStack>
+	<MudButton
+		Variant="Variant.Filled"
+		Color="Color.Primary"
+		Class="mb-6"
+		OnClick="SaveProfileAsync"
+		Disabled="_saving">
+			Salva
+	</MudButton>
+	@if(_saveError is not null)
+	{
+		<MudAlert
+			Severity="Severity.Error"
+			Dense="true"
+			Class="mb-3">
+				@_saveError
+		</MudAlert>
+	}
 	@if(_removeError is not null)
 	{
 		<MudAlert
@@ -97,10 +156,15 @@ else
 @code {
 	[CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
 
+	private ProfileResponse? _profile;
+	private string _nickname = "";
+	private string? _selectedAvatar;
 	private List<Game>? _favorites;
 	private List<Game>? _wishlist;
 	private bool _error;
 	private string? _removeError;
+	private bool _saving;
+	private string? _saveError;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -117,10 +181,14 @@ else
 		_error = false;
 		_favorites = null;
 		_wishlist = null;
+		_profile = null;
 		try
 		{
 			_favorites = await Api.GetFavoritesAsync();
 			_wishlist = await Api.GetWishlistAsync();
+			_profile = await Api.GetProfileAsync();
+			_nickname = _profile.DisplayName ?? "";
+			_selectedAvatar = _profile.Avatar;
 		}
 		catch (ApiException)
 		{
@@ -151,6 +219,42 @@ else
 		catch (ApiException)
 		{
 			_removeError = "Non è stato possibile togliere il gioco. Riprova.";
+		}
+	}
+	private static string? ValidateNickname(string nick)
+	{
+		if (nick.Length is >= 3 and <= 30 && nick.All(c => char.IsAsciiLetterOrDigit(c) || c == '_'))
+		{
+			return null;
+		}
+		return "Da 3 a 30 caratteri: lettere, numeri e _";
+	}
+	private async Task SaveProfileAsync()
+	{
+		if (ValidateNickname(_nickname) is not null)
+			return;
+		_saveError = null;
+		_saving = true;
+		try
+		{
+			await Api.UpdateProfileAsync(new UpdateProfileRequest(_nickname, _selectedAvatar));
+			_profile = _profile! with { DisplayName = _nickname, Avatar = _selectedAvatar };
+			Auth.RefreshProfile();
+			Snackbar.Add("Profilo salvato", Severity.Success);
+		}
+		catch (ApiException ex)
+		{
+			_saveError = ex.StatusCode switch
+			{
+				HttpStatusCode.Conflict => "Nickname già usato",
+				HttpStatusCode.BadRequest => "Nickname o avatar non validi",
+				null => "Richiesta non arrivata, controlla la tua connessione ad internet",
+				_ => "Non è stato possibile salvare il profilo. Riprova.",
+			};
+		}
+		finally
+		{
+			_saving = false;
 		}
 	}
 }

@@ -1,0 +1,23 @@
+/* Ogni avatar della griglia è un pulsante tondo: il bordo trasparente tiene il posto
+   a quello colorato della selezione, così le icone non si spostano quando cambia */
+.avatar-option {
+	padding: 2px;
+	border: 2px solid transparent;
+	border-radius: 50%;
+	background: none;
+	cursor: pointer;
+	line-height: 0;
+}
+
+.avatar-option:hover {
+	border-color: var(--mud-palette-lines-default);
+}
+
+.avatar-option.selected {
+	border-color: var(--mud-palette-primary);
+}
+
+.avatar-option:focus-visible {
+	outline: 2px solid var(--mud-palette-primary);
+	outline-offset: 2px;
+}
