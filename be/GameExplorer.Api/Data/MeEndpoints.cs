@@ -11,10 +11,6 @@ using Npgsql;
 
 namespace GameExplorer.Api.Data;
 
-public record ProfileResponse(string Email, string? DisplayName, string? Avatar);
-
-public record UpdateProfileRequest(string? DisplayName, string? Avatar);
-
 public static class MeEndpoints
 {
 	public static void MapMeEndpoints(this IEndpointRouteBuilder app)
@@ -31,8 +27,6 @@ public static class MeEndpoints
 		me.MapPut("/profile", UpdateProfile);
 		me.MapDelete("", DeleteAccount);
 	}
-
-	static readonly string[] Avatars = ["knight", "wizard", "ranger", "rogue", "pirate", "ninja", "robot", "alien", "ghost", "dragon", "racer", "pilot"];
 
 	static bool IsValidDisplayName(string? name) =>
 		name is { Length: >= 3 and <= 30 } && name.All(c => char.IsAsciiLetterOrDigit(c) || c == '_');
@@ -51,7 +45,7 @@ public static class MeEndpoints
 		Dictionary<string, string[]> errors = [];
 		if (!IsValidDisplayName(request.DisplayName))
 			errors["DisplayName"] = ["From 3 to 30 characters: letters, numbers and underscore."];
-		if (request.Avatar is not null && !Avatars.Contains(request.Avatar))
+		if (request.Avatar is not null && !Avatars.All.Contains(request.Avatar))
 			errors["Avatar"] = ["Avatar not valid."];
 		if (errors.Count > 0)
 			return TypedResults.ValidationProblem(errors);
