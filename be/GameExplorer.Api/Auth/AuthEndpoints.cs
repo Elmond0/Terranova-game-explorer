@@ -1,6 +1,7 @@
 using System.Net.Mail;
 using System.Security.Claims;
 using GameExplorer.Api.Data;
+using GameExplorer.Shared.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
@@ -82,7 +83,7 @@ public static class AuthEndpoints
 	static async Task<IResult> Info(ClaimsPrincipal principal, AppDbContext db)
 	{
 		User? user = await db.Users.FindAsync(principal.GetUserId());
-		return user is null ? TypedResults.NotFound() : TypedResults.Ok(new { user.Email });
+		return user is null ? TypedResults.NotFound() : TypedResults.Ok(new ProfileResponse(user.Email, user.DisplayName, user.Avatar));
 	}
 
 	static async Task<IResult> ChangePassword(ChangePasswordRequest request, ClaimsPrincipal principal, AppDbContext db, HttpContext http)
