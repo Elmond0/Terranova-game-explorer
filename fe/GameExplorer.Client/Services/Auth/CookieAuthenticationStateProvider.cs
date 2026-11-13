@@ -2,13 +2,14 @@ using System.Security.Claims;
 using System.Net.Http.Json;
 using  Microsoft.AspNetCore.Components.Authorization;
 using System.Net;
+using GameExplorer.Shared.Models;
 
 namespace GameExplorer.Client.Services.Auth;
 
 public class CookieAuthenticationStateProvider :  AuthenticationStateProvider
 {
+	public const string AvatarClaimType = "avatar";
 	private readonly HttpClient _http;
-	private record UserInfo(string Email);
 	private record RegisterErrors(Dictionary<string, string[]>? Errors);
 	private static readonly AuthenticationState Anonymous = new(new ClaimsPrincipal(new ClaimsIdentity()));
 	public CookieAuthenticationStateProvider(IHttpClientFactory account)
@@ -22,14 +23,16 @@ public class CookieAuthenticationStateProvider :  AuthenticationStateProvider
 			var response = await _http.GetAsync("api/account/manage/info");
 			if (!response.IsSuccessStatusCode)
 				return Anonymous;
-			var info = await response.Content.ReadFromJsonAsync<UserInfo>();
+			var info = await response.Content.ReadFromJsonAsync<ProfileResponse>();
 			if (info is null)
 				return Anonymous;
 			List<Claim> claims =
 			[
-				new (ClaimTypes.Name, info.Email),
+				new (ClaimTypes.Name, info.DisplayName ?? info.Email),
 				new (ClaimTypes.Email, info.Email),
 			];
+			if (info.Avatar is not null)
+				claims.Add(new Claim(AvatarClaimType, info.Avatar));
 			var identity = new ClaimsIdentity(claims, "Cookies");
 			return new AuthenticationState(new ClaimsPrincipal(identity));
 		}
@@ -71,4 +74,7 @@ public class CookieAuthenticationStateProvider :  AuthenticationStateProvider
 		}
 		NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
 	}
+
+	public void RefreshProfile() =>
+		NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
 }
