@@ -1,13 +1,55 @@
+/* La riga che scorre (usata anche dallo scheletro di caricamento) */
 .game-row {
 	display: flex;
 	gap: 16px;
-	overflow-x: auto;
-	scroll-snap-type: x mandatory;
-	padding: 8px 4px 12px;
+	overflow-x: auto;                 /* serve anche senza barra: è lo scorrimento che usa il JavaScript */
+	scroll-snap-type: x mandatory;    /* dopo uno scorrimento col dito la riga si aggancia a una card */
+	scroll-padding-inline: 4px;       /* le card si agganciano dentro il padding, così il bordo del focus non viene tagliato */
+	padding: 8px 4px 12px;            /* sopra: spazio per la card che si alza al :hover */
+	scrollbar-width: none;            /* niente barra (Firefox, Chrome recenti) */
+	overscroll-behavior-x: contain;   /* sul trackpad, arrivati al bordo, il browser non torna alla pagina precedente */
 }
 
-.game-row-item {
-	flex: 0 0 min(260px, 80%);
-	scroll-snap-align: start;
+/* Niente barra (Safari, Chrome meno recenti) */
+.game-row::-webkit-scrollbar {
+	display: none;
+}
 
+/* 4 card per riga: la larghezza meno i 3 spazi da 16px, divisa per 4 */
+.game-row-item {
+	flex: 0 0 calc((100% - 3 * 16px) / 4);
+	min-width: 0;                     /* di base un elemento flex non si stringe sotto il suo contenuto: 5 icone o una
+	                                     parola lunga allargavano la card, e il carosello conta su card tutte uguali */
+	scroll-snap-align: start;
+}
+
+/* Schermi stretti: 2 card per riga, meno 1 spazio */
+@media (max-width: 600px) {
+	.game-row-item {
+		flex-basis: calc((100% - 16px) / 2);
+	}
+}
+
+/* Manina aperta: solo sulla riga che si trascina davvero (giro continuo, più di 4 giochi),
+   non sullo scheletro né su una riga di 4 giochi o meno, dove il JavaScript non parte */
+.carousel-loop .game-row {
+	cursor: grab;
+}
+
+/* Mentre si trascina col mouse (la classe la mette e la toglie il JavaScript) */
+.game-row.dragging {
+	cursor: grabbing;                 /* manina chiusa */
+	scroll-snap-type: none;           /* altrimenti lo snap "tira" la riga a ogni movimento */
+	user-select: none;                /* non seleziona i titoli */
+}
+
+/* Le copertine non partono col "drag" del browser (Chrome, Safari; per Firefox ci pensa il JavaScript) */
+.game-row ::deep img {
+	-webkit-user-drag: none;
+}
+
+/* Bordi sfumati quando c'è il giro continuo: fanno capire che la riga prosegue.
+   mask-image rende trasparenti i bordi, quindi funziona con qualsiasi colore di sfondo */
+.carousel-loop {
+	mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent);
 }

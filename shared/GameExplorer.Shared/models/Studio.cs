@@ -8,7 +8,7 @@ public class Studio
 	public Image? Image { get; set; }
 	public string? About { get; set; }
 	public int? CountryId { get; set; }
-	public DateOnly? StartDate;
+	public DateOnly? StartDate { get; set; }
 	public int StatusId { get; set; }
 	public string? Website { get; set; }
 }

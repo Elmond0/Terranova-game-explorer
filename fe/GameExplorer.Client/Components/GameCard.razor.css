@@ -5,6 +5,7 @@
 	color: inherit;               /* niente colore blu da link: prende il colore del tema */
 	text-decoration: none;        /* niente sottolineatura */
 	transition: transform 0.15s;  /* il movimento del :hover è graduale, non a scatto */
+	overflow-wrap: anywhere;      /* una parola più larga della card (es. "Danganronpa" su schermi stretti) va a capo invece di uscire */
 }
 
 /* Mouse sopra la card: si alza di 4 pixel */

@@ -1,4 +1,5 @@
 @implements IDisposable
+@inject IJSRuntime JS
 
 <section class="mb-8">
 	<MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
@@ -33,13 +34,36 @@
 	}
 	else
 	{
-		<div class="game-row">
-			@foreach(var game in _games)
-			{
-				<div class="game-row-item">
-					<GameCard Game="game" HighlightDate="HighlightDate"/>
-				</div>
-			}
+		<div class="carousel @(Loop ? "carousel-loop" : "")">
+			<div class="game-row" @ref="_row">
+				@* Copie per il giro continuo. Non inert: a volte si vedono (es. ultimo gioco + primi tre)
+				   e devono aprirsi col click. Però i lettori di schermo non le leggono (aria-hidden)
+				   e il Tab le salta (IsClone) *@
+				@if (Loop)
+				{
+					foreach(var game in _games.TakeLast(Visible))
+					{
+						<div class="game-row-item" aria-hidden="true">
+							<GameCard Game="game" HighlightDate="HighlightDate" IsClone="true"/>
+						</div>
+					}
+				}
+				@foreach(var game in _games)
+				{
+					<div class="game-row-item">
+						<GameCard Game="game" HighlightDate="HighlightDate"/>
+					</div>
+				}
+				@if (Loop)
+				{
+					foreach(var game in _games.Take(Visible))
+					{
+						<div class="game-row-item" aria-hidden="true">
+							<GameCard Game="game" HighlightDate="HighlightDate" IsClone="true"/>
+						</div>
+					}
+				}
+			</div>
 		</div>
 	}
 </section>
@@ -52,10 +76,15 @@
 	private List<Game>? _games;
 	private bool _error;
 	private readonly CancellationTokenSource _cts = new();
+	private const int Visible = 4;
+	private bool Loop => _games is not null && _games.Count > Visible;
+	private ElementReference _row;
+	private bool _carouselReady;
 	private async Task LoadAsync()
 	{
 		_error = false;
 		_games = null;
+		_carouselReady = false;
 		try
 		{
 			_games = await Load(_cts.Token);
@@ -67,6 +96,15 @@
 		catch (OperationCanceledException){}
 	}
 	protected override Task OnInitializedAsync() => LoadAsync();
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (Loop && !_carouselReady)
+		{
+			_carouselReady = true;
+			await JS.InvokeVoidAsync("carousel.init", _row, Visible);
+		}
+	}
 	public void Dispose()
 	{
 		_cts.Cancel();

@@ -31,6 +31,12 @@ public class GameApiClient : IGameApiClient
 		return games ?? [];
 	}
 
+	public async Task<List<Game>> GetPlatformHighlightsAsync(int platformId, CancellationToken cancellationToken = default)
+	{
+		var games = await GetAsync<List<Game>>($"api/games/platform/{platformId}/highlights", cancellationToken);
+		return games ?? [];
+	}
+
 	public async Task<PagedResult<Game>> SearchAsync(SearchFilter filter, CancellationToken cancellationToken = default)
 	{
 		var page = await GetAsync<PagedResult<Game>>($"api/games?{BuildQueryString(filter)}", cancellationToken);
@@ -156,5 +162,28 @@ public class GameApiClient : IGameApiClient
 	{
 		foreach (var id in ids)
 			parts.Add($"{key}={id}");
+	}
+
+	public async Task<ProfileResponse> GetProfileAsync(CancellationToken cancellationToken = default)
+	{
+		return await GetAsync<ProfileResponse>("api/me/profile", cancellationToken) ?? throw new ApiException("Profilo non trovato", null, HttpStatusCode.NotFound);
+	}
+
+	public async Task UpdateProfileAsync(UpdateProfileRequest request, CancellationToken cancellationToken = default)
+	{
+		try
+		{
+			using var response = await _http.PutAsJsonAsync("api/me/profile", request, cancellationToken);
+			if (!response.IsSuccessStatusCode)
+				throw new ApiException("Modifica profilo fallita", null, response.StatusCode);
+		}
+		catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+		{
+			throw;
+		}
+		catch (Exception ex) when (ex is not ApiException)
+		{
+			throw new ApiException("Chiamata PUT a api/me/profile fallita", ex);
+		}
 	}
 }

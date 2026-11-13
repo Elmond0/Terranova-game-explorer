@@ -1,3 +1,4 @@
+using System.Net;
 using GameExplorer.Shared.Models;
 namespace GameExplorer.Client.Services;
 
@@ -38,6 +39,10 @@ public class FakeGameApiClient : IGameApiClient
 	private const string SampleCover3 = "co2ve1";
 	private readonly List<int> _favoriteIds = [];
 	private readonly List<int> _wishlistIds = [];
+	// Profilo finto: UpdateProfileAsync lo sostituisce, GetProfileAsync lo restituisce
+	private ProfileResponse _profile = new("tester@example.com", "Tester", "ninja");
+	// Nickname che il fake considera già preso, per provare il messaggio del 409
+	private const string TakenNickname = "preso";
 	private static readonly List<Game> TopRated =
 	[
 		new Game
@@ -216,13 +221,13 @@ public class FakeGameApiClient : IGameApiClient
 			Id = 3524,
 			Name = "Rockstar North",
 			Slug = "rockstar-north",
-			Image = Cover(GtaVCover).Url,
+			Image = Cover(GtaVCover),
 			About = "Rockstar North is a Scottish video game developer and a studio of Rockstar Games based in Edinburgh. " +
 				"The company was founded in 1987 as DMA Design and is best known for the Grand Theft Auto series.\n" +
 				"Testo finto del FakeGameApiClient: serve a provare la descrizione dello studio.",
 			Website = "https://www.rockstarnorth.com",
 		}, [3498, 900103]),
-		(new Studio { Id = 10, Name = "Rockstar Games", Slug = "rockstar-games", Image = Cover(SampleCover1).Url }, [3498, 900104, 900201]),
+		(new Studio { Id = 10, Name = "Rockstar Games", Slug = "rockstar-games", Image = Cover(SampleCover1)}, [3498, 900104, 900201]),
 		(TestStudio, [.. Enumerable.Range(900301, 25), 900202]),
 	];
 	private const int StudioGamesPageSize = 20;
@@ -247,6 +252,18 @@ public class FakeGameApiClient : IGameApiClient
 	{
 		await DelayAsync(cancellationToken);
 		return Upcoming;
+	}
+
+	// I giochi della piattaforma, i più votati per primi. Il numero di voti non lo abbiamo,
+	// quindi il filtro "solo giochi noti" della Web API vera qui non si imita
+	public async Task<List<Game>> GetPlatformHighlightsAsync(int platformId, CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		return AllGames
+			.Where(g => g.Platforms.Any(p => p.Id == platformId))
+			.OrderByDescending(g => g.Rating)
+			.Take(20)
+			.ToList();
 	}
 
 	// Filtra, ordina e pagina come la Web API vera; sviluppatori e publisher li ignora
@@ -357,7 +374,6 @@ public class FakeGameApiClient : IGameApiClient
 			Image = entry.Studio.Image,
 			About = entry.Studio.About,
 			Website = entry.Studio.Website,
-			GamesCount = entry.GameIds.Length,
 		};
 	}
 
@@ -443,5 +459,17 @@ public class FakeGameApiClient : IGameApiClient
 	{
 		await DelayAsync(cancellationToken);
 		return ToGames(_wishlistIds);
+	}
+	public async Task<ProfileResponse> GetProfileAsync(CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		return _profile;
+	}
+	public async Task UpdateProfileAsync(UpdateProfileRequest request, CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		if (request.DisplayName == TakenNickname)
+			throw new ApiException("Nickname già preso (simulato dal FakeGameApiClient)", null, HttpStatusCode.Conflict);
+		_profile = _profile with { DisplayName = request.DisplayName, Avatar = request.Avatar };
 	}
 }

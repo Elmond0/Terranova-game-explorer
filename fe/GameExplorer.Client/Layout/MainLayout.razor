@@ -23,6 +23,30 @@
 			Game Explorer
 		</MudLink>
 		<MudSpacer />
+		<AuthorizeView>
+			<Authorized>
+				<MudButton
+					Href="/profile"
+					Color="Color.Inherit"
+					Variant="Variant.Text">
+						<UserAvatar
+							Avatar="@(context.User.FindFirst(CookieAuthenticationStateProvider.AvatarClaimType)?.Value)"
+							Size="Size.Small"
+						/>
+						<span class="ml-2 d-none d-sm-inline">
+							@context.User.Identity?.Name
+						</span>
+				</MudButton>
+			</Authorized>
+			<NotAuthorized>
+				<MudButton
+					Href="/account/login"
+					Variant="Variant.Outlined"
+					Color="Color.Inherit">
+						Sign in
+				</MudButton>
+			</NotAuthorized>
+		</AuthorizeView>
 		<MudToggleIconButton
 			Toggled="_isDarkMode"
 			ToggledChanged="OnThemeToggled"
@@ -44,7 +68,16 @@
 				<MudDivider Class="my-2" />
 				<AuthorizeView>
 					<Authorized>
-						<MudText Class="px-4 py-2" Typo="Typo.subtitle2">@context.User.Identity?.Name</MudText>
+						<MudStack
+							Row="true"
+							AlignItems="AlignItems.Center"
+							Class="px-4 py-2">
+								<UserAvatar
+									Avatar="@(context.User.FindFirst(CookieAuthenticationStateProvider.AvatarClaimType)?.Value)"
+									Size="Size.Small"
+								/>
+								<MudText Typo="Typo.subtitle2">@context.User.Identity?.Name</MudText>
+						</MudStack>
 						<MudNavLink Href="/profile" Icon="@Icons.Material.Filled.Person">Profilo</MudNavLink>
 						<MudNavLink OnClick="LogoutAsync" Icon="@Icons.Material.Filled.Logout">Esci</MudNavLink>
 					</Authorized>
@@ -75,6 +108,12 @@
 				<MudLink Href="https://www.igdb.com" Target="_blank" rel="noopener">
 					IGDB
 				</MudLink>
+			</MudText>
+			<MudText Typo="Typo.body2" Align="Align.Center" Class="mud-text-secondary">
+				Icone degli avatar di Lorc, Delapouite, DarkZaitzev e Skoll da
+				<MudLink Href="https://game-icons.net" Target="_blank" rel="noopener">game-icons.net</MudLink>,
+				licenza
+				<MudLink Href="https://creativecommons.org/licenses/by/3.0/" Target="_blank" rel="noopener">CC BY 3.0</MudLink>
 			</MudText>
 		</footer>
 	</MudMainContent>

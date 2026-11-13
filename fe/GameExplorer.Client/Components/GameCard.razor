@@ -1,6 +1,6 @@
 @using System.Globalization
 
-<a href="games/@Game.Id" class="game-card">
+<a href="games/@Game.Id" class="game-card" tabindex="@(IsClone ? "-1" : null)">
 	<MudCard Elevation="2" Class="full-height">
 		@if (Game.Image?.Url is not null)
 		{
@@ -45,7 +45,8 @@
 			}
 			@if (PlatformFamilies.Count > 0)
 			{
-				<MudStack Row="true" Spacing="1" Class="mt-2">
+				@* Wrap: con 5 piattaforme le icone vanno a capo invece di allargare la card *@
+				<MudStack Row="true" Spacing="1" Class="mt-2" Wrap="Wrap.Wrap">
 					@foreach (var family in PlatformFamilies)
 					{
 						<MudTooltip Text="@family">
@@ -64,6 +65,10 @@
 
 	[Parameter]
 	public bool HighlightDate { get; set; }
+
+	// Copia del carosello di GameSection: si vede e si clicca, ma il Tab la salta (tabindex -1)
+	[Parameter]
+	public bool IsClone { get; set; }
 
 	private static readonly string[] PcSlugs = ["win", "mac", "linux"];
 	private static readonly string[] NintendoSlugs = ["switch", "switch-2", "wii", "wiiu", "3ds", "nds", "ngc", "n64", "nes", "snes", "gb", "gba", "gbc"];

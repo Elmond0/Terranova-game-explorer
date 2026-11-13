@@ -16,15 +16,19 @@ public class HomeTests : PageTestBase
 		var cut = Ctx.Render<Home>();
 		cut.WaitForAssertion(() =>
 		{
-			// Nell'ordine della pagina: Più apprezzati, Usciti di recente, In arrivo
+			// Nell'ordine della pagina: Più apprezzati, Usciti di recente, In arrivo,
+			// poi le 4 sezioni per piattaforma (PlayStation, Xbox, Nintendo, Pc)
 			var sections = cut.FindAll("section");
-			Assert.Equal(3, sections.Count);
+			Assert.Equal(7, sections.Count);
 			Assert.NotEmpty(sections[0].QuerySelectorAll("a.game-card"));
 			Assert.DoesNotContain("Riprova", sections[0].TextContent);
 			Assert.NotEmpty(sections[1].QuerySelectorAll("a.game-card"));
 			Assert.DoesNotContain("Riprova", sections[1].TextContent);
 			Assert.Contains("Riprova", sections[2].TextContent);
 			Assert.Empty(sections[2].QuerySelectorAll("a.game-card"));
+			// L'errore di "In arrivo" non tocca le sezioni per piattaforma
+			for (var i = 3; i < 7; i++)
+				Assert.DoesNotContain("Riprova", sections[i].TextContent);
 		});
 	}
 	// Client finto con solo "In arrivo" giù: tutto il resto lo passa a FakeGameApiClient
@@ -37,6 +41,12 @@ public class HomeTests : PageTestBase
 			_fake.GetTopRatedAsync(cancellationToken);
 		public Task<List<Game>> GetRecentAsync(CancellationToken cancellationToken = default) =>
 			_fake.GetRecentAsync(cancellationToken);
+		public Task<List<Game>> GetPlatformHighlightsAsync(int platformId, CancellationToken cancellationToken = default) =>
+			_fake.GetPlatformHighlightsAsync(platformId, cancellationToken);
+		public Task<ProfileResponse> GetProfileAsync(CancellationToken cancellationToken = default) =>
+			_fake.GetProfileAsync(cancellationToken);
+		public Task UpdateProfileAsync(UpdateProfileRequest request, CancellationToken cancellationToken = default) =>
+			_fake.UpdateProfileAsync(request, cancellationToken);
 		public Task<PagedResult<Game>> SearchAsync(SearchFilter filter, CancellationToken cancellationToken = default) =>
 			_fake.SearchAsync(filter, cancellationToken);
 		public Task<GameDetails?> GetGameAsync(int id, CancellationToken cancellationToken = default) =>
