@@ -33,7 +33,7 @@
 	}
 	else
 	{
-		<div class="carousel">
+		<div class="carousel @(Loop ? "carousel-loop" : "")">
 			<div class="game-row" @ref="_row">
 				@if (Loop)
 				{
