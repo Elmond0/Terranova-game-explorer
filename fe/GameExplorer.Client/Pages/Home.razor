@@ -18,19 +18,21 @@
 	Class="mud-text-secondary mb-4">
 		Cerca tra migliaia di videogiochi, filtra per genere, piattaforma e anno, leggi schede, voti e studi di sviluppo, e salva i tuoi preferiti.
 </MudText>
-<div class="search-box">
-	<MudTextField
-		@bind-Value="_query"
-		Immediate="true"
-		OnKeyDown="OnSearchKeyDown"
-		Placeholder="Cerca un gioco..."
-		Variant="Variant.Outlined"
-		Adornment="Adornment.End"
-		AdornmentIcon="@Icons.Material.Filled.Search"
-		OnAdornmentClick="Search"
-		AdornmentAriaLabel="Cerca"
-		@ref="_searchField"
-	/>
+<div class="search-bar-sticky">
+	<div class="search-box">
+		<MudTextField
+			@bind-Value="_query"
+			Immediate="true"
+			OnKeyDown="OnSearchKeyDown"
+			Placeholder="Cerca un gioco..."
+			Variant="Variant.Outlined"
+			Adornment="Adornment.End"
+			AdornmentIcon="@Icons.Material.Filled.Search"
+			OnAdornmentClick="Search"
+			AdornmentAriaLabel="Cerca"
+			@ref="_searchField"
+		/>
+	</div>
 </div>
 <GameSection
 	Title="Più apprezzati"
