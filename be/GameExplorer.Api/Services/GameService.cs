@@ -20,16 +20,12 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 	private static (string query, string pagination, string sort) BuildSearchQuery( SearchFilter filter )
 	{
 		var query = "";
-
-		var search = "";
+		
 		var where = new List<string>();
 		if (!string.IsNullOrWhiteSpace(filter.Query))
 		{
 			var trimmed = filter.Query.Trim();
-			if (string.IsNullOrWhiteSpace(filter.Ordering))
-				search = $"search \"{trimmed}\";";
-			else
-				where.Add($"(name ~ *\"{trimmed}\"* | alternative_names.name ~ *\"{trimmed}\"*)");
+			where.Add($"(name ~ *\"{trimmed}\"* | alternative_names.name ~ *\"{trimmed}\"*)");
 		}
 		if (filter.GenreIds.Count > 0)
 			where.Add($"genres = [{string.Join(',', filter.GenreIds)}]");
@@ -47,9 +43,8 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 			var to = filter.ToYear.Value;
 			where.Add($"first_release_date < {IgdbMapper.ToUnix(new DateOnly(to + 1, 1, 1))}");
 		}
-		query += $"{search}";
-		if (where.Count > 0)
-			query += $"where {string.Join(" & ", where)};";
+		where.Add($"game_type = (0,1,2,4,8,9,10,11)");
+		query += $"where {string.Join(" & ", where)};";
 		
 		var offset = (filter.Page - 1) * filter.PageSize;
 		var pagination = $"limit {filter.PageSize};" +
@@ -70,10 +65,13 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 				"rating"     => "rating",
 				"popularity" => "total_rating_count",
 				"added"		 => "created_at",
-				_            => null
+				_            => "total_rating_count"
 			};
-			if (field is not null)
-				sort = $"sort {field} {(desc ? "desc" : "asc")};";
+			sort = $"sort {field} ";
+			if (field is "total_rating_count")
+				 sort += "desc;";
+			else
+				sort += (desc ? "desc;" : "asc;");
 		}
 
 		return (query, pagination, sort);
@@ -117,7 +115,7 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 	public async Task<PagedResult<Game>> SearchAsync(SearchFilter filter, CancellationToken ct)
 	{
 		var body = BuildSearchQuery(filter);
-		return await GetCachedPagedResultAsync<IgdbGame, Game>($"search:{body}", body, filter.Page, filter.PageSize, IgdbMapper.ToGame, IgdbCache.Search, ct);
+		return await GetCachedPagedResultAsync<IgdbGame, Game>(IgdbCache.SearchKey(body), body, filter.Page, filter.PageSize, IgdbMapper.ToGame, IgdbCache.Search, ct);
 	}
 	
 	public async Task<GameDetails?> GetGameDetailsAsync( int id, CancellationToken ct ) =>
@@ -133,10 +131,14 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 	}
 	
 	internal async Task<List<Genre>?> GetGenresAsync( CancellationToken ct ) => 
-		await GetCachedListAsync<IgdbGenre, Genre>( "genres", IgdbGenre.Fields + "limit 500; sort name;", IgdbMapper.ToGenre, IgdbCache.Lookup, ct );
+		await GetCachedListAsync<IgdbGenre, Genre>( "genres", "limit 500; sort name;", IgdbMapper.ToGenre, IgdbCache.Lookup, ct );
 	
 	internal async Task<List<Platform>?> GetPlatformsAsync( CancellationToken ct ) => 
-		await GetCachedListAsync<IgdbPlatform, Platform>( "platforms", IgdbPlatform.Fields + "limit 500; sort name;", IgdbMapper.ToPlatform, IgdbCache.Lookup, ct );
+		await GetCachedListAsync<IgdbPlatform, Platform>( "platforms", "limit 500; sort name;", IgdbMapper.ToPlatform, IgdbCache.Lookup, ct );
+
+	internal async Task<List<Game>> GetPlatformHighlightsAsync(int id, CancellationToken ct) =>
+		await GetCachedListAsync<IgdbGame, Game>(IgdbCache.PlatformHighlightsKey(id),
+			IgdbQueryFields.PlatformHighlights(id), IgdbMapper.ToGame, IgdbCache.Home, ct);
 	
 	internal async Task<List<Game>>	GetTopRatedAsync( CancellationToken ct ) =>
 		await GetCachedListAsync<IgdbGame, Game>( "top-rated", IgdbQueryFields.TopRated, IgdbMapper.ToGame, IgdbCache.Home, ct );
@@ -146,28 +148,6 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 
 	internal async Task<List<Game>>	GetUpcomingAsync( CancellationToken ct ) =>
 		await GetCachedListAsync<IgdbGame, Game>( "upcoming", IgdbQueryFields.Upcoming, IgdbMapper.ToGame, IgdbCache.Home, ct );
-
-// 	internal async Task<List<string?>?> GetScreenshotsAsync( int id, CancellationToken ct ) =>
-// 		await _cache.GetOrCreateAsync( RawgCache.ScreenshotsKey(id), async cancel => await LoadScreenshotsAsync(id, cancel), RawgCache.Details, cancellationToken: ct);
-//
-// 	private async Task<List<string?>?> LoadScreenshotsAsync( int id, CancellationToken ct )
-// 	{
-// 		List<string?> shots = [];
-// 		string? url = $"games/{id}/screenshots?page_size=40";
-// 		
-// 		while (url is not null)
-// 		{
-// 			RawgList<RawgScreenshot>? raw = await GetAsync<RawgList<RawgScreenshot>>(url, ct);
-// 			if (raw is null)
-// 				break ;
-// 			shots.AddRange((raw.Results ?? [])
-// 				.Where(r => r is not null && r.IsDeleted is not true)
-// 				.Select(r => r!.Image));
-// 			url = raw.Next;
-// 		}
-// 		return shots;
-// 	}
-// }
 
 	internal async Task<Studio?> GetStudioDetailsAsync(int id, CancellationToken ct) =>
 		await cache.GetOrCreateAsync(

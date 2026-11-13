@@ -32,5 +32,5 @@ public class GamesController( GameService gameService ) : ControllerBase
 	
 	[HttpGet("upcoming")]
 	public async Task<ActionResult<List<Game>>>	GetUpcoming( CancellationToken ct ) => Ok(await gameService.GetUpcomingAsync(ct));
-
+	
 }

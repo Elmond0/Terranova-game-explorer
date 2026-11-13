@@ -25,4 +25,8 @@ public class LookupController( GameService gameService ) : ControllerBase
 			return NotFound();
 		return Ok(g);
 	}
+
+	[HttpGet("platforms/{id:int}/highlights")]
+	public async Task<ActionResult<List<Game>>> GetPlatformHighlights( int id, CancellationToken ct ) =>
+		Ok(await gameService.GetPlatformHighlightsAsync(id, ct));
 }

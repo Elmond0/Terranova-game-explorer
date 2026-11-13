@@ -14,6 +14,8 @@ public class IgdbCache
     public static string StudioKey( int id ) => $"studio:{id}";
     public static string StudioUpcomingKey( int id ) => $"studio:{id}:upcoming";
     public static string StudioGamesKey( int id ) => $"studio:{id}:games";
+    public static string PlatformHighlightsKey( int id ) => $"platform:{id}";
+    
     public const string TokenKey = "igdb:twitch-token";
-    public static string SearchKey(SearchFilter filter)  => $"search:{filter}";
+    public static string SearchKey( (string query, string pagination, string sort) body )  => $"search:{body.query}:{body.pagination}:{body.sort}";
 }
