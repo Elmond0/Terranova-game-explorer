@@ -13,7 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddExceptionHandler<RawgExceptionHandler>();
+builder.Services.AddExceptionHandler<IgdbExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 builder.Services.AddHealthChecks();

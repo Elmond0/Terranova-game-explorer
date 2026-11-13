@@ -3,12 +3,8 @@ namespace GameExplorer.Api.Services;
 
 public record IgdbQueryFields()
 {
-    private static readonly long Today = IgdbMapper.ToUnix(DateOnly.FromDateTime(DateTime.UtcNow)) ?? 0;
-    private static readonly long LastMonth = IgdbMapper.ToUnix(DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(-1))) ?? 0;
-    private static readonly long NextYear = IgdbMapper.ToUnix(DateOnly.FromDateTime(DateTime.UtcNow.AddYears(1))) ?? 0;
-    
     public const string TopRated = "where rating_count > 100 & first_release_date > 1577836800;\n" +
-        $"sort rating desc;";	   
+        $"sort rating desc;";
     
     public static string Recent
     {
@@ -52,7 +48,7 @@ public record IgdbQueryFields()
     {
         var now = DateTimeOffset.UtcNow;
         var query = $"where involved_companies.company = {id}" +
-                    $"&first_release_date <= {now.ToUnixTimeSeconds()} " +
+                    $"& first_release_date <= {now.ToUnixTimeSeconds()} " +
                     $"& cover != null\n" +
                     $"& version_parent = null;\n";
         var sort = "sort total_rating_count desc;\n";
@@ -60,5 +56,18 @@ public record IgdbQueryFields()
         var pagination = $"limit {pageSize};" +
                          $"offset {offset};";
         return (query, pagination, sort);
+    }
+
+    public static string PlatformHighlights( int id )
+    {
+        var now = DateTimeOffset.UtcNow;
+        return $"where platforms = ({id})\n" +
+               $"& first_release_date <= {now.ToUnixTimeSeconds()}\n" +
+               // $"& first_release_date >= {now.AddYears(-2).ToUnixTimeSeconds()}\n" +
+               // $"& rating_count > 20\n" +
+               $"& cover != null\n" +
+               $"& version_parent = null;\n" +
+               $"sort rating desc;\n" +
+               $"limit 20;";
     }
 };
