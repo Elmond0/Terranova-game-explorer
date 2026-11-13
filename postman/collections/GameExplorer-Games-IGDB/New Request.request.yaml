@@ -1,4 +1,4 @@
 $kind: http-request
 url: ""
 method: GET
-order: 17000
+order: 25000

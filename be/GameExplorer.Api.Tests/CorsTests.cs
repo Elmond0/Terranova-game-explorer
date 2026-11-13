@@ -17,7 +17,14 @@ public class CorsTests : IClassFixture<WebApplicationFactory<Program>>
     {
         // Forza l'origine consentita, così il test non dipende da appsettings.Development.json
         _factory = factory.WithWebHostBuilder(builder =>
-            builder.UseSetting("Cors:FrontendOrigin", AllowedOrigin));
+        {
+            builder.UseEnvironment("Testing");
+            builder.UseSetting("Cors:FrontendOrigin", AllowedOrigin);
+            builder.UseSetting("Igdb:ClientId", "fake-client-id");
+            builder.UseSetting("Igdb:ClientSecret", "fake-client-secret");
+            builder.UseSetting("ConnectionStrings:Default",
+                "Host=localhost;Port=1;Database=not_used;Username=test;Password=test");
+        });
     }
 
     private static HttpRequestMessage Preflight(string origin)
