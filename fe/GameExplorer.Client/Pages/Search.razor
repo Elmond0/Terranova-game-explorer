@@ -5,6 +5,7 @@
 @inject IJSRuntime JS
 @implements IDisposable
 @using System.Globalization
+@using System.Net
 
 <PageTitle>Ricerca · Game Explorer</PageTitle>
 
@@ -67,7 +68,11 @@
 	</MudItem>
 
 	<MudItem xs="12" md="9">
-		@if (_error)
+		@if (_badRequest)
+		{
+			<ErrorMessage Message="La ricerca contiene caratteri che non possiamo cercare: prova a toglierli."/>
+		}
+		else if (_error)
 		{
 			<ErrorMessage OnRetry="LoadAsync"/>
 		}
@@ -171,6 +176,7 @@
 	[SupplyParameterFromQuery(Name = "page")] string? PageText { get; set; }
 	private int? Page => ParseInt(PageText);
 	private PagedResult<Game>? _result;
+	private bool _badRequest;
 	private bool _error;
 	private CancellationTokenSource? _cts;
 	private string? _query;
@@ -349,6 +355,7 @@
 		_cts = new CancellationTokenSource();
 		var token = _cts.Token;
 		_error = false;
+		_badRequest = false;
 		_result = null;
 		if (YearsInvalid)
 		{
@@ -369,6 +376,10 @@
 		try
 		{
 			_result = await Api.SearchAsync(filter, token);
+		}
+		catch (ApiException ex) when(ex.StatusCode == HttpStatusCode.BadRequest)
+		{
+			_badRequest = true;
 		}
 		catch (ApiException)
 		{
