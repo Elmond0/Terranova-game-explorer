@@ -129,6 +129,16 @@
 	{
 		return Task.FromResult(YearsStartingWith(MinYear, text));
 	}
+	private static int? ParseInt(string? text)
+	{
+		return int.TryParse(text, out var n) ? n : null;
+	}
+	private static int[]? ParseInts(string[]? texts)
+	{
+		if (texts is null)
+			return null;
+		return texts.Select(ParseInt).Where(n => n is not null).Select(n => n!.Value).ToArray();
+	}
 	private Task<IEnumerable<int?>> SearchToYears(string? text, CancellationToken token)
 	{
 		 var firstYear = Math.Clamp(FromYear ?? MinYear, MinYear, MaxYear);
@@ -145,12 +155,18 @@
 	];
 
 	[SupplyParameterFromQuery(Name = "q")] string? Query { get; set; }
-	[SupplyParameterFromQuery] int[]? Genres { get; set; }
-	[SupplyParameterFromQuery] int[]? Platforms { get; set; }
-	[SupplyParameterFromQuery] int? FromYear { get; set; }
-	[SupplyParameterFromQuery] int? ToYear { get; set; }
-	[SupplyParameterFromQuery] string? Ordering { get; set; }
-	[SupplyParameterFromQuery] int? Page { get; set; }
+	[SupplyParameterFromQuery(Name = "genres")] string[]? GenresText { get; set; }
+	private int[]? Genres => ParseInts(GenresText);
+	[SupplyParameterFromQuery(Name = "platforms")] string[]? PlatformsText { get; set; }
+	private int[]? Platforms => ParseInts(PlatformsText);
+	[SupplyParameterFromQuery(Name = "fromYear")] string? FromYearText { get; set; }
+	private int? FromYear => ParseInt(FromYearText);
+	[SupplyParameterFromQuery(Name = "toYear")] string? ToYearText { get; set; }
+	private int? ToYear => ParseInt(ToYearText);
+	[SupplyParameterFromQuery(Name = "ordering")] string? OrderingText { get; set; }
+	private string? Ordering => OrderFields.Any(o => o.Value == OrderingText || "-" + o.Value == OrderingText) ? OrderingText : null;
+	[SupplyParameterFromQuery(Name = "page")] string? PageText { get; set; }
+	private int? Page => ParseInt(PageText);
 	private PagedResult<Game>? _result;
 	private bool _error;
 	private CancellationTokenSource? _cts;
