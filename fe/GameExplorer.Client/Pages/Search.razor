@@ -114,6 +114,26 @@
 
 @code {
 	private const int PageSize = 20;
+	private const int MinYear = 1950;
+	private static readonly int MaxYear = DateTime.Today.Year + 5;
+	private bool IsYearOutOfRange(int? year) => year is not null && (year < MinYear || year > MaxYear);
+	private bool YearsInvalid => IsYearOutOfRange(FromYear) || IsYearOutOfRange(ToYear) || YearsInverted;
+	private static IEnumerable<int?> YearsStartingWith(int firstYear, string? text)
+	{
+		return Enumerable.Range(firstYear, MaxYear - firstYear + 1)
+			.Where(y => y.ToString().StartsWith(text ?? ""))
+			.Reverse()
+			.Select(y => (int?) y);
+	}
+	private Task<IEnumerable<int?>> SearchFromYears(string? text, CancellationToken token)
+	{
+		return Task.FromResult(YearsStartingWith(MinYear, text));
+	}
+	private Task<IEnumerable<int?>> SearchToYears(string? text, CancellationToken token)
+	{
+		 var firstYear = Math.Clamp(FromYear ?? MinYear, MinYear, MaxYear);
+		return Task.FromResult(YearsStartingWith(firstYear, text));
+	}
 	private MudTextField<string>? _searchField;
 
 	// Le voci del menu "Ordina per": valore accettato dalla Web API (SearchFilter.Ordering) senza "-" e testo da mostrare
@@ -191,29 +211,35 @@
 			}
 		</MudSelect>
 		<MudStack Row="true" Spacing="2">
-			<MudNumericField
+			<MudAutocomplete
 				T="int?"
 				Label="Dal"
 				Value="FromYear"
 				ValueChanged="@((int? v) => NavigateWith("fromYear", v))"
-				Min="1950"
-				Max="2100"
-				DebounceInterval="500"
-				HideSpinButtons="true"
+				Error="@IsYearOutOfRange(FromYear)"
+				ErrorText="@($"Tra {MinYear} e {MaxYear}")"
 				Variant="Variant.Outlined"
+				SearchFunc="SearchFromYears"
+				MaxItems="null"
+				Clearable="true"
+				ResetValueOnEmptyText="true"
+				Strict="false"
+				Placeholder="2000"
 			/>
-			<MudNumericField
+			<MudAutocomplete
 				T="int?"
 				Label="Al"
 				Value="ToYear"
 				ValueChanged="@((int? v) => NavigateWith("toYear", v))"
-				Error="YearsInverted"
-				ErrorText="Prima di «Dal»"
-				Min="1950"
-				Max="2100"
-				DebounceInterval="500"
-				HideSpinButtons="true"
+				Error="@(IsYearOutOfRange(ToYear) || YearsInverted)"
+				ErrorText="@(IsYearOutOfRange(ToYear) ? $"Tra {MinYear} e {MaxYear}" : "Prima di «Dal»")"
 				Variant="Variant.Outlined"
+				SearchFunc="SearchToYears"
+				MaxItems="null"
+				Clearable="true"
+				ResetValueOnEmptyText="true"
+				Strict="false"
+				Placeholder="2026"
 			/>
 		</MudStack>
 		<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
@@ -279,7 +305,7 @@
 		var token = _cts.Token;
 		_error = false;
 		_result = null;
-		if (YearsInverted)
+		if (YearsInvalid)
 		{
 			_result = new PagedResult<Game>();
 			return;
