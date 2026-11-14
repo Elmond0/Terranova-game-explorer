@@ -175,29 +175,26 @@ else
 			<DialogContent>
 				@if (_viewerOpen)
 				{
-					<MudStack
-						Row="true"
-						AlignItems="AlignItems.Center"
-						Justify="Justify.Center">
+					<div class="viewer">
 						<MudIconButton
 							Icon="@Icons.Material.Filled.ChevronLeft"
 							aria-label="Precedente"
 							OnClick="Previous"
+							Class="viewer-prev"
 						>
 						</MudIconButton>
 						<img
 							src="@ScreenshotUrls[_viewerIndex]"
 							alt="Screenshot @(_viewerIndex + 1) di @_game.Name"
-							style="max-width: 100%; max-height: 75vh;
-							object-fit: contain; min-width: 0;"
 						/>
 						<MudIconButton
 							Icon="@Icons.Material.Filled.ChevronRight"
 							aria-label="Successivo"
 							OnClick="Next"
+							Class="viewer-next"
 						>
 						</MudIconButton>
-					</MudStack>
+					</div>
 				}
 			</DialogContent>
 		</MudDialog>
