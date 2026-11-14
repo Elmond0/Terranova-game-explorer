@@ -5,7 +5,7 @@
 @inject SearchFocusService SearchFocus
 @inject IBrowserViewportService Viewport
 
-<MudThemeProvider @ref="_themeProvider" @bind-IsDarkMode="_isDarkMode"/>
+<MudThemeProvider @bind-IsDarkMode="_isDarkMode"/>
 <MudPopoverProvider/>
 <MudDialogProvider />
 <MudSnackbarProvider/>
@@ -161,26 +161,13 @@
 
 	private const string ThemeKey = "theme";
 	private ErrorBoundary? _errorBoundary;
-	private MudThemeProvider? _themeProvider;
-	private bool _hasSavedTheme;
+	// Il tema l'ha già deciso lo script in index.html prima dell'avvio (scelta salvata, altrimenti
+	// quella del sistema) e l'ha scritto in <html data-theme="…">: qui lo si legge e basta,
+	// così l'app parte con lo stesso colore usato durante il caricamento
 	protected override async Task OnInitializedAsync()
 	{
-		var savedTheme = await JS.InvokeAsync<string?>("localStorage.getItem", ThemeKey);
-		if (savedTheme is not null)
-		{
-			_hasSavedTheme = true;
-			_isDarkMode = savedTheme == "dark";
-		}
-	}
-	// Nessun tema scelto dall'utente: si segue quello del sistema.
-	// Qui e non in OnInitializedAsync perché @ref (_themeProvider) esiste solo dopo il primo rendering
-	protected override async Task OnAfterRenderAsync(bool firstRender)
-	{
-		if (firstRender && !_hasSavedTheme && _themeProvider is not null)
-		{
-			_isDarkMode = await _themeProvider.GetSystemDarkModeAsync();
-			StateHasChanged();
-		}
+		var theme = await JS.InvokeAsync<string?>("document.documentElement.getAttribute", "data-theme");
+		_isDarkMode = theme != "light";
 	}
 	protected override void OnParametersSet()
 	{
@@ -189,7 +176,6 @@
 	private async Task OnThemeToggled(bool isDark)
 	{
 		_isDarkMode = isDark;
-		_hasSavedTheme = true;
 		await JS.InvokeVoidAsync("localStorage.setItem", ThemeKey, isDark ? "dark" : "light");
 	}
 	private async Task LogoutAsync()

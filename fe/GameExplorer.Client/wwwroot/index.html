@@ -8,8 +8,9 @@
 	<base href="/" />
 	<link rel="preload" id="webassembly" />
 	<script>
-		// Gira prima di Blazor: decide subito il colore dello sfondo (regole html[data-theme] in app.css),
-		// così durante il caricamento non c'è un lampo bianco. Tema salvato, altrimenti quello del sistema.
+		// Gira prima di Blazor e decide il tema: quello salvato, altrimenti quello del sistema.
+		// data-theme serve ai colori del caricamento (app.css) e a MainLayout, che parte con lo stesso tema:
+		// così non c'è nessun lampo di colore diverso.
 		(function () {
 			var saved = null;
 			try { saved = localStorage.getItem('theme'); } catch (e) { }

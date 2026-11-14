@@ -2,14 +2,20 @@ h1:focus {
     outline: none;
 }
 
-/* Sfondo mentre l'app si carica, prima che MudBlazor applichi il tema.
-   data-theme lo scrive lo script in index.html; i colori sono quelli dello sfondo di MudBlazor */
-html[data-theme="dark"] body {
-    background: #32333d;
+/* Colori mentre l'app si carica, prima che MudBlazor applichi il tema.
+   data-theme lo scrive lo script in index.html. Il body usa già var(--mud-palette-background)
+   (regola di MudBlazor): qui si dà solo un valore di riserva alle sue variabili.
+   :where() ha specificità zero, quindi appena MudBlazor scrive il tema (:root) vince il suo valore,
+   e il pulsante "Cambia tema" continua a funzionare. Colorare direttamente il body invece bloccherebbe
+   lo sfondo su quello dell'avvio. */
+:where(html[data-theme="dark"]) {
+    --mud-palette-background: #32333d;
+    --mud-palette-text-primary: rgba(255, 255, 255, 0.70);
 }
 
-html[data-theme="light"] body {
-    background: #ffffff;
+:where(html[data-theme="light"]) {
+    --mud-palette-background: #ffffff;
+    --mud-palette-text-primary: #424242;
 }
 
 /* Contenuto della pagina (MainLayout): alto almeno quanto lo schermo, in colonna.
