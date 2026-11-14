@@ -1,5 +1,6 @@
 @inject IGameApiClient Api
 @inject NavigationManager Navigation
+@using System.Net
 
 <MudStack Row="true" Spacing="2" Class="my-2">
 	<MudButton
@@ -55,6 +56,12 @@
 			var wishlist = await Api.GetWishlistAsync();
 			_inWishlist = wishlist.Any(g => g.Id == GameId);
 		}
+		// Sessione scaduta mentre si apre la pagina: niente salto all'accesso, i pulsanti
+		// si comportano come per chi non è entrato (portano all'accesso solo se premuti)
+		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			_isAuthenticated = false;
+		}
 		catch (ApiException)
 		{
 			_error = "Non è stato possibile leggere i tuoi giochi salvati.";
@@ -82,6 +89,11 @@
 				await Api.AddFavoriteAsync(GameId);
 			_isFavorite = !_isFavorite;
 		}
+		// Sessione scaduta dopo il clic: si rifà l'accesso e si torna su questa pagina
+		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			Navigation.NavigateToLogin();
+		}
 		catch (ApiException)
 		{
 			_error = "Non è stato possibile aggiornare i preferiti. Riprova.";
@@ -108,6 +120,11 @@
 			else
 				await Api.AddToWishlistAsync(GameId);
 			_inWishlist = !_inWishlist;
+		}
+		// Sessione scaduta dopo il clic: si rifà l'accesso e si torna su questa pagina
+		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			Navigation.NavigateToLogin();
 		}
 		catch (ApiException)
 		{

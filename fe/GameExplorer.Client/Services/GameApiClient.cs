@@ -1,3 +1,4 @@
+using GameExplorer.Client.Services.Auth;
 using GameExplorer.Shared.Models;
 using System.Net;
 using System.Net.Http.Json;
@@ -7,10 +8,12 @@ namespace GameExplorer.Client.Services;
 public class GameApiClient : IGameApiClient
 {
 	private readonly HttpClient _http;
+	private readonly CookieAuthenticationStateProvider _auth;
 
-	public GameApiClient(HttpClient http)
+	public GameApiClient(HttpClient http, CookieAuthenticationStateProvider auth)
 	{
 		_http = http;
+		_auth = auth;
 	}
 
 	public async Task<List<Game>> GetTopRatedAsync(CancellationToken cancellationToken = default)
@@ -90,7 +93,7 @@ public class GameApiClient : IGameApiClient
 		}
 		catch (Exception ex)
 		{
-			throw new ApiException($"Chiamata {method} a {url} fallita", ex);
+			throw CreateApiException($"Chiamata {method} a {url} fallita", ex, (ex as HttpRequestException)?.StatusCode);
 		}
 	}
 	public async Task<List<Game>> GetFavoritesAsync(CancellationToken cancellationToken = default)
@@ -111,6 +114,14 @@ public class GameApiClient : IGameApiClient
 		SendAsync(HttpMethod.Put, $"api/me/wishlist/{id}", cancellationToken);
 	public Task RemoveFromWishlistAsync(int id, CancellationToken cancellationToken = default) =>
 		SendAsync(HttpMethod.Delete, $"api/me/wishlist/{id}", cancellationToken);
+	// Unico punto in cui nasce un'ApiException con il codice HTTP.
+	// 401 = sessione scaduta: si rilegge il profilo, così la navbar torna da utente non entrato
+	private ApiException CreateApiException(string message, Exception? inner, HttpStatusCode? status)
+	{
+		if (status == HttpStatusCode.Unauthorized)
+			_auth.RefreshProfile();
+		return new ApiException(message, inner, status);
+	}
 	// 404 → null solo se notFoundAsNull (gioco o studio inesistente), annullamento chiesto dalla pagina → passa così com'è,
 	// qualsiasi altro errore (anche un 404 su una lista) → ApiException
 	private async Task<T?> GetAsync<T>(string url, bool notFoundAsNull, CancellationToken cancellationToken)
@@ -129,7 +140,7 @@ public class GameApiClient : IGameApiClient
 		}
 		catch (Exception ex)
 		{
-			throw new ApiException($"Chiamata a {url} fallita", ex);
+			throw CreateApiException($"Chiamata a {url} fallita", ex, (ex as HttpRequestException)?.StatusCode);
 		}
 	}
 
@@ -176,7 +187,7 @@ public class GameApiClient : IGameApiClient
 		{
 			using var response = await _http.PutAsJsonAsync("api/me/profile", request, cancellationToken);
 			if (!response.IsSuccessStatusCode)
-				throw new ApiException("Modifica profilo fallita", null, response.StatusCode);
+				throw CreateApiException("Modifica profilo fallita", null, response.StatusCode);
 		}
 		catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
 		{

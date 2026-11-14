@@ -191,6 +191,10 @@ else
 			_nickname = _profile.DisplayName ?? "";
 			_selectedAvatar = _profile.Avatar;
 		}
+		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			Navigation.NavigateToLogin(replace: true);
+		}
 		catch (ApiException)
 		{
 			_error = true;
@@ -204,6 +208,10 @@ else
 			await Api.RemoveFavoriteAsync(game.Id);
 			_favorites?.Remove(game);
 		}
+		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			Navigation.NavigateToLogin();
+		}
 		catch (ApiException)
 		{
 			_removeError = "Non è stato possibile togliere il gioco. Riprova.";
@@ -216,6 +224,10 @@ else
 		{
 			await Api.RemoveFromWishlistAsync(game.Id);
 			_wishlist?.Remove(game);
+		}
+		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			Navigation.NavigateToLogin();
 		}
 		catch (ApiException)
 		{
@@ -245,6 +257,10 @@ else
 			_profile = _profile! with { DisplayName = _nickname, Avatar = _selectedAvatar };
 			Auth.RefreshProfile();
 			Snackbar.Add("Profilo salvato", Severity.Success);
+		}
+		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			Navigation.NavigateToLogin();
 		}
 		catch (ApiException ex)
 		{
