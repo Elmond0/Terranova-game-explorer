@@ -14,6 +14,22 @@ h1:focus {
     margin-top: auto;
 }
 
+/* Pulsante con avatar e nome nella navbar (MainLayout): il nome resta come è scritto,
+   invece del MAIUSCOLO che MudBlazor usa per i pulsanti.
+   Il maiuscolo MudBlazor lo mette sull'etichetta interna del pulsante (.mud-button-label), non sul pulsante */
+.navbar-user .mud-button-label {
+    text-transform: none;
+}
+
+/* Il nome (o l'email, se manca il nickname): se è troppo lungo viene tagliato con "…"
+   invece di andare a capo insieme a "Game Explorer" */
+.navbar-user-name {
+    max-width: 160px;
+    overflow: hidden;            /* quello che esce dai 160px non si vede */
+    text-overflow: ellipsis;     /* al posto del pezzo nascosto compare "…" */
+    white-space: nowrap;         /* tutto su una riga */
+}
+
 .valid.modified:not([type=checkbox]) {
     outline: 1px solid #26b050;
 }

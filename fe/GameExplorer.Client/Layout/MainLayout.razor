@@ -26,6 +26,7 @@
 		<AuthorizeView>
 			<Authorized>
 				<MudButton
+					Class="navbar-user"
 					Href="/profile"
 					Color="Color.Inherit"
 					Variant="Variant.Text">
@@ -33,7 +34,7 @@
 							Avatar="@(context.User.FindFirst(CookieAuthenticationStateProvider.AvatarClaimType)?.Value)"
 							Size="Size.Small"
 						/>
-						<span class="ml-2 d-none d-sm-inline">
+						<span class="ml-2 d-none d-sm-inline navbar-user-name">
 							@context.User.Identity?.Name
 						</span>
 				</MudButton>
