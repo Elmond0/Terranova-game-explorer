@@ -129,6 +129,8 @@
 
 @code {
 	private const int PageSize = 20;
+	// La Web API rifiuta le pagine oltre la 500 (400 Bad Request)
+	private const int MaxPage = 500;
 	private const int MinYear = 1950;
 	private static readonly int MaxYear = DateTime.Today.Year + 5;
 	private bool IsYearOutOfRange(int? year) => year is not null && (year < MinYear || year > MaxYear);
@@ -193,11 +195,12 @@
 	private int _platformPickerKey;
 	private bool _filtersOpen;
 
-	// ?page=0 o negativo scritto a mano nell'indirizzo vale come pagina 1
-	private int CurrentPage => Math.Max(Page ?? 1, 1);
+	// ?page=0 o negativo scritto a mano nell'indirizzo vale come pagina 1, oltre la 500 come pagina 500
+	private int CurrentPage => Math.Clamp(Page ?? 1, 1, MaxPage);
 	// SearchFilter.Validate rifiuta "Dal" dopo "Al": la Web API risponderebbe 400
 	private bool YearsInverted => FromYear > ToYear;
-	private int PageCount => _result is null ? 0 : (int)Math.Ceiling(_result.Total / (double)PageSize);
+	// Con 357.000 giochi sarebbero 17.000 pagine: la paginazione si ferma a quelle che la Web API accetta
+	private int PageCount => _result is null ? 0 : Math.Min((int)Math.Ceiling(_result.Total / (double)PageSize), MaxPage);
 	private string TotalText => _result?.Total == 1
 		? "1 gioco trovato"
 		: $"{_result?.Total.ToString("N0", CultureInfo.GetCultureInfo("it-IT"))} giochi trovati";
