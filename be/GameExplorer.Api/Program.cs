@@ -3,11 +3,8 @@ using GameExplorer.Api.Services;
 using GameExplorer.Api.Errors;
 using GameExplorer.Api.Auth;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Http.Resilience;
 
 var builder = WebApplication.CreateBuilder(args);
 

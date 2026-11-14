@@ -1,4 +1,10 @@
 $kind: http-request
-url: ""
-method: GET
+url: "{{igdb_domain}}studios"
+method: POST
+headers:
+  Client-ID: "{{igdb_client_id}}"
+  Authorization: Bearer {{igdb_client_secret}}
+body:
+  type: text
+  content: ""
 order: 25000

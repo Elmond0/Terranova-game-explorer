@@ -1,5 +1,4 @@
 using GameExplorer.Shared.Models;
-using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace GameExplorer.Api.Services.IgdbDtos;
 
@@ -7,7 +6,7 @@ internal static class IgdbMapper
 {
 	public const string CoverSize = "t_cover_big";
 	public const string ScreenshotSize = "t_screenshot_big";
-	public const string LogoSize = "t_logo_big";
+	public const string LogoSize = "t_original";
 	
 	private static List<TOut> MapTo<TIn, TOut>(this IEnumerable<TIn>? source, Func<TIn, TOut> map) =>
 		source?
@@ -49,23 +48,27 @@ internal static class IgdbMapper
 		})
 	};
 
-	private static string? ToImageUrl(this string? url, string size)
+	private static string? ToImageUrl(this string? url, string size, bool png = false)
 	{
 		if (string.IsNullOrWhiteSpace(url))
 			return null;
 		var result = url.Replace("t_thumb", size);
+		if (png && result.EndsWith(".jpg"))
+			result = result[..^4] + ".png";
 		if (result.StartsWith("//"))
 			result = "https:" + result;
 		return result;
 	}
-	
-	public static Image ToImage( this IgdbImage r, string size ) => new()
+
+	public static Image ToImage(this IgdbImage r, string size, bool png = false) => new()
 	{
 		Id = r.Id,
-		Url = r.Path.ToImageUrl(size),
+		Url = r.Path.ToImageUrl(size, png),
 		Height = r.Height,
 		Width = r.Width
 	};
+	
+	public static Studio? ToCompany( this IgdbInvolvedCompany r ) => r.Studio?.ToStudio() ?? null;
 
 	public static Studio ToStudio( this IgdbStudio r ) => new()
 	{
@@ -114,7 +117,10 @@ internal static class IgdbMapper
 			Storyline = r.StoryLine,
 			Website = r.Websites?.FirstOrDefault(w => w.Type == 1)?.Url,
 			
-			Developers = r.Studios.MapTo(ToStudio),
+			Developers = r.Studios
+				.Where(c => c.Developer == true)
+				.Select(c => c.Studio.ToStudio() ?? null)
+				.ToList(),
 
 			Screenshots = r.Screenshots.MapTo(s => s.ToImage(ScreenshotSize))
 		};
