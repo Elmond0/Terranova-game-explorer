@@ -50,12 +50,13 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 		var pagination = $"limit {filter.PageSize};" +
 		                 $"offset {offset};";
 		
-		var sort = "";
+		var field = "total_rating_count";
+		var desc = true;
 		if (!string.IsNullOrWhiteSpace(filter.Ordering))
 		{
-			var desc = filter.Ordering.StartsWith('-');
+			desc = filter.Ordering.StartsWith('-');
 			var criteria = filter.Ordering.TrimStart('-');
-			var field = criteria switch
+			field = criteria switch
 			{
 				"name"       => "name",
 				"released"   => "first_release_date",
@@ -66,12 +67,9 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 				"added"		 => "created_at",
 				_            => "total_rating_count"
 			};
-			sort = $"sort {field} ";
-			if (field is "total_rating_count")
-				 sort += "desc;";
-			else
-				sort += (desc ? "desc;" : "asc;");
 		}
+		var sort = $"sort {field} ";
+		sort += (desc ? "desc;" : "asc;");
 
 		return (query, pagination, sort);
 	}
