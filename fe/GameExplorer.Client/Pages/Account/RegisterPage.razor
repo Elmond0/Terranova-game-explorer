@@ -22,16 +22,16 @@
 				InputType="InputType.Password"
 				HelperText="Da 8 a 128 caratteri, con almeno una lettera maiuscola e un carattere speciale"
 				Class="mb-3"
-				Validation="@(new Func<string, string?>(ValidatePassword))"
-				DebounceInterval="600"
+				Error="@(PasswordError is not null)"
+				ErrorText="@PasswordError"
 			/>
 			<MudTextField
 				@bind-Value="_passwordConfirmation"
 				Label="Conferma password"
 				InputType="InputType.Password"
 				Class="mb-3"
-				Validation="@(new Func<string, string?>(c => c != _password ? PasswordDiffMessage : null))"
-				DebounceInterval="600"
+				Error="@(ConfirmationError is not null)"
+				ErrorText="@ConfirmationError"
 			/>
 
 			@if (_error is not null)
@@ -69,9 +69,12 @@
 	private string _passwordConfirmation = "";
 	private string? _error;
 	private bool _busy;
+	private string? PasswordError => string.IsNullOrEmpty(_password) ? null : ValidatePassword(_password);
+	private string? ConfirmationError => !string.IsNullOrEmpty(_passwordConfirmation) && _password != _passwordConfirmation ? PasswordDiffMessage : null;
 
 	private async Task SubmitAsync()
 	{
+		_error = null;
 		if (ValidatePassword(_password) is { } passwordError)
 		{
 			_error = passwordError;
@@ -83,7 +86,6 @@
 			return;
 		}
 		_busy = true;
-		_error = null;
 		try
 		{
 			var errors = await Auth.RegisterAsync(_email, _password);
