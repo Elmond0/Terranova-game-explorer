@@ -2,6 +2,16 @@ h1:focus {
     outline: none;
 }
 
+/* Sfondo mentre l'app si carica, prima che MudBlazor applichi il tema.
+   data-theme lo scrive lo script in index.html; i colori sono quelli dello sfondo di MudBlazor */
+html[data-theme="dark"] body {
+    background: #32333d;
+}
+
+html[data-theme="light"] body {
+    background: #ffffff;
+}
+
 /* Contenuto della pagina (MainLayout): alto almeno quanto lo schermo, in colonna.
    Il footer prende tutto lo spazio libero sopra di sé, quindi resta in fondo anche nelle pagine corte. */
 .main-content {
