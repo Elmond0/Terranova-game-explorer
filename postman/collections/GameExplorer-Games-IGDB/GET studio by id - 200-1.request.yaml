@@ -1,0 +1,5 @@
+$kind: http-request
+name: GET studio by id - 200
+url: ""
+method: GET
+order: 19000

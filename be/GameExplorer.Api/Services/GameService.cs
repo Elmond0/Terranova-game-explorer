@@ -53,7 +53,6 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 		var sort = "";
 		if (!string.IsNullOrWhiteSpace(filter.Ordering))
 		{
-			sort = "sort ";
 			var desc = filter.Ordering.StartsWith('-');
 			var criteria = filter.Ordering.TrimStart('-');
 			var field = criteria switch
@@ -166,6 +165,6 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 			IgdbQueryFields.StudioUpcoming(id), IgdbMapper.ToGame, IgdbCache.Details, ct);
 	
 	internal async Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, int pageSize, CancellationToken ct) =>
-		await GetCachedPagedResultAsync<IgdbGame, Game>(IgdbCache.StudioGamesKey(id),
+		await GetCachedPagedResultAsync<IgdbGame, Game>(IgdbCache.StudioGamesKey(id, page),
 			IgdbQueryFields.StudioGames(id, page, pageSize), page, pageSize, IgdbMapper.ToGame, IgdbCache.Details, ct);
 }

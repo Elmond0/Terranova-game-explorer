@@ -12,8 +12,8 @@ public record IgdbQueryFields()
         {
             var now = DateTimeOffset.UtcNow;
             return $"where first_release_date >= {now.AddDays(-30).ToUnixTimeSeconds()} " +
-                   $"& first_release_date <= {now.ToUnixTimeSeconds()} & cover != null;\n" +
-                   $"& hypes > 5 & cover != null\n" +
+                   $"& first_release_date <= {now.ToUnixTimeSeconds()} & cover != null\n" +
+                   $"& hypes > 5 & cover != null;\n" +
                    $"sort first_release_date desc;\n" +
                    $"limit 20;";
         }
@@ -63,8 +63,8 @@ public record IgdbQueryFields()
         var now = DateTimeOffset.UtcNow;
         return $"where platforms = ({id})\n" +
                $"& first_release_date <= {now.ToUnixTimeSeconds()}\n" +
-               // $"& first_release_date >= {now.AddYears(-2).ToUnixTimeSeconds()}\n" +
-               // $"& rating_count > 20\n" +
+               $"& first_release_date >= {now.AddYears(-2).ToUnixTimeSeconds()}\n" +
+               $"& rating_count > 20\n" +
                $"& cover != null\n" +
                $"& version_parent = null;\n" +
                $"sort rating desc;\n" +
