@@ -68,7 +68,14 @@
 	</MudItem>
 
 	<MudItem xs="12" md="9">
-		@if (_badRequest)
+		@* Anni sbagliati: la Web API non viene chiamata, quindi si spiega il motivo invece di "Nessun gioco trovato" *@
+		@if (YearsInvalid)
+		{
+			<MudAlert Severity="Severity.Warning">
+				Controlla gli anni: «Dal» deve venire prima di «Al», ed entrambi devono essere tra @MinYear e @MaxYear.
+			</MudAlert>
+		}
+		else if (_badRequest)
 		{
 			<ErrorMessage Message="La ricerca contiene caratteri che non possiamo cercare: prova a toglierli."/>
 		}

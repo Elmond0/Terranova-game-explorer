@@ -27,7 +27,7 @@ public class SearchTests : PageTestBase
 	}
 
 	[Fact]
-	public void AnnoFuoriIntervallo_CampoInErroreENessunRisultato()
+	public void AnnoFuoriIntervallo_CampoInErroreEAvvisoSugliAnni()
 	{
 		Ctx.Render<MudPopoverProvider>();
 		var navigation = Ctx.Services.GetRequiredService<NavigationManager>();
@@ -37,7 +37,9 @@ public class SearchTests : PageTestBase
 		cut.WaitForAssertion(() =>
 		{
 			Assert.Contains("Tra 1950 e", cut.Markup);
-			Assert.Contains("Nessun gioco trovato.", cut.Markup);
+			// Al posto di "Nessun gioco trovato." la pagina spiega che il problema sono gli anni
+			Assert.Contains("Controlla gli anni", cut.Markup);
+			Assert.DoesNotContain("Nessun gioco trovato.", cut.Markup);
 		});
 	}
 
