@@ -173,6 +173,7 @@
 	private string? _query;
 	private List<Genre> _genres = [];
 	private List<Platform> _platforms = [];
+	private bool _loadingFilterLists;
 	private bool _filtersOpen;
 
 	// ?page=0 o negativo scritto a mano nell'indirizzo vale come pagina 1
@@ -299,6 +300,9 @@
 
 	private async Task LoadFilterListsAsync()
 	{
+		if (_loadingFilterLists || (_genres.Count > 0 && _platforms.Count > 0))
+			return;
+		_loadingFilterLists = true;
 		try
 		{
 			var genres = Api.GetGenresAsync();
@@ -309,12 +313,18 @@
 		}
 		catch (ApiException)
 		{
-			// Senza elenchi i due menu restano vuoti, ma la ricerca funziona lo stesso
+			// Senza elenchi i menu restano vuoti: si riprova alla prossima ricerca
+		}
+		finally
+		{
+			_loadingFilterLists = false;
 		}
 	}
 
 	private async Task LoadAsync()
 	{
+		// Gli elenchi dei filtri si ritentano a ogni ricerca finché non arrivano, senza far aspettare la ricerca
+		_ = LoadFilterListsAsync();
 		_cts?.Cancel();
 		_cts?.Dispose();
 		_cts = new CancellationTokenSource();
@@ -354,10 +364,8 @@
 			await _searchField.FocusAsync();
 	}
 
-	// Generi e piattaforme non dipendono dall'indirizzo: si caricano una volta sola, senza far aspettare la ricerca
 	protected override void OnInitialized()
 	{
-		_ = LoadFilterListsAsync();
 		SearchFocus.Requested += FocusSearchFieldAsync;
 	}
 
