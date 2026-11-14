@@ -60,7 +60,8 @@ public class SaveButtonsTests : PageTestBase
 
 		// NavigateTo parte prima di qualsiasi await: non serve aspettare
 		var nav = Ctx.Services.GetRequiredService<NavigationManager>();
-		Assert.EndsWith("/account/login", nav.Uri);
+		// Con l'indirizzo di ritorno: dopo l'accesso si torna alla pagina di partenza
+		Assert.Contains("/account/login?returnUrl=", nav.Uri);
 	}
 
 	private static IElement FavoriteButton(IRenderedComponent<SaveButtons> cut) =>
