@@ -33,7 +33,7 @@ public class GameApiClient : IGameApiClient
 
 	public async Task<List<Game>> GetPlatformHighlightsAsync(int platformId, CancellationToken cancellationToken = default)
 	{
-		var games = await GetAsync<List<Game>>($"api/games/platform/{platformId}/highlights", cancellationToken);
+		var games = await GetAsync<List<Game>>($"api/platforms/{platformId}/highlights", cancellationToken);
 		return games ?? [];
 	}
 
