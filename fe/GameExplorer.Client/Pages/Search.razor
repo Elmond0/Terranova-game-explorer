@@ -415,7 +415,7 @@
 	private void OnQueryChanged(string? value)
 	{
 		_query = value;
-		NavigateWith("q", string.IsNullOrWhiteSpace(value) ? null : value);
+		NavigateWith("q", string.IsNullOrWhiteSpace(value) ? null : value, replace: true);
 	}
 
 	private void OnGenresChanged(IEnumerable<int> values) =>
@@ -486,18 +486,18 @@
 	}
 
 	// Un filtro nuovo riporta sempre a pagina 1
-	private void NavigateWith(string key, object? value)
+	private void NavigateWith(string key, object? value, bool replace = false)
 	{
 		Navigate(new Dictionary<string, object?>
 		{
 			[key] = value,
 			["page"] = null,
-		});
+		}, replace);
 	}
 
 	// Cambia solo l'indirizzo: la ricerca la fa partire OnParametersSetAsync
-	private void Navigate(Dictionary<string, object?> changes)
+	private void Navigate(Dictionary<string, object?> changes, bool replace = false)
 	{
-		Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(changes));
+		Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(changes), replace: replace);
 	}
 }
