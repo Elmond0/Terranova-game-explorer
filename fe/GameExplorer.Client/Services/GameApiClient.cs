@@ -15,55 +15,55 @@ public class GameApiClient : IGameApiClient
 
 	public async Task<List<Game>> GetTopRatedAsync(CancellationToken cancellationToken = default)
 	{
-		var games = await GetAsync<List<Game>>("api/games/top-rated", cancellationToken);
+		var games = await GetAsync<List<Game>>("api/games/top-rated", false, cancellationToken);
 		return games ?? [];
 	}
 
 	public async Task<List<Game>> GetRecentAsync(CancellationToken cancellationToken = default)
 	{
-		var games = await GetAsync<List<Game>>("api/games/recent", cancellationToken);
+		var games = await GetAsync<List<Game>>("api/games/recent", false, cancellationToken);
 		return games ?? [];
 	}
 
 	public async Task<List<Game>> GetUpcomingAsync(CancellationToken cancellationToken = default)
 	{
-		var games = await GetAsync<List<Game>>("api/games/upcoming", cancellationToken);
+		var games = await GetAsync<List<Game>>("api/games/upcoming", false, cancellationToken);
 		return games ?? [];
 	}
 
 	public async Task<List<Game>> GetPlatformHighlightsAsync(int platformId, CancellationToken cancellationToken = default)
 	{
-		var games = await GetAsync<List<Game>>($"api/platforms/{platformId}/highlights", cancellationToken);
+		var games = await GetAsync<List<Game>>($"api/platforms/{platformId}/highlights", false, cancellationToken);
 		return games ?? [];
 	}
 
 	public async Task<PagedResult<Game>> SearchAsync(SearchFilter filter, CancellationToken cancellationToken = default)
 	{
-		var page = await GetAsync<PagedResult<Game>>($"api/games?{BuildQueryString(filter)}", cancellationToken);
+		var page = await GetAsync<PagedResult<Game>>($"api/games?{BuildQueryString(filter)}", false, cancellationToken);
 		return page ?? new PagedResult<Game>();
 	}
 
 	public async Task<GameDetails?> GetGameAsync(int id, CancellationToken cancellationToken = default)
 	{
-		var game = await GetAsync<GameDetails>($"api/games/{id}", cancellationToken);
+		var game = await GetAsync<GameDetails>($"api/games/{id}", true, cancellationToken);
 		return game;
 	}
 
 	public async Task<List<Genre>> GetGenresAsync(CancellationToken cancellationToken = default)
 	{
-		var genres = await GetAsync<List<Genre>>("api/genres", cancellationToken);
+		var genres = await GetAsync<List<Genre>>("api/genres", false, cancellationToken);
 		return genres ?? [];
 	}
 
 	public async Task<List<Platform>> GetPlatformsAsync(CancellationToken cancellationToken = default)
 	{
-		var platforms = await GetAsync<List<Platform>>("api/platforms", cancellationToken);
+		var platforms = await GetAsync<List<Platform>>("api/platforms", false, cancellationToken);
 		return platforms ?? [];
 	}
 
 	public async Task<Studio?> GetStudioAsync(int id, CancellationToken cancellationToken = default)
 	{
-		var studio = await GetAsync<Studio>($"api/studios/{id}", cancellationToken);
+		var studio = await GetAsync<Studio>($"api/studios/{id}", true, cancellationToken);
 		return studio;
 	}
 
@@ -72,7 +72,7 @@ public class GameApiClient : IGameApiClient
 		var url = $"api/studios/{id}/games?page={page}";
 		if (!string.IsNullOrWhiteSpace(ordering))
 			url += $"&ordering={Uri.EscapeDataString(ordering)}";
-		var games = await GetAsync<PagedResult<Game>>(url, cancellationToken);
+		var games = await GetAsync<PagedResult<Game>>(url, false, cancellationToken);
 		return games ?? new PagedResult<Game>();
 	}
 
@@ -95,12 +95,12 @@ public class GameApiClient : IGameApiClient
 	}
 	public async Task<List<Game>> GetFavoritesAsync(CancellationToken cancellationToken = default)
 	{
-		var games = await GetAsync<List<Game>>("api/me/favorites", cancellationToken);
+		var games = await GetAsync<List<Game>>("api/me/favorites", false, cancellationToken);
 		return games ?? [];
 	}
 	public async Task<List<Game>> GetWishlistAsync(CancellationToken cancellationToken = default)
 	{
-		var games = await GetAsync<List<Game>>("api/me/wishlist", cancellationToken);
+		var games = await GetAsync<List<Game>>("api/me/wishlist", false, cancellationToken);
 		return games ?? [];
 	}
 	public Task AddFavoriteAsync(int id, CancellationToken cancellationToken = default) =>
@@ -111,14 +111,15 @@ public class GameApiClient : IGameApiClient
 		SendAsync(HttpMethod.Put, $"api/me/wishlist/{id}", cancellationToken);
 	public Task RemoveFromWishlistAsync(int id, CancellationToken cancellationToken = default) =>
 		SendAsync(HttpMethod.Delete, $"api/me/wishlist/{id}", cancellationToken);
-	// 404 → null, annullamento chiesto dalla pagina → passa così com'è, qualsiasi altro errore → ApiException
-	private async Task<T?> GetAsync<T>(string url, CancellationToken cancellationToken)
+	// 404 → null solo se notFoundAsNull (gioco o studio inesistente), annullamento chiesto dalla pagina → passa così com'è,
+	// qualsiasi altro errore (anche un 404 su una lista) → ApiException
+	private async Task<T?> GetAsync<T>(string url, bool notFoundAsNull, CancellationToken cancellationToken)
 	{
 		try
 		{
 			return await _http.GetFromJsonAsync<T>(url, cancellationToken);
 		}
-		catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+		catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound && notFoundAsNull)
 		{
 			return default;
 		}
@@ -166,7 +167,7 @@ public class GameApiClient : IGameApiClient
 
 	public async Task<ProfileResponse> GetProfileAsync(CancellationToken cancellationToken = default)
 	{
-		return await GetAsync<ProfileResponse>("api/me/profile", cancellationToken) ?? throw new ApiException("Profilo non trovato", null, HttpStatusCode.NotFound);
+		return await GetAsync<ProfileResponse>("api/me/profile", true, cancellationToken) ?? throw new ApiException("Profilo non trovato", null, HttpStatusCode.NotFound);
 	}
 
 	public async Task UpdateProfileAsync(UpdateProfileRequest request, CancellationToken cancellationToken = default)
