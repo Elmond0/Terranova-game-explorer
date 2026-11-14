@@ -63,9 +63,22 @@
 		Elevation="1"
 		Breakpoint="Breakpoint.Md">
 			<MudNavMenu>
-				<MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-				<MudNavLink OnClick="FocusSearchAsync" Icon="@Icons.Material.Filled.Search">Cerca</MudNavLink>
-				<MudDivider Class="my-2" />
+				<MudNavLink
+					Href="/"
+					Match="NavLinkMatch.All"
+					Icon="@Icons.Material.Filled.Home">
+						Home
+				</MudNavLink>
+				<MudNavLink
+					OnClick="FocusSearchAsync"
+					Icon="@Icons.Material.Filled.Search"
+					role="button"
+					@onkeydown="e => OnMenuKeyDown(e, FocusSearchAsync)">
+						Cerca
+				</MudNavLink>
+				<MudDivider
+					Class="my-2"
+				/>
 				<AuthorizeView>
 					<Authorized>
 						<MudStack
@@ -76,14 +89,35 @@
 									Avatar="@(context.User.FindFirst(CookieAuthenticationStateProvider.AvatarClaimType)?.Value)"
 									Size="Size.Small"
 								/>
-								<MudText Typo="Typo.subtitle2">@context.User.Identity?.Name</MudText>
+								<MudText
+									Typo="Typo.subtitle2">
+										@context.User.Identity?.Name
+								</MudText>
 						</MudStack>
-						<MudNavLink Href="/profile" Icon="@Icons.Material.Filled.Person">Profilo</MudNavLink>
-						<MudNavLink OnClick="LogoutAsync" Icon="@Icons.Material.Filled.Logout">Esci</MudNavLink>
+						<MudNavLink
+							Href="/profile"
+							Icon="@Icons.Material.Filled.Person">
+								Profilo
+						</MudNavLink>
+						<MudNavLink
+							OnClick="LogoutAsync"
+							Icon="@Icons.Material.Filled.Logout"
+							role="button"
+							@onkeydown="e => OnMenuKeyDown(e, LogoutAsync)">
+								Esci
+						</MudNavLink>
 					</Authorized>
 					<NotAuthorized>
-						<MudNavLink Href="/account/login" Icon="@Icons.Material.Filled.Login">Accedi</MudNavLink>
-						<MudNavLink Href="/account/register" Icon="@Icons.Material.Filled.PersonAdd">Registrati</MudNavLink>
+						<MudNavLink
+							Href="/account/login"
+							Icon="@Icons.Material.Filled.Login">
+								Accedi
+						</MudNavLink>
+						<MudNavLink
+							Href="/account/register"
+							Icon="@Icons.Material.Filled.PersonAdd">
+								Registrati
+						</MudNavLink>
 					</NotAuthorized>
 				</AuthorizeView>
 			</MudNavMenu>
@@ -159,5 +193,12 @@
 		await SearchFocus.RequestAsync();
 		if (!SearchFocus.HasSearchBar)
 			Navigation.NavigateTo("/");
+	}
+	private async Task OnMenuKeyDown(KeyboardEventArgs e, Func<Task> action)
+	{
+		if (e.Key is "Enter" or " ")
+		{
+			await action();
+		}
 	}
 }
