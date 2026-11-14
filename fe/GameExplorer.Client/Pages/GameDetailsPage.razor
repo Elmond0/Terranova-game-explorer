@@ -163,19 +163,28 @@ else
 				</MudItem>
 			}
 		</MudGrid>
-		<MudDialog @bind-Visible="_viewerOpen" Options="_viewerOptions">
+		<MudDialog @bind-Visible="_viewerOpen" Options="_viewerOptions" DefaultFocus="DefaultFocus.LastChild">
 			<TitleContent>
 				@if (_viewerOpen)
 				{
-					<MudText Typo="Typo.h6">
-						Screenshot @(_viewerIndex + 1) di @ScreenshotUrls.Count
-					</MudText>
+					<MudStack Row="true" AlignItems="AlignItems.Center">
+						<MudText Typo="Typo.h6">
+							Screenshot @(_viewerIndex + 1) di @ScreenshotUrls.Count
+						</MudText>
+						<MudSpacer/>
+						<MudIconButton
+							Icon="@Icons.Material.Filled.Close"
+							aria-label="Chiudi"
+							OnClick="() => _viewerOpen = false"
+							@onkeydown="OnViewerKeyDown"
+						/>
+					</MudStack>
 				}
 			</TitleContent>
 			<DialogContent>
 				@if (_viewerOpen)
 				{
-					<div class="viewer">
+					<div class="viewer" @onkeydown="OnViewerKeyDown">
 						<MudIconButton
 							Icon="@Icons.Material.Filled.ChevronLeft"
 							aria-label="Precedente"
@@ -217,7 +226,7 @@ else
 	private readonly DialogOptions _viewerOptions = new()
 	{
 		CloseOnEscapeKey = true,
-		CloseButton = true,
+		CloseButton = false,
 		MaxWidth = MaxWidth.Large,
 		FullWidth = true,
 	};
@@ -235,6 +244,13 @@ else
 	private void Previous()
 	{
 		_viewerIndex = (_viewerIndex - 1 + ScreenshotUrls.Count) % ScreenshotUrls.Count;
+	}
+	private void OnViewerKeyDown(KeyboardEventArgs e)
+	{
+		if (e.Key == "ArrowRight")
+			Next();
+		if (e.Key == "ArrowLeft")
+			Previous();
 	}
 	// Testo da mostrare nella descrizione: intero, oppure tagliato all'ultimo spazio prima del limite
 	private string AboutText
