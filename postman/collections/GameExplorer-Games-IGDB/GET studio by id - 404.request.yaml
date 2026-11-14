@@ -1,4 +1,28 @@
 $kind: http-request
-url: ""
+url: "{{api_domain}}studios/9999999"
 method: GET
-order: 19000
+scripts:
+  - type: afterResponse
+    code: "   pm.test(\"404 NOT FOUND\", () => {\r
+
+      \       pm.response.to.have.status(404);\r
+
+      \   });\r
+
+      \r
+
+      \   pm.test(\"Response is JSON\", () => {\r
+
+      \       pm.response.to.be.json;\r
+
+      \   });\r
+
+      \r
+
+      \   pm.test(\"Response takes less than 2 seconds\", () => {\r
+
+      \       pm.expect(pm.response.responseTime).to.be.below(2000);\r
+
+      \   });"
+    language: text/javascript
+order: 20000

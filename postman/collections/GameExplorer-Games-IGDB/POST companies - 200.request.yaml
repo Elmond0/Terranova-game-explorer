@@ -6,7 +6,9 @@ headers:
   Authorization: Bearer {{igdb_token}}
 body:
   type: text
-  content: "fields *, developed.name, published.name;\r
+  content: "fields id, name, logo.*;\r
+
+    where id = 421;\r
 
     limit 20;"
 order: 13000

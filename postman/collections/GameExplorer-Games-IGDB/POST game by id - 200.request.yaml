@@ -6,7 +6,7 @@ headers:
   Authorization: Bearer {{igdb_token}}
 body:
   type: text
-  content: "fields *, screenshots.*, cover.*;\r
+  content: "fields id, name, involved_companies.company.id, involved_companies.company.name, involved_companies.company.slug, involved_companies.company.websites.*, involved_companies.company.description, involved_companies.company.logo.*, involved_companies.company.country, involved_companies.company.start_date, involved_companies.company.status, involved_companies.developer, involved_companies.publisher;\r
 
-    where id =  72;"
+    where id =  119171;"
 order: 6000

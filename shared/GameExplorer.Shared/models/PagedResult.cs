@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace GameExplorer.Shared.Models;
 
 public class PagedResult<T>

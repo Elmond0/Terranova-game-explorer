@@ -11,6 +11,11 @@ public class GamesController( GameService gameService ) : ControllerBase
 	[HttpGet]
 	public async Task<ActionResult<PagedResult<Game>>>	Search( [FromQuery] SearchFilter filter, CancellationToken ct )
 	{
+		if (filter.Page > 500)
+		{
+			ModelState.AddModelError(nameof(filter.Page), $"Page must be between 1 and 500.");
+			return ValidationProblem(ModelState);
+		}
 		var	p = await gameService.SearchAsync(filter, ct);
 		return Ok(p);
 	}

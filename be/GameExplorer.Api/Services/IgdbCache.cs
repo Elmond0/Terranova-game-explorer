@@ -13,7 +13,7 @@ public class IgdbCache
     public static string GameKey( int id ) => $"game:{id}";
     public static string StudioKey( int id ) => $"studio:{id}";
     public static string StudioUpcomingKey( int id ) => $"studio:{id}:upcoming";
-    public static string StudioGamesKey( int id ) => $"studio:{id}:games";
+    public static string StudioGamesKey( int id, int page ) => $"studio:{id}:games:page{page}";
     public static string PlatformHighlightsKey( int id ) => $"platform:{id}";
     
     public const string TokenKey = "igdb:twitch-token";
