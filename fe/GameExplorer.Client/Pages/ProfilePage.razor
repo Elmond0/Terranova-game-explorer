@@ -42,6 +42,7 @@ else
 		Immediate="true"
 		MaxLength="30"
 		Class="mb-4"
+		HelperText="Obbligatorio per salvare il profilo"
 	/>
 	<MudText Typo="Typo.subtitle2" Class="mb-2">Scegli il tuo avatar</MudText>
 	<MudStack
@@ -231,9 +232,12 @@ else
 	}
 	private async Task SaveProfileAsync()
 	{
-		if (ValidateNickname(_nickname) is not null)
-			return;
 		_saveError = null;
+		if (ValidateNickname(_nickname) is { } nicknameError)
+		{
+			_saveError = $"Nickname: {nicknameError}";
+			return;
+		}
 		_saving = true;
 		try
 		{
