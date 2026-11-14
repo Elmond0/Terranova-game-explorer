@@ -172,7 +172,7 @@ else
 		var state = AuthState is null ? null : await AuthState;
 		if (state?.User.Identity?.IsAuthenticated != true)
 		{
-			Navigation.NavigateTo("/account/login", replace: true);
+			Navigation.NavigateToLogin(replace: true);
 			return;
 		}
 		await LoadAsync();
