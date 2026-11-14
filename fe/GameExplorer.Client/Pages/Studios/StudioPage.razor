@@ -5,7 +5,7 @@
 @implements IDisposable
 @using System.Globalization
 
-<PageTitle>@(_studio?.Name ?? "Studio")</PageTitle>
+<PageTitle>@(_studio?.Name ?? "Studio") · Game Explorer</PageTitle>
 
 @if (_error)
 {
@@ -17,19 +17,10 @@ else if (_loading)
 }
 else if (_studio is null)
 {
-	<MudStack AlignItems="AlignItems.Center" Class="py-8">
-		<MudIcon
-			Icon="@Icons.Material.Filled.SearchOff"
-			Size="Size.Large"
-			Class="mud-text-secondary"
-		/>
-		<MudText Typo="Typo.h5" HtmlTag="h1">
-			Studio non trovato
-		</MudText>
-		<MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary">
-			Torna alla home
-		</MudButton>
-	</MudStack>
+	<NotFoundMessage
+		Title="Studio non trovato"
+		Text="Lo studio che cerchi non esiste o è stato rimosso."
+	/>
 }
 else
 {

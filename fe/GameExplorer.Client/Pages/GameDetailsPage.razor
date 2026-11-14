@@ -4,7 +4,7 @@
 @inject IGameApiClient Api
 @implements IDisposable
 
-<PageTitle>@(_game?.Name ?? "Gioco")</PageTitle>
+<PageTitle>@(_game?.Name ?? "Gioco") · Game Explorer</PageTitle>
 @if (_error)
 {
 	<ErrorMessage OnRetry="LoadAsync"/>
@@ -15,10 +15,10 @@ else if (_loading)
 }
 else if (_game is null)
 {
-	<MudText Typo="Typo.h5" HtmlTag="h1">Gioco non trovato</MudText>
-	<MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary">
-		Torna alla home
-	</MudButton>
+	<NotFoundMessage
+		Title="Gioco non trovato"
+		Text="Il gioco che cerchi non esiste o è stato rimosso."
+	/>
 }
 else
 {
@@ -207,6 +207,8 @@ else
 @code {
 	[Parameter] public int Id { get; set; }
 	private const int AboutPreviewLength = 500;
+	// "Leggi tutto" solo se il testo nascosto è abbastanza lungo: per poche parole in più si mostra tutto
+	private const int AboutTolerance = 150;
 	private CancellationTokenSource? _cts;
 	private bool _aboutExpanded;
 	private GameDetails? _game;
@@ -222,7 +224,7 @@ else
 		MaxWidth = MaxWidth.Large,
 		FullWidth = true,
 	};
-	private bool IsAboutLong => _game?.Description?.Length > AboutPreviewLength;
+	private bool IsAboutLong => _game?.Description?.Length > AboutPreviewLength + AboutTolerance;
 	private List<string> ScreenshotUrls => _game?.Screenshots.Select(s => s?.Url).OfType<string>().ToList() ?? [];
 	private void OpenViewer(int index)
 	{
