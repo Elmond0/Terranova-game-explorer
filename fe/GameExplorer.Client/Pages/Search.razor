@@ -6,7 +6,7 @@
 @implements IDisposable
 @using System.Globalization
 
-<PageTitle>Ricerca</PageTitle>
+<PageTitle>Ricerca · Game Explorer</PageTitle>
 
 <MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">
 	Cerca giochi
@@ -30,8 +30,10 @@
 			@ref="_searchField"
 		/>
 		@* Solo su schermi piccoli: lì i filtri stanno nel MudDrawer *@
+		@* nowrap e flex-shrink 0: "Filtri (1)" resta su una riga, è il campo di ricerca a stringersi *@
 		<MudButton
-			Class="d-md-none"
+			Class="d-md-none flex-shrink-0"
+			Style="white-space: nowrap"
 			OnClick="() => _filtersOpen = true"
 			Variant="Variant.Outlined"
 			StartIcon="@Icons.Material.Filled.FilterList">
@@ -74,7 +76,7 @@
 			<MudGrid Spacing="3">
 				@for (var i = 0; i < 6; i++)
 				{
-					<MudItem xs="12" sm="6" lg="4">
+					<MudItem xs="6" lg="4">
 						<SkeletonCard/>
 					</MudItem>
 				}
@@ -90,9 +92,10 @@
 				@TotalText
 			</MudText>
 			<MudGrid Spacing="3">
+				@* Anche sul telefono 2 card per riga: con 1 sola, 20 risultati occupavano circa 20 schermate *@
 				@foreach (var game in _result.Items)
 				{
-					<MudItem xs="12" sm="6" lg="4">
+					<MudItem xs="6" lg="4">
 						<GameCard Game="game"/>
 					</MudItem>
 				}
@@ -174,6 +177,7 @@
 	private List<Genre> _genres = [];
 	private List<Platform> _platforms = [];
 	private bool _loadingFilterLists;
+	private int _platformPickerKey;
 	private bool _filtersOpen;
 
 	// ?page=0 o negativo scritto a mano nell'indirizzo vale come pagina 1
@@ -212,21 +216,36 @@
 				<MudSelectItem T="int" Value="genre.Id">@genre.Name</MudSelectItem>
 			}
 		</MudSelect>
-		<MudSelect
-			@key="@($"platforms-{_platforms.Count}")"
-			T="int"
+		@* Le piattaforme sono più di 200: si cercano scrivendo, invece di scorrere un menu.
+		   Quelle scelte compaiono sotto come chip, con la ✕ per toglierle.
+		   @key cambia dopo ogni scelta, così il campo si ricrea vuoto e pronto per la prossima *@
+		<MudAutocomplete
+			@key="@($"platform-picker-{_platformPickerKey}")"
+			T="Platform"
 			Label="Piattaforme"
-			MultiSelection="true"
-			SelectedValues="Platforms"
-			SelectedValuesChanged="OnPlatformsChanged"
-			ToStringFunc="PlatformName"
-			Clearable="true"
-			Variant="Variant.Outlined">
-			@foreach (var platform in _platforms)
-			{
-				<MudSelectItem T="int" Value="platform.Id">@platform.Name</MudSelectItem>
-			}
-		</MudSelect>
+			Placeholder="Cerca una piattaforma..."
+			SearchFunc="SearchPlatforms"
+			ToStringFunc="@(p => p?.Name)"
+			ValueChanged="AddPlatform"
+			MaxItems="null"
+			Variant="Variant.Outlined"
+		/>
+		@if (Platforms?.Length > 0)
+		{
+			<div class="d-flex flex-wrap gap-1">
+				@foreach (var id in Platforms)
+				{
+					<MudChip
+						T="int"
+						Value="id"
+						Size="Size.Small"
+						Color="Color.Primary"
+						OnClose="@(() => RemovePlatform(id))">
+						@PlatformName(id)
+					</MudChip>
+				}
+			</div>
+		}
 		<MudStack Row="true" Spacing="2">
 			<MudAutocomplete
 				T="int?"
@@ -391,8 +410,28 @@
 	private void OnGenresChanged(IEnumerable<int> values) =>
 		NavigateWith("genres", values.Any() ? values.ToArray() : null);
 
-	private void OnPlatformsChanged(IEnumerable<int> values) =>
-		NavigateWith("platforms", values.Any() ? values.ToArray() : null);
+	// Elenco del campo Piattaforme: quelle che contengono il testo scritto, senza quelle già scelte
+	private Task<IEnumerable<Platform>> SearchPlatforms(string? text, CancellationToken token)
+	{
+		var selected = Platforms ?? [];
+		var matches = _platforms.Where(p => !selected.Contains(p.Id)
+			&& (string.IsNullOrWhiteSpace(text) || p.Name.Contains(text.Trim(), StringComparison.OrdinalIgnoreCase)));
+		return Task.FromResult(matches);
+	}
+
+	private void AddPlatform(Platform? platform)
+	{
+		if (platform is null)
+			return;
+		_platformPickerKey++;
+		NavigateWith("platforms", (Platforms ?? []).Append(platform.Id).ToArray());
+	}
+
+	private void RemovePlatform(int id)
+	{
+		var rest = (Platforms ?? []).Where(p => p != id).ToArray();
+		NavigateWith("platforms", rest.Length > 0 ? rest : null);
+	}
 
 	// Un campo nuovo tiene il verso scelto prima; senza un ordinamento precedente,
 	// il nome va dalla A alla Z e gli altri dal valore più alto
