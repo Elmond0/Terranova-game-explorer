@@ -8,24 +8,34 @@
 <MudContainer MaxWidth="MaxWidth.Small">
 	<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">Accedi</MudText>
 
-	<MudPaper Class="pa-6">
-		<form @onsubmit="SubmitAsync">
-			@* name e autocomplete: il gestore delle password del browser riconosce i campi e li compila *@
-			<MudTextField @bind-Value="_email" Label="Email" InputType="InputType.Email" Class="mb-3" name="email" autocomplete="username"/>
-			<MudTextField @bind-Value="_password" Label="Password" InputType="InputType.Password" Class="mb-3" name="password" autocomplete="current-password"/>
+	@if (_alreadyLoggedIn)
+	{
+		@* Messaggio invece di un redirect automatico: un redirect mentre la pagina si apre resta
+		   nella cronologia e il tasto Indietro riporterebbe sempre qui *@
+		<MudAlert Severity="Severity.Info" Class="mb-4">Hai già fatto l'accesso.</MudAlert>
+		<MudButton Href="@SafeReturnUrl" Variant="Variant.Filled" Color="Color.Primary">Continua</MudButton>
+	}
+	else
+	{
+		<MudPaper Class="pa-6">
+			<form @onsubmit="SubmitAsync">
+				@* name e autocomplete: il gestore delle password del browser riconosce i campi e li compila *@
+				<MudTextField @bind-Value="_email" Label="Email" InputType="InputType.Email" Class="mb-3" name="email" autocomplete="username"/>
+				<MudTextField @bind-Value="_password" Label="Password" InputType="InputType.Password" Class="mb-3" name="password" autocomplete="current-password"/>
 
-			@if (_error is not null)
-			{
-				<MudAlert Severity="Severity.Error" Class="mb-3">@_error</MudAlert>
-			}
+				@if (_error is not null)
+				{
+					<MudAlert Severity="Severity.Error" Class="mb-3">@_error</MudAlert>
+				}
 
-			<MudButton ButtonType="ButtonType.Submit" Disabled="_busy" Variant="Variant.Filled" Color="Color.Primary">Accedi</MudButton>
-		</form>
-	</MudPaper>
+				<MudButton ButtonType="ButtonType.Submit" Disabled="_busy" Variant="Variant.Filled" Color="Color.Primary">Accedi</MudButton>
+			</form>
+		</MudPaper>
 
-	<MudText Class="mt-4">
-		Non hai un account? <MudLink Href="/account/register">Registrati</MudLink>
-	</MudText>
+		<MudText Class="mt-4">
+			Non hai un account? <MudLink Href="/account/register">Registrati</MudLink>
+		</MudText>
+	}
 </MudContainer>
 
 @code{
@@ -39,12 +49,13 @@
 			? ReturnUrl
 			: "/";
 
-	// Chi è già entrato non deve rifare l'accesso: va direttamente dove sarebbe andato dopo
+	private bool _alreadyLoggedIn;
+
+	// Chi è già entrato non vede il form, ma un pulsante per andare dove sarebbe andato dopo l'accesso
 	protected override async Task OnInitializedAsync()
 	{
 		var state = AuthState is null ? null : await AuthState;
-		if (state?.User.Identity?.IsAuthenticated == true)
-			Navigation.NavigateTo(SafeReturnUrl, replace: true);
+		_alreadyLoggedIn = state?.User.Identity?.IsAuthenticated == true;
 	}
 
 	private async Task SubmitAsync()
