@@ -91,13 +91,13 @@ else
 					}
 				</MudStack>
 			}
-			@if (_game.Developers.Count > 0)
+			@if (NamedDevelopers.Count > 0)
 			{
 				<MudText Typo="Typo.subtitle2" Class="mt-4">
 					Sviluppatori
 				</MudText>
 				<MudStack Row="true" Wrap="Wrap.Wrap">
-					@foreach (var studio in _game.Developers)
+					@foreach (var studio in NamedDevelopers)
 					{
 						<MudChip T="string" Href="@($"/studios/{studio.Id}")" Color="Color.Primary">
 							@studio.Name
@@ -210,6 +210,7 @@ else
 	private CancellationTokenSource? _cts;
 	private bool _aboutExpanded;
 	private GameDetails? _game;
+	private List<Studio> NamedDevelopers => _game?.Developers.Where(s => !string.IsNullOrWhiteSpace(s.Name)).ToList() ?? [];
 	private bool _viewerOpen;
 	private int _viewerIndex;
 	private bool _loading;
