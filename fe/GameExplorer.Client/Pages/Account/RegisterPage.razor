@@ -3,7 +3,7 @@
 @inject NavigationManager Navigation
 
 
-<PageTitle>Registrati</PageTitle>
+<PageTitle>Registrati · Game Explorer</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Small">
 	<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">Registrati</MudText>
@@ -15,6 +15,8 @@
 				Label="Email"
 				InputType="InputType.Email"
 				Class="mb-3"
+				name="email"
+				autocomplete="username"
 			/>
 			<MudTextField
 				@bind-Value="_password"
@@ -24,6 +26,8 @@
 				Class="mb-3"
 				Error="@(PasswordError is not null)"
 				ErrorText="@PasswordError"
+				name="new-password"
+				autocomplete="new-password"
 			/>
 			<MudTextField
 				@bind-Value="_passwordConfirmation"
@@ -32,6 +36,8 @@
 				Class="mb-3"
 				Error="@(ConfirmationError is not null)"
 				ErrorText="@ConfirmationError"
+				name="confirm-password"
+				autocomplete="new-password"
 			/>
 
 			@if (_error is not null)
@@ -59,6 +65,7 @@
 </MudContainer>
 
 @code{
+	[CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
 	private const string PasswordDiffMessage = "Le password non coincidono";
 	private const string PasswordLengthMessage = "La password deve avere da 8 a 128 caratteri";
 	private const string PasswordUpperMessage = "La password deve contenere almeno una lettera maiuscola";
@@ -72,9 +79,23 @@
 	private string? PasswordError => string.IsNullOrEmpty(_password) ? null : ValidatePassword(_password);
 	private string? ConfirmationError => !string.IsNullOrEmpty(_passwordConfirmation) && _password != _passwordConfirmation ? PasswordDiffMessage : null;
 
+	// Chi è già entrato non deve registrarsi di nuovo
+	protected override async Task OnInitializedAsync()
+	{
+		var state = AuthState is null ? null : await AuthState;
+		if (state?.User.Identity?.IsAuthenticated == true)
+			Navigation.NavigateTo("/", replace: true);
+	}
+
 	private async Task SubmitAsync()
 	{
 		_error = null;
+		// Senza email è inutile chiamare la Web API
+		if (string.IsNullOrWhiteSpace(_email))
+		{
+			_error = "Inserisci l'email";
+			return;
+		}
 		if (ValidatePassword(_password) is { } passwordError)
 		{
 			_error = passwordError;
