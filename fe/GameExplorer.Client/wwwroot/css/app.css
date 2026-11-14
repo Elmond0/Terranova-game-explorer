@@ -2,6 +2,18 @@ h1:focus {
     outline: none;
 }
 
+/* Contenuto della pagina (MainLayout): alto almeno quanto lo schermo, in colonna.
+   Il footer prende tutto lo spazio libero sopra di sé, quindi resta in fondo anche nelle pagine corte. */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-content > footer {
+    margin-top: auto;
+}
+
 .valid.modified:not([type=checkbox]) {
     outline: 1px solid #26b050;
 }

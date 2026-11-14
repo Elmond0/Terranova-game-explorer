@@ -43,7 +43,7 @@
 					Href="/account/login"
 					Variant="Variant.Outlined"
 					Color="Color.Inherit">
-						Sign in
+						Accedi
 				</MudButton>
 			</NotAuthorized>
 		</AuthorizeView>
@@ -122,7 +122,8 @@
 				</AuthorizeView>
 			</MudNavMenu>
 	</MudDrawer>
-	<MudMainContent>
+	@* main-content (wwwroot/css/app.css): alta almeno quanto lo schermo, così il footer sta in fondo anche nelle pagine corte *@
+	<MudMainContent Class="main-content">
 		<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="py-6">
 			<ErrorBoundary @ref="_errorBoundary">
 				<ChildContent>

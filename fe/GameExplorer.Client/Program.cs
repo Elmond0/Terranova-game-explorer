@@ -36,7 +36,9 @@ else
 
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
-builder.Services.AddMudServices();
+// Gli avvisi (es. "Profilo salvato") in basso: in alto a destra coprivano il nome e il pulsante del tema
+builder.Services.AddMudServices(config =>
+	config.SnackbarConfiguration.PositionClass = MudBlazor.Defaults.Classes.Position.BottomCenter);
 
 await builder.Build().RunAsync();
 
