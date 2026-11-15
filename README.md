@@ -35,7 +35,7 @@ The client calls the API over HTTP with the login cookie; the API reads and writ
 | Folder | What it contains |
 |---|---|
 | `be/` | Web API: endpoints, IGDB service, cache, Entity Framework, login, [be/README.md](be/README.md) |
-| `fe/GameExplorer.Client` | Blazor WebAssembly client: pages, components, HTTP client towards the API |
+| `fe/` | Blazor WebAssembly client: pages, components, HTTP client towards the API, [fe/README.md](fe/README.md) |
 | `shared/GameExplorer.Shared` | Models exchanged between API and client (the contract between the two apps) |
 | `db/` | database setup: init scripts, migration and backup scripts, [db/README.md](db/README.md) |
 | `DOCS/` | plans, decisions ([ADR](DOCS/adr/)) and team rules |
