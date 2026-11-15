@@ -6,8 +6,11 @@ public class SearchFilter : IValidatableObject
 {
 	private static readonly string[] ValidOrders =
 		["name", "released", "added", "created", "updated", "rating"];
+	[MaxLength(128)]
 	public string Query { get; set; } = "";
+	[MaxLength(10)]
 	public List<int> GenreIds { get; set; } = [];
+	[MaxLength(10)]
 	public List<int> PlatformIds { get; set; } = [];
 	
 	[Range(1950, 2100)]
@@ -15,7 +18,9 @@ public class SearchFilter : IValidatableObject
 	
 	[Range(1950, 2100)]
 	public int? ToYear { get; set; }
+	[MaxLength(10)]
 	public List<int> DeveloperIds { get; set; } = [];
+	[MaxLength(10)]
 	public List<int> PublisherIds { get; set; } = [];
 	public string? Ordering { get; set; }
 	

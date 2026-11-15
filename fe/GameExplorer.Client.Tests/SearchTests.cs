@@ -13,7 +13,6 @@ public class SearchTests : PageTestBase
 	{
 		// MudSelect and MudTooltip need the provider, which in the app lives in the layout and here does not exist
 		Ctx.Render<MudPopoverProvider>();
-		// Portal 2 is Puzzle only (9): with the Shooter genre (5) it must not show up
 		var navigation = Ctx.Services.GetRequiredService<NavigationManager>();
 		navigation.NavigateTo("/search?q=portal&genres=5");
 		var cut = Ctx.Render<Search>();
@@ -37,7 +36,6 @@ public class SearchTests : PageTestBase
 		cut.WaitForAssertion(() =>
 		{
 			Assert.Contains("Tra 1950 e", cut.Markup);
-			// instead of "Nessun gioco trovato." the page explains that the years are the problem
 			Assert.Contains("Controlla gli anni", cut.Markup);
 			Assert.DoesNotContain("Nessun gioco trovato.", cut.Markup);
 		});
@@ -55,7 +53,6 @@ public class SearchTests : PageTestBase
 		{
 			Assert.Contains("giochi trovati", cut.Markup);
 			Assert.DoesNotContain("Tra 1950 e", cut.Markup);
-			// no valid filter: the button shows no number
 			Assert.DoesNotContain("Filtri (", cut.Markup);
 		});
 	}

@@ -3,7 +3,7 @@
 	display: block;
 	width: 100%;
 	aspect-ratio: 3 / 4;         /* the shape of IGDB covers */
-	object-fit: cover;            /* cropped to fill, never stretched */
+	object-fit: cover;
 }
 
 .cover-placeholder {
@@ -79,7 +79,7 @@
 	max-width: 100%;
 	max-height: 75vh;             /* a tall screenshot must not push the arrows and the close button off screen */
 	margin: 0 auto;
-	object-fit: contain;          /* the whole screenshot, never cropped */
+	object-fit: contain;
 }
 
 /* MudIconButton is a Mud component, so scoped CSS reaches it only through ::deep */

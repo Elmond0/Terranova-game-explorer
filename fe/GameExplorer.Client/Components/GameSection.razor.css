@@ -24,7 +24,6 @@ section:last-child{
 	margin-bottom: 0;
 }
 
-/* 4 cards per row: the width minus the 3 gaps of 16px, divided by 4 */
 .game-row-item {
 	flex: 0 0 calc((100% - 3 * 16px) / 4);
 	min-width: 0;                     /* a flex item does not shrink below its content by default: 5 icons or a
@@ -32,7 +31,6 @@ section:last-child{
 	scroll-snap-align: start;
 }
 
-/* narrow screens: 2 cards per row, minus 1 gap */
 @media (max-width: 600px) {
 	.game-row-item {
 		flex-basis: calc((100% - 16px) / 2);
@@ -45,7 +43,6 @@ section:last-child{
 	cursor: grab;
 }
 
-/* while dragging with the mouse (carousel.js adds and removes the class) */
 .game-row.dragging {
 	cursor: grabbing;
 	scroll-snap-type: none;           /* otherwise the snap pulls the row back at every move */

@@ -82,23 +82,21 @@
 				/>
 				<AuthorizeView>
 					<Authorized>
-						<MudStack
-							Row="true"
-							AlignItems="AlignItems.Center"
-							Class="px-4 py-2">
-								<UserAvatar
-									Avatar="@(context.User.FindFirst(CookieAuthenticationStateProvider.AvatarClaimType)?.Value)"
-									Size="Size.Small"
-								/>
-								<MudText
-									Typo="Typo.subtitle2">
-										@context.User.Identity?.Name
-								</MudText>
-						</MudStack>
 						<MudNavLink
-							Href="/profile"
-							Icon="@Icons.Material.Filled.Person">
-								Profilo
+							Href="/profile">
+								<MudStack
+									Row="true"
+									AlignItems="AlignItems.Center"
+									Spacing="2">
+										<UserAvatar
+											Avatar="@(context.User.FindFirst(CookieAuthenticationStateProvider.AvatarClaimType)?.Value)"
+											Size="Size.Small"
+										/>
+										<MudText
+											Typo="Typo.subtitle2">
+												@context.User.Identity?.Name
+										</MudText>
+								</MudStack>
 						</MudNavLink>
 						<MudNavLink
 							OnClick="LogoutAsync"
