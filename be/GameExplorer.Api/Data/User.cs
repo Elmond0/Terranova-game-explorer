@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace GameExplorer.Api.Data;
 
+// Only the password hash is stored, never the password. MaxLength gives the columns a size limit in the database.
+// Avatar is the name of one of the fixed avatars, not an image. CreatedAt in UTC because Npgsql only accepts UTC for timestamptz.
+
 public class User
 {
 	public int Id { get; set; }

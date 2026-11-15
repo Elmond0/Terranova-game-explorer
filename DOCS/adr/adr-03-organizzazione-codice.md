@@ -27,7 +27,7 @@ Tre persone lavorano su tre aree dello stesso repo. Dove va ogni pezzo di codice
 
 ### Conseguenze
 
-Territori aggiornati in come_lavoriamo.md
+Territori aggiornati in [git-workflow.md](../git-workflow.md)
 
 ## Fonti
 
