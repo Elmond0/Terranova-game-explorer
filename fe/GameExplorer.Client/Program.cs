@@ -30,7 +30,7 @@ else
 	builder.Services.AddHttpClient<IGameApiClient, GameApiClient>(client =>
 	{
 		client.BaseAddress = new Uri(apiBaseUrl);
-		client.Timeout = TimeSpan.FromSeconds(10);
+		client.Timeout = TimeSpan.FromSeconds(15);
 	}).AddHttpMessageHandler<CookieHandler>();
 }
 

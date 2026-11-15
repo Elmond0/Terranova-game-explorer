@@ -5,6 +5,7 @@
 <div class="search-bar-sticky">
 	<div class="search-box">
 		<MudTextField
+			MaxLength="100"
 			@bind-Value="_query"
 			Immediate="true"
 			OnKeyDown="OnSearchKeyDown"

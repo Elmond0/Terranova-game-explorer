@@ -19,6 +19,7 @@ The interface is in Italian, the code in English ([ADR-03](../DOCS/adr/adr-03-or
 |---|---|
 | `/` | search bar, rows of games (most liked, recent, upcoming) and one row per platform family |
 | `/search` | search with filters, sorting and pages; the filters live in the address (`?q=&genres=&platforms=&fromYear=&toYear=&ordering=&page=`), so a search can be shared or reloaded |
+| `/games/{list}` | "see all" page of a home row, with pages: `top-rated`, `recent` or `upcoming` |
 | `/games/{id}` | game page: cover, ratings, description, screenshot gallery, studios, favorite and wishlist buttons |
 | `/games/top-rated`, `/games/recent`, `/games/upcoming` | "Vedi tutti" of a home row: the whole list in pages (`?page=`, at most 500, like the API); any other name shows "not found" |
 | `/studios/{id}` | studio page: logo, its games with sorting, average rating |
