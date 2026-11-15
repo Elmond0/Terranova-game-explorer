@@ -119,13 +119,15 @@ else
 				<MudGrid Spacing="3">
 					@foreach (var game in _favorites)
 					{
-						<MudItem xs="12" sm="6" lg="4">
-							<GameCard Game="game" />
+						<MudItem xs="6" md="4" lg="3" Class="d-flex flex-column">
+							<div class="flex-grow-1">
+								<GameCard Game="game" />
+							</div>
 							<MudButton
 								OnClick="() => RemoveFavoriteAsync(game)"
 								StartIcon="@Icons.Material.Filled.Delete"
 								Color="Color.Error" Size="Size.Small" Class="mt-1">
-									Rimuovi dai preferiti
+									Rimuovi
 							</MudButton>
 						</MudItem>
 					}
@@ -150,13 +152,15 @@ else
 				<MudGrid Spacing="3">
 					@foreach (var game in _wishlist)
 					{
-						<MudItem xs="12" sm="6" lg="4">
-							<GameCard Game="game" />
+						<MudItem xs="6" md="4" lg="3" Class="d-flex flex-column">
+							<div class="flex-grow-1">
+								<GameCard Game="game" />
+							</div>
 							<MudButton
 								OnClick="() => RemoveFromWishlistAsync(game)"
 								StartIcon="@Icons.Material.Filled.Delete"
 								Color="Color.Error" Size="Size.Small" Class="mt-1">
-									Rimuovi dalla wishlist
+									Rimuovi
 							</MudButton>
 						</MudItem>
 					}
