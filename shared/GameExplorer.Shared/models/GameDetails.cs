@@ -7,4 +7,5 @@ public class GameDetails : Game
 	public string? Website { get; set; }
 	public List<Image> Screenshots { get; set; } = [];
 	public List<Studio> Developers { get; set; } = [];
+	public List<Studio> Publishers { get; set; } = [];
 }
