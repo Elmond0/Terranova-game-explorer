@@ -61,7 +61,7 @@ jobs:
         with:
           persist-credentials: false
       - name: shellcheck (db scripts)
-        run: shellcheck db/init/*.sh db/scripts/*.sh
+        run: shellcheck db/init/*.sh
       - name: actionlint (workflow files)
         run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 -color
 
@@ -94,10 +94,7 @@ jobs:
     name: start, migrate, backup, restore
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    # Same fake values as above, for the dotnet ef inside migrate.sh
-    env:
-      ConnectionStrings__Default: "Host=localhost;Database=ci;Username=ci;Password=ci"
-      Cors__FrontendOrigin: http://localhost:5100
+    # No dotnet restore and no fake variables here: db.cs must manage on a clean clone, like a new teammate
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -105,10 +102,6 @@ jobs:
       - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
         with:
           dotnet-version: "10.0.x"
-      - name: Restore dotnet-ef (dotnet-tools.json)
-        run: dotnet tool restore
-      - name: Restore NuGet packages
-        run: dotnet restore be/GameExplorer.Api
 
       # secrets/ is git-ignored, so a fresh VM has none: create them like a new teammate
       - name: Create secrets (random passwords) and .env
@@ -148,11 +141,11 @@ jobs:
           echo "$out"
           grep -q "permission denied for schema public" <<< "$out"
 
-      # --idempotent in migrate.sh: the second run must skip what is already applied
+      # --idempotent in db.cs: the second run must skip what is already applied
       - name: Migrations apply twice
         run: |
-          ./db/scripts/migrate.sh
-          ./db/scripts/migrate.sh
+          dotnet db/scripts/db.cs migrate
+          dotnet db/scripts/db.cs migrate
 
       # TRUNCATE needs a privilege, DROP needs ownership: two different errors, both checked
       - name: Runtime user reads favorites and wishlist but cannot truncate or drop them
@@ -180,12 +173,11 @@ jobs:
         run: |
           docker compose exec -T db psql -U terranova_app -d terranova \
             -c 'create table ci_check(x int); insert into ci_check values (42)'
-          ./db/scripts/backup.sh
+          dotnet db/scripts/db.cs backup
           docker compose exec -T db psql -U terranova_app -d terranova -c 'drop table ci_check'
           # Only one backup exists here
           backups=(db/backups/*.sql)
-          docker compose exec -T db sh -c \
-            'psql -q -v ON_ERROR_STOP=1 -U "$APP_DB_USER" -d "$POSTGRES_DB"' < "${backups[0]}"
+          dotnet db/scripts/db.cs restore "${backups[0]}"
           test "$(docker compose exec -T db psql -U terranova -d terranova -tAc 'select x from ci_check')" = "42"
           # Tables created by terranova_app are readable by terranova_api (ALTER DEFAULT PRIVILEGES)
           test "$(docker compose exec -T db psql -U terranova_api -d terranova -tAc 'select x from ci_check')" = "42"

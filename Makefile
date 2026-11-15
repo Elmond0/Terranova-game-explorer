@@ -37,9 +37,7 @@ up: .env secrets
 
 migrate: secrets
 	@printf "$(GREEN)Applying migrations...$(RESET)\n"
-	@dotnet tool restore
-	@dotnet restore $(API)
-	@$(BACKEND_ENV) ./db/scripts/migrate.sh
+	@dotnet db/scripts/db.cs migrate
 
 dev: secrets
 	@printf "$(GREEN)Starting API and client (Ctrl+C stops both)...$(RESET)\n"

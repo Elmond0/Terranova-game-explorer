@@ -47,7 +47,7 @@ Only for [Path A](#path-a-with-make), `make`:
 
 Windows only:
 
-- **Git Bash** (comes with [Git for Windows](https://git-scm.com/download/win)): `make` and the `.sh` scripts need `bash`
+- **Git Bash** (comes with [Git for Windows](https://git-scm.com/download/win)), only for [Path A](#path-a-with-make): `make` needs `bash`
 - **PowerShell 7**, not Windows PowerShell 5.1, for the PowerShell commands in this file (`winget install Microsoft.PowerShell`)
 
 ## 2. Secret files
@@ -153,7 +153,7 @@ Same commands on Linux and macOS. On **Windows**, run them in **Git Bash**, not 
 
 After a `git pull` that brings new migrations: `make migrate`.
 
-`make dev` and `make migrate` pass the [backend variables](#b3-set-the-backend-variables) by themselves, read from `secrets/`: nothing to set by hand.
+`make dev` passes the [backend variables](#b3-set-the-backend-variables) by itself, read from `secrets/`: nothing to set by hand.
 
 All the targets:
 
@@ -163,7 +163,7 @@ All the targets:
 | `make` | `.env`, secret check, database, migrations |
 | `make up` | only `.env`, secret check and database |
 | `make secrets` | only checks that the five secret files exist and are not empty |
-| `make migrate` | applies the missing migrations (passes the backend variables) |
+| `make migrate` | applies the missing migrations |
 | `make dev` | Web API and client together, with the backend variables (`Ctrl+C` stops both) |
 | `make test` | all the tests (Docker must be running: they start their own temporary database) |
 | `make adminer` | database and [Adminer](#adminer-web-ui) |
@@ -176,7 +176,7 @@ All the targets:
 
 ## Path B: without make
 
-The same steps `make` does, one at a time. Do them in order, **in the same terminal** from B3 on: the variables live only in that terminal.
+The same steps `make` does, one at a time. Do them in order; B3 and the API of B5 **in the same terminal**: the variables live only in that terminal.
 
 Each step has a block for every terminal: **bash** (Linux, Git Bash on Windows), **zsh** (macOS default), **fish**, **PowerShell 7** (Windows). When the commands are the same, one block lists all the terminals it works in.
 
@@ -253,26 +253,16 @@ The variables last only for that terminal window. In an IDE, set the same three 
 - From a container the host is `db` instead of `localhost`.
 - Online the same variables are used, set by the hosting service.
 
-Never use `terranova_app` here: its password is needed only by `migrate.sh` and restore.
+Never use `terranova_app` here: its password is not needed anywhere, `db/scripts/db.cs` works inside the container.
 
 ### B4. Apply the migrations
 
-The tables are created only by EF Core migrations (`be/GameExplorer.Api/Data/Migrations/`), applied by `db/scripts/migrate.sh` as `terranova_app`. `dotnet ef` needs the variables of B3, so stay in the same terminal.
+The tables are created only by EF Core migrations (`be/GameExplorer.Api/Data/Migrations/`), applied as `terranova_app` by `db/scripts/db.cs`. It does not need the variables of B3 and installs `dotnet-ef` by itself.
 
-**bash, zsh, fish, Git Bash**:
+**All terminals** (bash, zsh, fish, Git Bash, PowerShell 7):
 
 ```bash
-dotnet tool restore                  # once per clone: installs dotnet-ef from dotnet-tools.json
-dotnet restore be/GameExplorer.Api   # once per clone: downloads the NuGet packages dotnet-ef needs
-./db/scripts/migrate.sh              # applies the missing migrations
-```
-
-**PowerShell 7**: the script runs with the `bash` of Git for Windows, which sees the variables set in B3:
-
-```powershell
-dotnet tool restore
-dotnet restore be/GameExplorer.Api
-& "$env:ProgramFiles\Git\bin\bash.exe" db/scripts/migrate.sh
+dotnet db/scripts/db.cs migrate
 ```
 
 Run it again after a `git pull` that brings new migrations: running it twice is safe, applied migrations are skipped.
@@ -385,8 +375,8 @@ erDiagram
 
 | User | Used by | Can do |
 |---|---|---|
-| `terranova` | `backup.sh`, and maintenance by hand (psql, Adminer) | everything (superuser) |
-| `terranova_app` | `migrate.sh` and restore | create, alter and drop tables (owner of the database) |
+| `terranova` | backup, and maintenance by hand (psql, Adminer) | everything (superuser) |
+| `terranova_app` | migrations and restore | create, alter and drop tables (owner of the database) |
 | `terranova_api` | the backend, at runtime | `SELECT`, `INSERT`, `UPDATE`, `DELETE` on rows, only `SELECT` on `__EFMigrationsHistory`; **not** `CREATE`, `ALTER`, `DROP`, `TRUNCATE` |
 
 `db/init/01-app-user.sh` creates `terranova_app`, `db/init/02-api-user.sh` creates `terranova_api`. Both read the password from the secret files that Docker mounts in the container (`/run/secrets/`).
@@ -396,29 +386,16 @@ The backend always connects as `terranova_api`: if it has a bug, it cannot chang
 
 ## Backup and restore
 
-Backup (the database must be running). Creates `db/backups/terranova_<date>_<time>.sql`.
-
-Linux, macOS, Windows in Git Bash:
+The database must be running. All terminals:
 
 ```bash
-./db/scripts/backup.sh
+dotnet db/scripts/db.cs backup                                          # creates db/backups/terranova_<date>_<time>.sql
+dotnet db/scripts/db.cs restore db/backups/terranova_20261025_210317.sql
 ```
 
-Windows (PowerShell 7):
-
-```powershell
-& "$env:ProgramFiles\Git\bin\bash.exe" db/scripts/backup.sh
-```
+Replace the file name with the backup you want to restore. Restore runs as `terranova_app`, so restored tables belong to it and stay readable by `terranova_api`.
 
 `db/backups/` is ignored by git: backups contain real data, never commit them.
-
-Restore (as the migrations user `terranova_app`, so restored tables belong to it and stay readable by `terranova_api`). Linux, macOS, and Windows in **Git Bash** (the `<` redirect does not work in PowerShell):
-
-```bash
-docker compose exec -T db sh -c 'psql -v ON_ERROR_STOP=1 -U "$APP_DB_USER" -d "$POSTGRES_DB"' < db/backups/terranova_20261025_210317.sql
-```
-
-Replace the file name with the backup you want to restore.
 
 ## Stop vs reset
 
@@ -438,7 +415,7 @@ Two migrations created in parallel conflict: if you need a table or a column.
 ```bash
 dotnet ef migrations add AddSomething --project be/GameExplorer.Api      # after changing Data/
 dotnet ef migrations script --idempotent --project be/GameExplorer.Api   # read the SQL before applying
-./db/scripts/migrate.sh
+dotnet db/scripts/db.cs migrate
 ```
 
 A migration already on `main` is never edited: fix it with a new one.
