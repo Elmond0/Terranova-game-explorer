@@ -147,7 +147,6 @@ jobs:
           dotnet db/scripts/db.cs migrate
           dotnet db/scripts/db.cs migrate
 
-      # TRUNCATE needs a privilege, DROP needs ownership: two different errors, both checked
       - name: Runtime user reads favorites and wishlist but cannot truncate or drop them
         run: |
           for table in favorites wishlist; do
