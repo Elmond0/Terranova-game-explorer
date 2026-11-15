@@ -26,22 +26,21 @@ else
 {
 	<MudGrid>
 		<MudItem xs="12" md="4">
-			@if (_studio.Image is not null)
-			{
-				<div class="logo">
+			<div class="logo-box rounded-lg">
+				@if (_studio.Image?.Url is not null)
+				{
 					<MudImage
-						Class="rounded-lg"
 						Src="@_studio.Image.Url"
 						Alt="@_studio.Name"
+						ObjectFit="ObjectFit.Contain"
+						Style="@MaxUpscale(_studio.Image)"
 					/>
-				</div>
-			}
-			else
-			{
-				<div class="cover-placeholder rounded-lg">
+				}
+				else
+				{
 					<MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Large" />
-				</div>
-			}
+				}
+			</div>
 		</MudItem>
 		<MudItem xs="12" md="8">
 			<MudText Typo="Typo.h3" HtmlTag="h1">
@@ -72,9 +71,7 @@ else
 			}
 			@if (!string.IsNullOrWhiteSpace(_studio.About))
 			{
-				<MudText Style="white-space: pre-line" Class="mt-4">
-					@AboutText
-				</MudText>
+				<p class="about">@AboutText</p>
 				@if (IsAboutLong)
 				{
 					<MudButton Variant="Variant.Text" OnClick="() => _aboutExpanded = !_aboutExpanded">
@@ -168,7 +165,10 @@ else
 	private const int DefaultPageSize = 20;
 	private const int AboutPreviewLength = 500;
 	private static readonly CultureInfo ItalianCulture = CultureInfo.GetCultureInfo("it-IT");
-
+	// IGDB already sends its largest file (t_original): more than twice its real size would look blurred
+	private static string? MaxUpscale(Image image) => image.Width > 0 && image.Height > 0
+		? $"max-width: {image.Width * 2}px; max-height: {image.Height * 2}px"
+		: null;
 	private string? CountryName =>
 		_studio?.CountryId is int id && CountryNames.ByIsoNumeric.TryGetValue(id, out var name) ? name : null;
 
