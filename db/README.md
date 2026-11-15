@@ -28,7 +28,7 @@ When it is up, the site is at http://localhost:5100 and the API at http://localh
 - [Database users](#database-users)
 - [Backup and restore](#backup-and-restore)
 - [Stop vs reset](#stop-vs-reset)
-- [Create a migration (only Elmond0)](#create-a-migration-only-elmond0)
+- [Create a migration](#create-a-migration)
 - [Troubleshooting](#troubleshooting)
 
 ## 1. Requirements
@@ -433,7 +433,7 @@ The `secrets/` files are never deleted by `make`: delete them by hand if you wan
 
 ## Create a migration
 
-Two migrations created in parallel conflict: if you need a table or a column.
+Only [@Elmond0](https://github.com/Elmond0) creates migrations: two created in parallel conflict, so if you need a table or a column, ask.
 
 ```bash
 dotnet ef migrations add AddSomething --project be/GameExplorer.Api      # after changing Data/
