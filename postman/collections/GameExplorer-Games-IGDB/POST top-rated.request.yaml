@@ -8,7 +8,7 @@ body:
   type: text
   content: "fields name, rating, rating_count;\r
 
-    where rating_count > 100 & first_release_date > 1577836800;\r
+    where rating_count > 100;\r
 
     sort rating desc;\r
 

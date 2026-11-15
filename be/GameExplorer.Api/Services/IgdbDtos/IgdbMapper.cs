@@ -30,7 +30,7 @@ internal static class IgdbMapper
 		Slug = r.Slug,
 		Name = r.Name,
 		Rating = r.Rating,
-		Image = r.Cover?.ToImage(CoverSize),
+		Image = r.Cover?.ToImage(LogoSize),
 		ReleaseDate = FromUnix(r.Released),
 
 		Platforms = r.Platforms.MapTo( p => new Platform
@@ -117,9 +117,14 @@ internal static class IgdbMapper
 			Storyline = r.StoryLine,
 			Website = r.Websites?.FirstOrDefault(w => w.Type == 1)?.Url,
 			
-			Developers = r.Studios
+			Developers = (r.Studios ?? [])
 				.Where(c => c.Developer == true)
-				.Select(c => c.Studio.ToStudio() ?? null)
+				.Select(c => c.Studio.ToStudio())
+				.ToList(),
+			
+			Publishers = (r.Studios ?? [])
+				.Where(c => c.Publisher == true)
+				.Select(c => c.Studio.ToStudio())
 				.ToList(),
 
 			Screenshots = r.Screenshots.MapTo(s => s.ToImage(ScreenshotSize))

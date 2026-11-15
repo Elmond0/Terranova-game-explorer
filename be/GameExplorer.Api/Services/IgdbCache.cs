@@ -13,8 +13,12 @@ public class IgdbCache
     public static string GameKey( int id ) => $"game:{id}";
     public static string StudioKey( int id ) => $"studio:{id}";
     public static string StudioUpcomingKey( int id ) => $"studio:{id}:upcoming";
-    public static string StudioGamesKey( int id, int page ) => $"studio:{id}:games:page{page}";
+    public static string StudioGamesKey( int id, int page, int pageSize ) => $"studio:{id}:games:page={page}:page-size={pageSize}";
     public static string PlatformHighlightsKey( int id ) => $"platform:{id}";
+    
+    public static string TopRatedKey( int page, int pageSize  ) => $"top-rated:page={page}:page-size={pageSize}";
+    public static string RecentKey( int page, int pageSize  ) => $"recent:page={page}:page-size={pageSize}";
+    public static string UpcomingKey( int page, int pageSize  ) => $"upcoming:page={page}:page-size={pageSize}";
     
     public const string TokenKey = "igdb:twitch-token";
     public static string SearchKey( (string query, string pagination, string sort) body )  => $"search:{body.query}:{body.pagination}:{body.sort}";

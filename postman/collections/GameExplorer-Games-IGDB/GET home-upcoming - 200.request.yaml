@@ -1,0 +1,5 @@
+$kind: http-request
+name: GET home/upcoming - 200
+url: "{{api_domain}}home/upcoming"
+method: GET
+order: 27417
