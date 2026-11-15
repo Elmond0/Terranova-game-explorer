@@ -1,34 +1,61 @@
-# ADR-06 — Accordi della fase 2: account, preferiti e wishlist
+# ADR-06 — Preferiti, wishlist e profilo
 
-- **Stato:** Proposto <!-- Proposto → Accettato, quando tutti i punti della #55 sono decisi -->
-- **Data:** 01/11/2026 (punto 10); aggiornato l'08/11/2026: il servizio esterno dei giochi passa da RAWG a IGDB
+- **Stato:** Accettato
+- **Data:** 01/11/2026. Aggiornato l'08/11/2026 (passaggio a IGDB) e il 12/11/2026 (salviamo solo gli id)
 - **Decisori:** Elmond0, K0ff33Blu3, fmartini02
 
 ## Contesto e problema
 
-Le decisioni della fase 2, prese nella #55: una riga per punto nella tabella "Decisione". I punti 1–9 si aggiungono quando sono decisi.
+I preferiti sono obbligatori nella traccia; la wishlist separata e il profilo sono bonus. Ogni utente collegato deve poter salvare un gioco, toglierlo e ritrovare le sue liste anche da un altro dispositivo, quindi nel database e non nel `localStorage`.
 
-**Punto 10.** L'ADR-05 aveva scelto `game_cache`, una cache su database letta e scritta da `RawgService` (allora il servizio dei giochi era RAWG, oggi è IGDB). Serve davvero alla scheda gioco, o basta la cache in memoria? E da dove prendono nome e copertina preferiti, wishlist e tier list?
+Le decisioni da prendere erano:
 
-## Opzioni discusse (punto 10)
+1. quali endpoint espone la Web API;
+2. che cosa salviamo di ogni gioco e da dove arrivano nome e copertina delle card;
+3. come si comporta il pulsante quando l'utente non è collegato;
+4. che cosa contiene il profilo.
 
-- **A.** `game_cache` come nell'ADR-05: memoria → database se fresco → IGDB → copia scaduta se IGDB è giù.
-- **B.** La scheda usa solo la cache in memoria; la tabella diventa la copia dei giochi salvati dagli utenti, scritta solo quando un utente salva.
-- **C.** Nessuna tabella: le liste chiedono ogni gioco a IGDB.
+## Opzioni considerate
+
+**Che cosa salviamo di ogni gioco**
+
+- **A. Una cache su database di tutti i giochi visti** (`game_cache`): memoria, poi database se la copia è fresca, poi IGDB, poi la copia scaduta se IGDB non risponde.
+- **B. Una copia dei soli giochi salvati** (`game_snapshots`), scritta quando un utente salva e letta dalle liste.
+- **C. Solo l'id del gioco**: le card delle liste si chiedono a IGDB con una sola richiesta e restano nella cache in memoria.
 
 ## Decisione
 
-| Punto | Decisione |
+**C. Salviamo solo l'id del gioco.** Ci siamo arrivati dopo aver provato le altre due.
+
+- La cache su database (A) è stata la prima scelta. Con IGDB la cache in memoria (`HybridCache`) basta per la scheda di un gioco, e il percorso a quattro livelli complicava il backend senza un vantaggio che si vedesse.
+- La copia dei giochi salvati (B) l'abbiamo usata dal 1° al 12 novembre. Funzionava, ma ogni salvataggio doveva prima scaricare il gioco e riscriverne la copia, la copia invecchiava (se IGDB cambiava una copertina, la card restava quella vecchia) e passando da RAWG a IGDB tutte le copie andavano rifatte.
+- Con il solo id (C) la Web API chiede a IGDB tutte le card di una lista con una richiesta (`where id = (…)`) e la tiene in memoria per 10 minuti. Le card sono sempre aggiornate e il database resta piccolo.
+
+**Endpoint.** Tutti sotto `/api/me`, tutti solo per utenti collegati. L'utente si legge sempre dal cookie, mai da un parametro: così non si possono vedere o cambiare le liste di un altro.
+
+| Richiesta | Risposta |
 |---|---|
-| 10. Copia dei giochi salvati | **B.** La scheda usa solo `HybridCache` e IGDB. `game_cache` diventa **`game_snapshots`**: una riga per ogni gioco salvato da almeno un utente, scritta solo dal salvataggio di preferiti, wishlist e tier list (che rifà la foto), letta solo dalle liste dell'utente. Nessuna scadenza; lo slug non è più unico. **Sostituisce il punto "Cache dei giochi" dell'ADR-05.** A è scartata perché le richieste a IGDB bastano con la sola memoria e il percorso a quattro livelli pesava sul backend; C perché le liste sarebbero lente, consumerebbero richieste a IGDB e sarebbero vuote con IGDB giù |
+| `GET /api/me/favorites` | le card dei preferiti, dal più recente; accetta `platformIds` e `ordering` (`added`, `name`, `released`, `rating`, con `-` per l'ordine inverso) |
+| `PUT /api/me/favorites/{gameId}` | `204`; `404` se il gioco non esiste su IGDB |
+| `DELETE /api/me/favorites/{gameId}` | `204`, anche se il gioco non era tra i preferiti |
+| `GET`, `PUT`, `DELETE /api/me/wishlist…` | come i preferiti |
+| `GET /api/me/profile`, `PUT /api/me/profile` | email, nickname e avatar |
+| `DELETE /api/me` | cancella l'account con le sue liste |
+
+Per aggiungere usiamo `PUT` e non `POST` perché salvare due volte lo stesso gioco deve lasciare una riga sola. Nel database è un `INSERT … ON CONFLICT DO NOTHING`: anche un doppio click che manda due richieste nello stesso istante risponde `204` due volte, senza errori.
+
+**Utente non collegato.** I pulsanti "Preferiti" e "Wishlist" nella scheda si vedono comunque; il click porta alla pagina di accesso. Così chi non ha un account scopre che la funzione esiste.
+
+**Profilo.** Nickname (da 3 a 30 caratteri: lettere, numeri e `_`, unico) e un avatar scelto da un elenco fisso di immagini nostre. Non carichiamo immagini degli utenti: niente spazio su disco da gestire e niente contenuti da controllare.
 
 ### Conseguenze
 
-- **Elmond0:** la #35, riscritta, rinomina la tabella con una migrazione `RenameTable` (prima la tabella, poi le classi, altrimenti EF la ricrea); toglie `IGameCacheStore`, `FindAsync` e `GameCachePolicy`; aggiorna `database.yml`.
-- **K0ff33Blu3:** Il servizio dei giochi non cambia per questa decisione (`RawgService` oggi, poi quello per IGDB). Rivede la PR della #35, che toglie il finto `EmptyGameCacheStore` da `ApiFactory.cs`.
-- **fmartini02:** niente. Il contratto delle API non cambia.
-- Con IGDB giù la scheda risponde `502`, se il gioco non è già in memoria. La card di un preferito può mostrare dati vecchi finché qualcuno non risalva il gioco; la scheda è sempre aggiornata (fino alla durata della cache in memoria).
+- **Web API:** gli endpoint sono minimal API in `Data/MeEndpoints.cs`. Prima di salvare un gioco la Web API controlla che esista su IGDB, così nel database non finiscono id inventati.
+- **Client:** `SaveButtons` nella scheda del gioco; la pagina `/profile` mostra le due liste e il form del profilo.
+- **IGDB giù:** se IGDB non risponde e le card non sono già in memoria, le liste rispondono `502` come il resto del sito (gestione centralizzata degli errori). Le righe nel database non si perdono: tornano visibili appena IGDB risponde.
+- **Cancellazione:** `DELETE /api/me` cancella l'utente; preferiti e wishlist spariscono con lui (`ON DELETE CASCADE`).
+- **Limite noto:** per sapere se il gioco aperto è già salvato, `SaveButtons` scarica le due liste intere. Con liste lunghe sarebbe meglio un endpoint che dice solo sì o no per un gioco.
 
 ## Fonti
 
-- [IGDB API](https://api-docs.igdb.com/) · [HybridCache in ASP.NET Core](https://learn.microsoft.com/aspnet/core/performance/caching/hybrid) · [EF Core: gestire le migrazioni](https://learn.microsoft.com/ef/core/managing-schemas/migrations/managing) · [PostgreSQL: ALTER TABLE ... RENAME](https://www.postgresql.org/docs/current/sql-altertable.html)
+- [IGDB API](https://api-docs.igdb.com/) · [HybridCache in ASP.NET Core](https://learn.microsoft.com/aspnet/core/performance/caching/hybrid) · [PostgreSQL: INSERT … ON CONFLICT](https://www.postgresql.org/docs/current/sql-insert.html#SQL-ON-CONFLICT) · [Minimal API: gruppi di endpoint](https://learn.microsoft.com/aspnet/core/fundamentals/minimal-apis/route-handlers#route-groups) · [RFC 9110: metodi idempotenti](https://www.rfc-editor.org/rfc/rfc9110#name-idempotent-methods)

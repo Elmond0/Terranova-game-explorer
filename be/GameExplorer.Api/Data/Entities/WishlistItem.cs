@@ -1,5 +1,7 @@
 namespace GameExplorer.Api.Data.Entities;
 
+// Same shape as Favorite but its own class, so EF Core maps it to its own table.
+
 public class WishlistItem : IListEntry
 {
 	public int GameId { get; set; }

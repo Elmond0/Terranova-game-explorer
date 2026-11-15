@@ -14,10 +14,13 @@ public record ChangePasswordRequest(string? OldPassword, string? NewPassword);
 
 public static class AuthEndpoints
 {
+	// Login hashes this when the email does not exist, so the answer takes the same time and nobody can guess which emails are registered.
 	static readonly string DummyHash = Passwords.Hash("timing-equalizer");
 
 	public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
 	{
+		// Same URLs as ASP.NET Identity's MapIdentityApi, which we used before: the client did not have to change.
+		// Rate limit on the endpoints that check a password, against brute force.
 		var account = app.MapGroup("/api/account");
 		account.MapPost("/register", Register).RequireRateLimiting("auth");
 		account.MapPost("/login", Login).RequireRateLimiting("auth");
@@ -51,6 +54,7 @@ public static class AuthEndpoints
 	{
 		string email = request.Email?.Trim() ?? "";
 		string password = request.Password ?? "";
+		// MailAddress also accepts "Name <a@b.it>": comparing Address with the input keeps only the bare address.
 		if (email.Length > 256 || !MailAddress.TryCreate(email, out MailAddress? parsed) || parsed.Address != email)
 			return Error("InvalidEmail", "Email not valid.");
 		if (ValidatePassword(password) is { } passwordError)
@@ -73,6 +77,7 @@ public static class AuthEndpoints
 		string email = request.Email?.Trim() ?? "";
 		User? user = await db.Users.SingleOrDefaultAsync(u => u.Email == email);
 		bool ok = Passwords.Verify(request.Password ?? "", user?.PasswordHash ?? DummyHash);
+		// Same 401 for unknown email and wrong password: the answer must not say which one was wrong.
 		if (user is null || !ok)
 			return TypedResults.Problem("Failed", statusCode: StatusCodes.Status401Unauthorized);
 
@@ -101,6 +106,7 @@ public static class AuthEndpoints
 			return Error("PasswordSameAsOld", "New password must be different.");
 
 		user.PasswordHash = Passwords.Hash(newPassword);
+		// New stamp: the other devices' cookies stop working. SignIn again so this device gets a cookie with the new stamp.
 		user.SessionStamp = Guid.NewGuid();
 		await db.SaveChangesAsync();
 		await SignInAsync(http, user);
@@ -114,6 +120,8 @@ public static class AuthEndpoints
 		return http.SignInAsync(new ClaimsPrincipal(identity), new AuthenticationProperties { IsPersistent = true });
 	}
 
+	// A cookie alone stays valid until it expires. Checking the stamp in the database on every request ends the session
+	// right away after a password change or an account delete, at the cost of one small query.
 	public static async Task ValidateSessionAsync(CookieValidatePrincipalContext context)
 	{
 		AppDbContext db = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
