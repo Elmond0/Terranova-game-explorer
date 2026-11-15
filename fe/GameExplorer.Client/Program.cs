@@ -8,9 +8,9 @@ using GameExplorer.Client.Services.Auth;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-// In sviluppo l'indirizzo della Web API arriva da wwwroot/appsettings.Development.json.
-// Nel sito pubblicato quel file non viene letto: Web API e client stanno sullo stesso
-// indirizzo, quindi si usa quello da cui è stato scaricato il client.
+// in development the web api runs on its own port, read from wwwroot/appsettings.Development.json.
+// Once published, web api and client share one address and that file is not read,
+// so the address the client was downloaded from is the right one
 var apiBaseUrl = builder.Configuration["Api:BaseUrl"] ?? builder.HostEnvironment.BaseAddress;
 
 builder.Services.AddTransient<CookieHandler>();
@@ -36,7 +36,7 @@ else
 
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
-// Gli avvisi (es. "Profilo salvato") in basso: in alto a destra coprivano il nome e il pulsante del tema
+// snackbars ("Profilo salvato") at the bottom: top right they covered the user name and the theme button
 builder.Services.AddMudServices(config =>
 	config.SnackbarConfiguration.PositionClass = MudBlazor.Defaults.Classes.Position.BottomCenter);
 

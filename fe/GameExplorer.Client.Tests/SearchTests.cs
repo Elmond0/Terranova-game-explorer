@@ -1,8 +1,8 @@
 using Bunit;
-using GameExplorer.Client.Pages;                  // esiste già: Search
-using Microsoft.AspNetCore.Components;            // esiste già: NavigationManager
-using Microsoft.Extensions.DependencyInjection;   // esiste già: GetRequiredService
-using MudBlazor;                                  // esiste già: MudPopoverProvider
+using GameExplorer.Client.Pages;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.DependencyInjection;
+using MudBlazor;
 
 namespace GameExplorer.Client.Tests;
 
@@ -11,9 +11,9 @@ public class SearchTests : PageTestBase
 	[Fact]
 	public void FiltriNellIndirizzo_UsatiNellaRicerca()
 	{
-		// MudSelect e MudTooltip hanno bisogno del provider, che nell'app sta nel layout
+		// MudSelect and MudTooltip need the provider, which in the app lives in the layout and here does not exist
 		Ctx.Render<MudPopoverProvider>();
-		// Portal 2 è solo Puzzle (9): con il genere Shooter (5) non deve uscire
+		// Portal 2 is Puzzle only (9): with the Shooter genre (5) it must not show up
 		var navigation = Ctx.Services.GetRequiredService<NavigationManager>();
 		navigation.NavigateTo("/search?q=portal&genres=5");
 		var cut = Ctx.Render<Search>();
@@ -21,7 +21,7 @@ public class SearchTests : PageTestBase
 		{
 			Assert.Contains("Nessun gioco trovato.", cut.Markup);
 			Assert.DoesNotContain("Portal 2", cut.Markup);
-			// Il pulsante conta i filtri letti dall'indirizzo (la ricerca testuale non è un filtro)
+			// the button counts the filters read from the address (the text search is not a filter)
 			Assert.Contains("Filtri (1)", cut.Markup);
 		});
 	}
@@ -31,13 +31,13 @@ public class SearchTests : PageTestBase
 	{
 		Ctx.Render<MudPopoverProvider>();
 		var navigation = Ctx.Services.GetRequiredService<NavigationManager>();
-		// 1800 è prima di 1950: la pagina non deve chiamare la Web API (risponderebbe 400)
+		// 1800 is before 1950: the page must not call the web api (it would answer 400)
 		navigation.NavigateTo("/search?fromYear=1800");
 		var cut = Ctx.Render<Search>();
 		cut.WaitForAssertion(() =>
 		{
 			Assert.Contains("Tra 1950 e", cut.Markup);
-			// Al posto di "Nessun gioco trovato." la pagina spiega che il problema sono gli anni
+			// instead of "Nessun gioco trovato." the page explains that the years are the problem
 			Assert.Contains("Controlla gli anni", cut.Markup);
 			Assert.DoesNotContain("Nessun gioco trovato.", cut.Markup);
 		});
@@ -48,14 +48,14 @@ public class SearchTests : PageTestBase
 	{
 		Ctx.Render<MudPopoverProvider>();
 		var navigation = Ctx.Services.GetRequiredService<NavigationManager>();
-		// Prima "abc" in un parametro numerico faceva fallire tutta la pagina
+		// "abc" in a numeric parameter used to crash the whole page
 		navigation.NavigateTo("/search?fromYear=abc&genres=abc&page=abc&ordering=foo");
 		var cut = Ctx.Render<Search>();
 		cut.WaitForAssertion(() =>
 		{
 			Assert.Contains("giochi trovati", cut.Markup);
 			Assert.DoesNotContain("Tra 1950 e", cut.Markup);
-			// Nessun filtro valido: il pulsante non mostra un numero
+			// no valid filter: the button shows no number
 			Assert.DoesNotContain("Filtri (", cut.Markup);
 		});
 	}

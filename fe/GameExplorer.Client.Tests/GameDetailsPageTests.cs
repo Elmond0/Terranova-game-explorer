@@ -1,5 +1,5 @@
 using Bunit;
-using GameExplorer.Client.Pages;   // esiste già: GameDetailsPage
+using GameExplorer.Client.Pages;
 
 namespace GameExplorer.Client.Tests;
 
@@ -8,25 +8,25 @@ public class GameDetailsPageTests : PageTestBase
 	[Fact]
 	public void GiocoInesistente_MostraGiocoNonTrovato()
 	{
-		// Id che non c'è nei dati del client finto
+		// an id missing from the fake data, like a deleted game
 		var cut = Ctx.Render<GameDetailsPage>(parameters => parameters
 			.Add(p => p.Id, 999999));
 		cut.WaitForAssertion(() =>
 		{
 			Assert.Contains("Gioco non trovato", cut.Markup);
-			// Non deve sembrare un errore di rete
+			// a missing game must not look like a network error: "Riprova" would never help
 			Assert.DoesNotContain("Riprova", cut.Markup);
 		});
 	}
 	[Fact]
 	public void ApiGiu_MostraErrore_RiprovaCaricaIlGioco()
 	{
-		// La Web API è giù: ogni chiamata del client finto lancia ApiException
+		// the web api is down: every call of the fake client throws ApiException
 		Api.SimulateError = true;
 		var cut = Ctx.Render<GameDetailsPage>(parameters => parameters
 			.Add(p => p.Id, 3498));
 		cut.WaitForAssertion(() => Assert.Contains("Riprova", cut.Markup));
-		// La rete torna su e l'utente clicca "Riprova"
+		// the network comes back and the user clicks "Riprova"
 		Api.SimulateError = false;
 		cut.FindAll("button")
 			.Single(b => b.TextContent.Contains("Riprova"))
@@ -43,10 +43,10 @@ public class GameDetailsPageTests : PageTestBase
 		var cut = Ctx.Render<GameDetailsPage>(parameters => parameters
 			.Add(p => p.Id, 3498));
 		cut.WaitForAssertion(() => Assert.Contains("Grand Theft Auto V", cut.Markup));
-		// Come un link da una scheda all'altra: stessa pagina, Id nuovo
+		// like a link from one game page to another: Blazor reuses the page and only the Id changes
 		cut.Render(parameters => parameters
 			.Add(p => p.Id, 4200));
-		// Subito dopo, senza aspettare: il gioco vecchio non deve vedersi
+		// right after, without waiting: showing the old game under the new address would mislead the user
 		Assert.DoesNotContain("Grand Theft Auto V", cut.Markup);
 		Assert.Contains("Caricamento...", cut.Markup);
 		cut.WaitForAssertion(() => Assert.Contains("Portal 2", cut.Markup));

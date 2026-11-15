@@ -10,8 +10,8 @@
 
 	@if (_alreadyLoggedIn)
 	{
-		@* Messaggio invece di un redirect automatico: un redirect mentre la pagina si apre resta
-		   nella cronologia e il tasto Indietro riporterebbe sempre qui *@
+		@* a message instead of an automatic redirect: a redirect while the page opens stays
+		   in the history, and Back would always lead here again *@
 		<MudAlert Severity="Severity.Info" Class="mb-4">Hai già un account e hai fatto l'accesso.</MudAlert>
 		<MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary">Vai alla home</MudButton>
 	}
@@ -91,7 +91,7 @@
 
 	private bool _alreadyLoggedIn;
 
-	// Chi è già entrato non vede il form, ma un pulsante per tornare alla home
+	// a logged-in user gets no form but a button back home: registering twice makes no sense
 	protected override async Task OnInitializedAsync()
 	{
 		var state = AuthState is null ? null : await AuthState;
@@ -101,7 +101,7 @@
 	private async Task SubmitAsync()
 	{
 		_error = null;
-		// Senza email è inutile chiamare la Web API
+		// no email: the web api would only answer with an error, so it is not called
 		if (string.IsNullOrWhiteSpace(_email))
 		{
 			_error = "Inserisci l'email";

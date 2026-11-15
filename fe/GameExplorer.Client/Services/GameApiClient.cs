@@ -43,11 +43,13 @@ public class GameApiClient : IGameApiClient
 	public Task<PagedResult<Game>> GetUpcomingPageAsync(int page, CancellationToken cancellationToken = default) =>
 		GetGamesPageAsync("upcoming", page, cancellationToken);
 
+	// the three "see all" lists differ only by name: one place decides how a page is asked to the web api
 	private async Task<PagedResult<Game>> GetGamesPageAsync(string list, int page, CancellationToken cancellationToken)
 	{
 		var games = await GetAsync<PagedResult<Game>>($"api/games/{list}?page={page}", false, cancellationToken);
 		return games ?? new PagedResult<Game>();
 	}
+
 	public async Task<List<Game>> GetPlatformHighlightsAsync(int platformId, CancellationToken cancellationToken = default)
 	{
 		var games = await GetAsync<List<Game>>($"api/platforms/{platformId}/highlights", false, cancellationToken);
@@ -134,16 +136,16 @@ public class GameApiClient : IGameApiClient
 		SendAsync(HttpMethod.Put, $"api/me/wishlist/{id}", cancellationToken);
 	public Task RemoveFromWishlistAsync(int id, CancellationToken cancellationToken = default) =>
 		SendAsync(HttpMethod.Delete, $"api/me/wishlist/{id}", cancellationToken);
-	// Unico punto in cui nasce un'ApiException con il codice HTTP.
-	// 401 = sessione scaduta: si rilegge il profilo, così la navbar torna da utente non entrato
+	// the only place an ApiException gets its HTTP status, so pages can tell 400, 401 and 404 apart.
+	// 401 means the session expired: the profile is reloaded so the navbar shows a logged-out user
 	private ApiException CreateApiException(string message, Exception? inner, HttpStatusCode? status)
 	{
 		if (status == HttpStatusCode.Unauthorized)
 			_auth.RefreshProfile();
 		return new ApiException(message, inner, status);
 	}
-	// 404 → null solo se notFoundAsNull (gioco o studio inesistente), annullamento chiesto dalla pagina → passa così com'è,
-	// qualsiasi altro errore (anche un 404 su una lista) → ApiException
+	// a missing game or studio is a normal answer (the page shows "not found"), a missing list is a bug:
+	// only the caller knows which, hence notFoundAsNull. A cancellation is the page leaving, not an error
 	private async Task<T?> GetAsync<T>(string url, bool notFoundAsNull, CancellationToken cancellationToken)
 	{
 		try
@@ -164,9 +166,8 @@ public class GameApiClient : IGameApiClient
 		}
 	}
 
-	// Unico punto in cui SearchFilter diventa query string: nomi delle proprietà in camelCase,
-	// liste con la chiave ripetuta (?genreIds=4&genreIds=3), come le legge [FromQuery] SearchFilter.
-	// Se la Web API cambia i nomi dei parametri, si corregge solo qui.
+	// the only place SearchFilter becomes a query string, written the way [FromQuery] SearchFilter reads it
+	// (camelCase names, repeated keys): if the web api renames a parameter, only this method changes
 	private static string BuildQueryString(SearchFilter filter)
 	{
 		List<string> parts = [];
@@ -189,7 +190,7 @@ public class GameApiClient : IGameApiClient
 		return string.Join("&", parts);
 	}
 
-	// Una coppia chiave=valore per ogni id: [4, 3] → genreIds=4&genreIds=3
+	// [FromQuery] binds a list only from repeated keys (genreIds=4&genreIds=3), not from genreIds=4,3
 	private static void AddList(List<string> parts, string key, List<int> ids)
 	{
 		foreach (var id in ids)

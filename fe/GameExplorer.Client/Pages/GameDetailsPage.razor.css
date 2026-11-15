@@ -1,16 +1,15 @@
-/* Immagine e segnaposto: stessa forma per tutte le card */
+/* image and placeholder share one shape, so the page looks the same with or without a cover */
 .cover {
 	display: block;
 	width: 100%;
-	aspect-ratio: 3 / 4;         /* verticale 3:4, come le copertine di IGDB */
-	object-fit: cover;            /* l'immagine viene ritagliata per riempire, non deformata */
+	aspect-ratio: 3 / 4;         /* the shape of IGDB covers */
+	object-fit: cover;            /* cropped to fill, never stretched */
 }
 
-/* Riquadro grigio con l'icona al centro, al posto dell'immagine mancante */
 .cover-placeholder {
 	display: flex;
-	align-items: center;          /* centro in verticale */
-	justify-content: center;      /* centro in orizzontale */
+	align-items: center;
+	justify-content: center;
 	background: var(--mud-palette-background-gray);
 	color: var(--mud-palette-text-disabled);
 }
@@ -53,28 +52,28 @@
 	}
 }
 
-/* Visore degli screenshot: le frecce stanno sopra l'immagine, ai lati,
-   così l'immagine prende tutta la larghezza anche sul telefono */
+/* screenshot viewer: the arrows sit over the image, at the sides,
+   so the image takes the full width on phones too */
 .viewer {
-	position: relative;           /* le frecce si posizionano rispetto a questo riquadro */
+	position: relative;
 	text-align: center;
 }
 
 .viewer img {
 	display: block;
 	max-width: 100%;
-	max-height: 75vh;             /* non più alta di 3/4 dello schermo */
-	margin: 0 auto;               /* centrata */
-	object-fit: contain;          /* intera, non ritagliata */
+	max-height: 75vh;             /* a tall screenshot must not push the arrows and the close button off screen */
+	margin: 0 auto;
+	object-fit: contain;          /* the whole screenshot, never cropped */
 }
 
-/* Le frecce sono MudIconButton (componente Mud → serve ::deep) */
+/* MudIconButton is a Mud component, so scoped CSS reaches it only through ::deep */
 .viewer ::deep .viewer-prev,
 .viewer ::deep .viewer-next {
 	position: absolute;
 	top: 50%;
-	transform: translateY(-50%);  /* centrate in verticale */
-	background: rgba(0, 0, 0, 0.4); /* sfondo scuro: si vedono su qualsiasi immagine */
+	transform: translateY(-50%);
+	background: rgba(0, 0, 0, 0.4); /* dark background: the arrows stay visible on any image */
 	color: white;
 }
 

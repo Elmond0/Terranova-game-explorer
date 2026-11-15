@@ -63,6 +63,7 @@ else
 @code {
 	// one entry per list: the url name decides title, api call and whether the date is highlighted
 	private record GameList(string Title, Func<IGameApiClient, int, CancellationToken, Task<PagedResult<Game>>> Load, bool HighlightDate);
+	// IGDB can count thousands of pages: stop at the ones the web api accepts
 	private int PageCount => _result is null ? 0 : Math.Min(_result.TotalPages, MaxPage);
 	private static readonly Dictionary<string, GameList> Lists = new()
 	{
@@ -84,10 +85,12 @@ else
 	private bool _error;
 	private CancellationTokenSource? _cts;
 
+	// the list name or the page in the address changed: load again
 	protected override Task OnParametersSetAsync() => LoadAsync();
 
 	private async Task LoadAsync()
 	{
+		// a newer request (another page clicked fast) makes the older answer useless
 		_cts?.Cancel();
 		_cts?.Dispose();
 		_cts = new CancellationTokenSource();
@@ -111,6 +114,7 @@ else
 		_cts?.Cancel();
 		_cts?.Dispose();
 	}
+	// page 1 stays out of the address: /games/recent and /games/recent?page=1 are the same list
 	private async Task OnPageChanged(int page)
 	{
 		Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("page", page == 1 ? null : page));

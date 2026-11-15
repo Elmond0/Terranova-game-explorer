@@ -213,7 +213,7 @@ else
 @code {
 	[Parameter] public int Id { get; set; }
 	private const int AboutPreviewLength = 500;
-	// "Leggi tutto" solo se il testo nascosto è abbastanza lungo: per poche parole in più si mostra tutto
+	// "Leggi tutto" only when the hidden text is long enough: hiding just a few words would cost a click for nothing
 	private const int AboutTolerance = 150;
 	private CancellationTokenSource? _cts;
 	private bool _aboutExpanded;
@@ -252,7 +252,7 @@ else
 		if (e.Key == "ArrowLeft")
 			Previous();
 	}
-	// Testo da mostrare nella descrizione: intero, oppure tagliato all'ultimo spazio prima del limite
+	// cut at the last space before the limit, so a word is never split in half
 	private string AboutText
 	{
 		get

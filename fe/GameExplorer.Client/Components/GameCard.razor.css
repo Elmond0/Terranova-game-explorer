@@ -1,47 +1,46 @@
-/* Il link che avvolge tutta la card */
+/* the whole card is one link, so the click area is the card and not just the title */
 .game-card {
-	display: block;               /* un <a> di base è "in linea": così occupa tutto il blocco */
-	height: 100%;                 /* alta quanto lo spazio che le dà la riga */
-	color: inherit;               /* niente colore blu da link: prende il colore del tema */
-	text-decoration: none;        /* niente sottolineatura */
-	transition: transform 0.15s;  /* il movimento del :hover è graduale, non a scatto */
-	overflow-wrap: anywhere;      /* una parola più larga della card (es. "Danganronpa" su schermi stretti) va a capo invece di uscire */
+	display: block;
+	height: 100%;
+	color: inherit;               /* a link would be blue: the card keeps the theme colors */
+	text-decoration: none;
+	transition: transform 0.15s;
+	overflow-wrap: anywhere;      /* a word wider than the card ("Danganronpa" on narrow screens) wraps instead of overflowing */
 }
 
-/* Mouse sopra la card: si alza di 4 pixel */
+/* the card rises on hover to show it is clickable */
 .game-card:hover {
 	transform: translateY(-4px);
 }
 
-/* Card raggiunta con il tasto Tab: bordo colorato visibile */
+/* keyboard users must see which card Tab reached */
 .game-card:focus-visible {
 	outline: 2px solid var(--mud-palette-primary);
 	outline-offset: 2px;
 }
 
-/* La MudCard (componente Mud → serve ::deep): alta quanto il link */
+/* MudCard is a Mud component, so scoped CSS reaches it only through ::deep */
 .game-card ::deep .full-height {
 	height: 100%;
 }
 
-/* Immagine e segnaposto: stessa forma per tutte le card */
+/* image and placeholder share one shape, so a row of cards stays aligned */
 .cover {
 	display: block;
 	width: 100%;
-	aspect-ratio: 3 / 4;         /* verticali 3:4, come le copertine di IGDB */
-	object-fit: cover;            /* l'immagine viene ritagliata per riempire, non deformata */
+	aspect-ratio: 3 / 4;         /* the shape of IGDB covers */
+	object-fit: cover;            /* cropped to fill, never stretched */
 }
 
-/* Riquadro grigio con l'icona al centro, al posto dell'immagine mancante */
 .cover-placeholder {
 	display: flex;
-	align-items: center;          /* centro in verticale */
-	justify-content: center;      /* centro in orizzontale */
+	align-items: center;
+	justify-content: center;
 	background: var(--mud-palette-background-gray);
 	color: var(--mud-palette-text-disabled);
 }
 
-/* Il nome (MudText → serve ::deep): al massimo 2 righe, poi "…" */
+/* at most 2 lines then "…": a long name would make this card taller than the others (MudText → ::deep) */
 .game-card ::deep .game-name {
 	display: -webkit-box;
 	-webkit-line-clamp: 2;
@@ -50,7 +49,6 @@
 	overflow: hidden;
 }
 
-/* Nome della famiglia di piattaforme (PC, PlayStation, …): piccola etichetta con il bordo */
 .platform-tag {
 	font-size: 0.75rem;
 	line-height: 1.5;
@@ -61,7 +59,7 @@
 	white-space: nowrap;
 }
 
-/* Chi ha chiesto meno animazioni nelle impostazioni del sistema */
+/* people who asked their system for less motion get no movement */
 @media (prefers-reduced-motion: reduce) {
 	.game-card {
 		transition: none;

@@ -56,8 +56,8 @@
 			var wishlist = await Api.GetWishlistAsync();
 			_inWishlist = wishlist.Any(g => g.Id == GameId);
 		}
-		// Sessione scaduta mentre si apre la pagina: niente salto all'accesso, i pulsanti
-		// si comportano come per chi non è entrato (portano all'accesso solo se premuti)
+		// session expired while the page opens: no jump to the login the user did not ask for,
+		// the buttons behave as for a logged-out user (they lead to the login only when pressed)
 		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
 		{
 			_isAuthenticated = false;
@@ -89,7 +89,7 @@
 				await Api.AddFavoriteAsync(GameId);
 			_isFavorite = !_isFavorite;
 		}
-		// Sessione scaduta dopo il clic: si rifà l'accesso e si torna su questa pagina
+		// session expired after the click: the user did ask to save, so log in again and come back here
 		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
 		{
 			Navigation.NavigateToLogin();
@@ -121,7 +121,7 @@
 				await Api.AddToWishlistAsync(GameId);
 			_inWishlist = !_inWishlist;
 		}
-		// Sessione scaduta dopo il clic: si rifà l'accesso e si torna su questa pagina
+		// session expired after the click: the user did ask to save, so log in again and come back here
 		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
 		{
 			Navigation.NavigateToLogin();

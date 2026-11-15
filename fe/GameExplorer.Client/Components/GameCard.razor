@@ -45,8 +45,8 @@
 			}
 			@if (PlatformFamilies.Count > 0)
 			{
-				@* Nomi scritti invece di icone: le icone erano quasi uguali e sul telefono non c'è il tooltip.
-				   Wrap: con tante piattaforme i nomi vanno a capo invece di allargare la card *@
+				@* names instead of icons: the icons looked almost the same and phones have no tooltip.
+				   Wrap: with many platforms the names go to a new line instead of widening the card *@
 				<MudStack Row="true" Spacing="1" Class="mt-2" Wrap="Wrap.Wrap">
 					@foreach (var family in PlatformFamilies)
 					{
@@ -65,7 +65,7 @@
 	[Parameter]
 	public bool HighlightDate { get; set; }
 
-	// Copia del carosello di GameSection: si vede e si clicca, ma il Tab la salta (tabindex -1)
+	// a copy in the GameSection carousel is visible and clickable, but Tab must skip it (tabindex -1) or every game is reached twice
 	[Parameter]
 	public bool IsClone { get; set; }
 
@@ -77,7 +77,7 @@
 		? "Data da annunciare"
 		: Game.ReleaseDate.Value.ToString("d MMM yyyy", CultureInfo.GetCultureInfo("it-IT"));
 
-	// Ordine fisso, uguale in tutte le card (prima dipendeva dall'ordine delle piattaforme del gioco)
+	// a fixed order, the same on every card: following each game's platform order made the cards hard to compare
 	private static readonly string[] FamilyOrder = ["PC", "PlayStation", "Xbox", "Nintendo", "Mobile", "Altro"];
 
 	private List<string> PlatformFamilies => Game.Platforms

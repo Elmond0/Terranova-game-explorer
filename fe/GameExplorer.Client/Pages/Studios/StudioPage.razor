@@ -187,12 +187,12 @@ else
 	[SupplyParameterFromQuery] string? Ordering { get; set; }
 	[SupplyParameterFromQuery] int? Page { get; set; }
 
-	// Giochi per pagina se la Web API non riempie PageSize
+	// fallback when the web api leaves PageSize empty, so the page count is never a division by zero
 	private const int DefaultPageSize = 20;
 	private const int AboutPreviewLength = 500;
 	private static readonly CultureInfo ItalianCulture = CultureInfo.GetCultureInfo("it-IT");
 
-	// "" vuol dire nessun ordinamento: l'ordine scelto dalla Web API
+	// "" means no ordering: MudSelect needs a real value for the "Rilevanza" item, and the web api then uses its own order
 	private static readonly (string Value, string Label)[] OrderOptions =
 	[
 		("", "Rilevanza"),
@@ -227,9 +227,9 @@ else
 	private bool _gamesError;
 	private CancellationTokenSource? _gamesCts;
 
-	// ?page=0 o negativo scritto a mano nell'indirizzo vale come pagina 1
+	// ?page=0 or negative typed in the address counts as page 1: a hand-written url never errors
 	private int CurrentPage => Math.Max(Page ?? 1, 1);
-	// Un ordinamento scritto a mano che non è nel menu si ignora: la Web API risponderebbe 400
+	// a hand-written ordering that is not in the menu is ignored: the web api would answer 400
 	private string CurrentOrdering => OrderOptions.Any(o => o.Value == Ordering) ? Ordering! : "";
 	private int PageCount
 	{
@@ -242,12 +242,12 @@ else
 		}
 	}
 
-	// Rating 0 vuol dire "nessun voto" (IGDB non ne ha uno): quei giochi non entrano nella media
+	// Rating 0 means "no rating" (IGDB has none): counting it would drag the average down
 	private List<Game> RatedGames => _games?.Items?.Where(g => g.Rating > 0).ToList() ?? [];
 	private double AverageRating => RatedGames.Count > 0 ? RatedGames.Average(g => g.Rating) : 0;
 
 	private bool IsAboutLong => _studio?.About?.Length > AboutPreviewLength;
-	// Descrizione intera, oppure tagliata all'ultimo spazio prima del limite
+	// cut at the last space before the limit, so a word is never split in half
 	private string AboutText
 	{
 		get
@@ -270,7 +270,7 @@ else
 	private static string? OrderLabel(string? value) =>
 		OrderOptions.FirstOrDefault(o => o.Value == value).Label ?? value;
 
-	// Cambiano studio → si ricarica tutto; cambiano solo pagina o ordinamento → solo i giochi
+	// a new studio reloads everything; a new page or ordering reloads only the games, the studio did not change
 	protected override async Task OnParametersSetAsync()
 	{
 		if (Id != _loadedId)
@@ -312,7 +312,7 @@ else
 			return;
 		}
 		_loading = false;
-		// Lo studio può arrivare prima dei giochi: si mostra subito, senza aspettare l'altra chiamata
+		// the studio can arrive before the games: show it now instead of waiting for the other call
 		StateHasChanged();
 	}
 
@@ -345,7 +345,7 @@ else
 		StateHasChanged();
 	}
 
-	// Un ordinamento nuovo riporta a pagina 1
+	// a new ordering goes back to page 1: page 3 of another order shows unrelated games
 	private void OnOrderingChanged(string? value)
 	{
 		Navigate(new Dictionary<string, object?>
@@ -355,14 +355,14 @@ else
 		});
 	}
 
-	// La pagina 1 non si scrive nell'indirizzo, come nella ricerca
+	// page 1 stays out of the address, as in the search: with or without ?page=1 it is the same page
 	private async Task OnPageChanged(int page)
 	{
 		Navigate(new Dictionary<string, object?> { ["page"] = page == 1 ? null : page });
 		await JS.InvokeVoidAsync("scrollTo", 0, 0);
 	}
 
-	// Cambia solo l'indirizzo: i giochi li ricarica OnParametersSetAsync, e il tasto "indietro" del browser funziona
+	// only the address changes and OnParametersSetAsync reloads the games: this way the browser Back button works
 	private void Navigate(Dictionary<string, object?> changes)
 	{
 		Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(changes));

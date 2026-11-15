@@ -1,7 +1,7 @@
 using Bunit;
-using GameExplorer.Client.Pages.Account;        // esiste già: RegisterPage
-using GameExplorer.Client.Services.Auth;        // esiste già: CookieAuthenticationStateProvider
-using Microsoft.Extensions.DependencyInjection; // AddHttpClient
+using GameExplorer.Client.Pages.Account;
+using GameExplorer.Client.Services.Auth;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GameExplorer.Client.Tests;
 
@@ -9,8 +9,8 @@ public class RegisterPageTests : PageTestBase
 {
 	public RegisterPageTests()
 	{
-		// La pagina riceve CookieAuthenticationStateProvider, che vuole il client HTTP "Account".
-		// Nessun test qui arriva fino alla Web API: l'indirizzo non viene mai chiamato.
+		// the page receives CookieAuthenticationStateProvider, which needs the "Account" HTTP client.
+		// No test here reaches the web api, so the address is never called
 		Ctx.Services.AddHttpClient("Account", client => client.BaseAddress = new Uri("http://localhost/"));
 		Ctx.Services.AddScoped<CookieAuthenticationStateProvider>();
 	}
@@ -36,7 +36,7 @@ public class RegisterPageTests : PageTestBase
 		cut.Find("input[name=confirm-password]").Change("Password2!");
 		Assert.Contains("Le password non coincidono", cut.Markup);
 
-		// Si corregge la password, non la conferma: prima l'errore della conferma restava
+		// fixing the password, not the confirmation: the confirmation error used to stay on screen
 		cut.Find("input[name=new-password]").Change("Password2!");
 		Assert.DoesNotContain("Le password non coincidono", cut.Markup);
 	}

@@ -14,8 +14,8 @@
 </MudText>
 @if (_needsLogin)
 {
-	@* Messaggio con pulsante invece di un redirect automatico: un redirect mentre la pagina si apre
-	   lascia /profile nella cronologia, e il tasto Indietro riporterebbe sempre all'accesso *@
+	@* a message with a button instead of an automatic redirect: a redirect while the page opens
+	   leaves /profile in the history, and Back would always lead to the login again *@
 	<MudStack AlignItems="AlignItems.Center" Class="py-8">
 		<MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Class="mud-text-secondary" />
 		<MudText Align="Align.Center">Accedi per vedere il tuo profilo, i preferiti e la wishlist.</MudText>
@@ -178,7 +178,7 @@ else
 	private string? _removeError;
 	private bool _saving;
 	private string? _saveError;
-	// Non entrato, o sessione scaduta mentre la pagina si apre: si mostra il pulsante "Accedi"
+	// logged out, or session expired while the page opens: same "Accedi" button, never an automatic redirect
 	private bool _needsLogin;
 
 	protected override async Task OnInitializedAsync()

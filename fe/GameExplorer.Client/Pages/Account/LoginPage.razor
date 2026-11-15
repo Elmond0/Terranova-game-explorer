@@ -10,8 +10,8 @@
 
 	@if (_alreadyLoggedIn)
 	{
-		@* Messaggio invece di un redirect automatico: un redirect mentre la pagina si apre resta
-		   nella cronologia e il tasto Indietro riporterebbe sempre qui *@
+		@* a message instead of an automatic redirect: a redirect while the page opens stays
+		   in the history, and Back would always lead here again *@
 		<MudAlert Severity="Severity.Info" Class="mb-4">Hai già fatto l'accesso.</MudAlert>
 		<MudButton Href="@SafeReturnUrl" Variant="Variant.Filled" Color="Color.Primary">Continua</MudButton>
 	}
@@ -19,7 +19,7 @@
 	{
 		<MudPaper Class="pa-6">
 			<form @onsubmit="SubmitAsync">
-				@* name e autocomplete: il gestore delle password del browser riconosce i campi e li compila *@
+				@* name and autocomplete: without them the browser password manager does not recognize and fill the fields *@
 				<MudTextField @bind-Value="_email" Label="Email" InputType="InputType.Email" Class="mb-3" name="email" autocomplete="username"/>
 				<MudTextField @bind-Value="_password" Label="Password" InputType="InputType.Password" Class="mb-3" name="password" autocomplete="current-password"/>
 
@@ -51,7 +51,7 @@
 
 	private bool _alreadyLoggedIn;
 
-	// Chi è già entrato non vede il form, ma un pulsante per andare dove sarebbe andato dopo l'accesso
+	// a logged-in user gets no form but a button to where the login would have taken them, so a stale link is not a dead end
 	protected override async Task OnInitializedAsync()
 	{
 		var state = AuthState is null ? null : await AuthState;
@@ -61,7 +61,7 @@
 	private async Task SubmitAsync()
 	{
 		_error = null;
-		// Campi vuoti: inutile chiamare la Web API (e consumare uno dei 10 tentativi al minuto)
+		// empty fields: calling the web api would only use up one of the 10 attempts per minute
 		if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrEmpty(_password))
 		{
 			_error = "Inserisci email e password";

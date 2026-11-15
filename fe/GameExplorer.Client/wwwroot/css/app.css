@@ -2,12 +2,12 @@ h1:focus {
     outline: none;
 }
 
-/* Colori mentre l'app si carica, prima che MudBlazor applichi il tema.
-   data-theme lo scrive lo script in index.html. Il body usa già var(--mud-palette-background)
-   (regola di MudBlazor): qui si dà solo un valore di riserva alle sue variabili.
-   :where() ha specificità zero, quindi appena MudBlazor scrive il tema (:root) vince il suo valore,
-   e il pulsante "Cambia tema" continua a funzionare. Colorare direttamente il body invece bloccherebbe
-   lo sfondo su quello dell'avvio. */
+/* colors while the app loads, before MudBlazor applies the theme: without them a dark theme flashes white.
+   data-theme is written by the script in index.html. The body already uses var(--mud-palette-background)
+   (a MudBlazor rule): here its variables only get a fallback value.
+   :where() has zero specificity, so as soon as MudBlazor writes the theme (:root) its value wins
+   and the theme button keeps working. Coloring the body directly would lock the background
+   to the startup one */
 :where(html[data-theme="dark"]) {
     --mud-palette-background: #32333d;
     --mud-palette-text-primary: rgba(255, 255, 255, 0.70);
@@ -18,8 +18,8 @@ h1:focus {
     --mud-palette-text-primary: #424242;
 }
 
-/* Contenuto della pagina (MainLayout): alto almeno quanto lo schermo, in colonna.
-   Il footer prende tutto lo spazio libero sopra di sé, quindi resta in fondo anche nelle pagine corte. */
+/* page content (MainLayout): at least as tall as the screen, in a column.
+   The footer takes all the free space above it, so it stays at the bottom of short pages too */
 .main-content {
     display: flex;
     flex-direction: column;
@@ -30,20 +30,20 @@ h1:focus {
     margin-top: auto;
 }
 
-/* Pulsante con avatar e nome nella navbar (MainLayout): il nome resta come è scritto,
-   invece del MAIUSCOLO che MudBlazor usa per i pulsanti.
-   Il maiuscolo MudBlazor lo mette sull'etichetta interna del pulsante (.mud-button-label), non sul pulsante */
+/* avatar and name button in the navbar (MainLayout): a name must stay as the user wrote it,
+   not in the UPPERCASE MudBlazor uses for buttons.
+   MudBlazor puts the uppercase on the inner label (.mud-button-label), so that is where it is undone */
 .navbar-user .mud-button-label {
     text-transform: none;
 }
 
-/* Il nome (o l'email, se manca il nickname): se è troppo lungo viene tagliato con "…"
-   invece di andare a capo insieme a "Game Explorer" */
+/* the name (or the email when there is no nickname): a long one is cut with "…"
+   instead of wrapping and pushing "Game Explorer" onto two lines */
 .navbar-user-name {
     max-width: 160px;
-    overflow: hidden;            /* quello che esce dai 160px non si vede */
-    text-overflow: ellipsis;     /* al posto del pezzo nascosto compare "…" */
-    white-space: nowrap;         /* tutto su una riga */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .valid.modified:not([type=checkbox]) {

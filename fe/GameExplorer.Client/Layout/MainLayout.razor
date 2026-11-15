@@ -123,7 +123,7 @@
 				</AuthorizeView>
 			</MudNavMenu>
 	</MudDrawer>
-	@* main-content (wwwroot/css/app.css): alta almeno quanto lo schermo, così il footer sta in fondo anche nelle pagine corte *@
+	@* main-content (wwwroot/css/app.css) is at least as tall as the screen, so the footer stays at the bottom of short pages too *@
 	<MudMainContent Class="main-content">
 		<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="py-6">
 			<ErrorBoundary @ref="_errorBoundary">
@@ -161,9 +161,9 @@
 
 	private const string ThemeKey = "theme";
 	private ErrorBoundary? _errorBoundary;
-	// Il tema l'ha già deciso lo script in index.html prima dell'avvio (scelta salvata, altrimenti
-	// quella del sistema) e l'ha scritto in <html data-theme="…">: qui lo si legge e basta,
-	// così l'app parte con lo stesso colore usato durante il caricamento
+	// the theme is already chosen by the script in index.html before startup (saved choice, else the system one)
+	// and written in <html data-theme="…">: reading it here instead of deciding again
+	// makes the app start with the same colors as the loading screen, without a white flash
 	protected override async Task OnInitializedAsync()
 	{
 		var theme = await JS.InvokeAsync<string?>("document.documentElement.getAttribute", "data-theme");

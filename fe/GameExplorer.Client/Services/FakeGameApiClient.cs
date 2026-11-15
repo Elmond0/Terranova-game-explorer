@@ -4,7 +4,7 @@ namespace GameExplorer.Client.Services;
 
 public class FakeGameApiClient : IGameApiClient
 {
-	// Id, nomi e slug come li manda IGDB
+	// same ids, names and slugs IGDB sends, so links built from fake data also work against the real web api
 	private static readonly Platform Pc = new Platform { Id = 6, Name = "PC (Microsoft Windows)", Slug = "win" };
 	private static readonly Platform Ps5 = new Platform { Id = 167, Name = "PlayStation 5", Slug = "ps5" };
 	private static readonly Platform Ps4 = new Platform { Id = 48, Name = "PlayStation 4", Slug = "ps4--1" };
@@ -13,7 +13,7 @@ public class FakeGameApiClient : IGameApiClient
 	private static readonly Platform Switch = new Platform { Id = 130, Name = "Nintendo Switch", Slug = "switch" };
 	private static readonly List<Platform> Platforms = [Pc, Ps5, Ps4, XboxSeries, XboxOne, Switch];
 
-	// IGDB non ha un genere "Action": al suo posto c'è Shooter
+	// IGDB has no "Action" genre: Shooter is its closest match
 	private static readonly Genre Shooter = new Genre { Id = 5, Name = "Shooter", Slug = "shooter" };
 	private static readonly Genre Rpg = new Genre { Id = 12, Name = "Role-playing (RPG)", Slug = "role-playing-rpg" };
 	private static readonly Genre Adventure = new Genre { Id = 31, Name = "Adventure", Slug = "adventure" };
@@ -22,8 +22,8 @@ public class FakeGameApiClient : IGameApiClient
 
 	private static readonly List<Genre> Genres = [Shooter, Rpg, Adventure, Puzzle, Indie];
 
-	// Immagini vere di IGDB, già nella dimensione grande (t_cover_big, t_screenshot_big).
-	// Le prime quattro copertine sono dei giochi omonimi, le altre servono per i titoli inventati
+	// real IGDB images in the size the web api uses (t_cover_big, t_screenshot_big), so the layout looks like production.
+	// The first four covers belong to the games with the same name, the others stand in for the made-up titles
 	private const string IgdbImages = "https://images.igdb.com/igdb/image/upload";
 	private static Image Cover(string imageId) =>
 		new Image { Url = $"{IgdbImages}/t_cover_big/{imageId}.jpg", Width = 264, Height = 374 };
@@ -39,9 +39,9 @@ public class FakeGameApiClient : IGameApiClient
 	private const string SampleCover3 = "co2ve1";
 	private readonly List<int> _favoriteIds = [];
 	private readonly List<int> _wishlistIds = [];
-	// Profilo finto: UpdateProfileAsync lo sostituisce, GetProfileAsync lo restituisce
+	// kept in memory so a profile change survives until the next reload, like a saved one would
 	private ProfileResponse _profile = new("tester@example.com", "Tester", "ninja");
-	// Nickname che il fake considera già preso, per provare il messaggio del 409
+	// lets the "nickname already taken" (409) message be tried without a real database
 	private const string TakenNickname = "preso";
 	private static readonly List<Game> TopRated =
 	[
@@ -211,8 +211,8 @@ public class FakeGameApiClient : IGameApiClient
 	];
 	private static IEnumerable<Game> AllGames => TopRated.Concat(Recent).Concat(Upcoming).Concat(SearchOnly);
 
-	// Gli studi della scheda di GTA V più uno di prova senza immagine né descrizione, con abbastanza giochi
-	// per due pagine. Ogni studio ha un gioco senza voto (Rating 0), per provare il voto medio
+	// the studios of the GTA V page plus a test one without image or description and with enough games for two pages,
+	// to try the empty states and the pagination. Every studio has an unrated game (Rating 0) to try the average rating
 	private static readonly Studio TestStudio = new Studio { Id = 900400, Name = "Studio di prova", Slug = "studio-di-prova" };
 	private static readonly List<(Studio Studio, int[] GameIds)> Studios =
 	[
@@ -233,10 +233,11 @@ public class FakeGameApiClient : IGameApiClient
 		(TestStudio, [.. Enumerable.Range(900301, 25), 900202]),
 	];
 	private const int StudioGamesPageSize = 20;
+	// small on purpose: the fake lists have few games, with 5 per page the pagination shows up in fake mode too
 	private const int ListPageSize = 5;
 
-	// true: ogni metodo lancia ApiException, per provare ErrorMessage e "Riprova".
-	// Si attiva in Program.cs: AddScoped<IGameApiClient>(_ => new FakeGameApiClient { SimulateError = true })
+	// lets ErrorMessage and "Riprova" be tried without stopping the web api.
+	// Turned on in Program.cs: AddScoped<IGameApiClient>(_ => new FakeGameApiClient { SimulateError = true })
 	public bool SimulateError { get; set; }
 
 	public async Task<List<Game>> GetTopRatedAsync(CancellationToken cancellationToken = default)
@@ -271,8 +272,7 @@ public class FakeGameApiClient : IGameApiClient
 		await DelayAsync(cancellationToken);
 		return ToPage(Upcoming, page, ListPageSize);
 	}
-	// I giochi della piattaforma, i più votati per primi. Il numero di voti non lo abbiamo,
-	// quindi il filtro "solo giochi noti" della Web API vera qui non si imita
+	// the fake games have no vote count, so the real web api's "well-known games only" filter is not imitated
 	public async Task<List<Game>> GetPlatformHighlightsAsync(int platformId, CancellationToken cancellationToken = default)
 	{
 		await DelayAsync(cancellationToken);
@@ -283,7 +283,7 @@ public class FakeGameApiClient : IGameApiClient
 			.ToList();
 	}
 
-	// Filtra, ordina e pagina come la Web API vera; sviluppatori e publisher li ignora
+	// developers and publishers are ignored: no page filters by them yet
 	public async Task<PagedResult<Game>> SearchAsync(SearchFilter filter, CancellationToken cancellationToken = default)
 	{
 		await DelayAsync(cancellationToken);
@@ -312,7 +312,7 @@ public class FakeGameApiClient : IGameApiClient
 		return ToPage(Sort(games, filter.Ordering), filter.Page, filter.PageSize);
 	}
 
-	// Un id che non è in nessuna lista simula "non trovato" (la Web API risponderebbe 404)
+	// an id in no list returns null, like the 404 of the real web api, to try the "not found" page
 	public async Task<GameDetails?> GetGameAsync(int id, CancellationToken cancellationToken = default)
 	{
 		await DelayAsync(cancellationToken);
@@ -333,7 +333,7 @@ public class FakeGameApiClient : IGameApiClient
 			Genres = game.Genres,
 		};
 
-		// Solo GTA V ha la scheda completa: gli altri giochi servono a provare i dati mancanti
+		// only GTA V has a full page: the other games are there to try missing data
 		if (details.Id == 3498)
 		{
 			details.Description =
@@ -353,7 +353,7 @@ public class FakeGameApiClient : IGameApiClient
 				new Studio { Id = 10, Name = "Rockstar Games", Slug = "rockstar-games" },
 			];
 		}
-		// I "Gioco di prova" portano allo studio di prova, quello con due pagine di giochi
+		// the "Gioco di prova" games link to the test studio, the one with two pages of games
 		else if (details.Name.StartsWith("Gioco di prova"))
 		{
 			details.Developers = [TestStudio];
@@ -374,7 +374,7 @@ public class FakeGameApiClient : IGameApiClient
 		return Platforms;
 	}
 
-	// Un id che non è tra gli studi simula "non trovato" (la Web API risponderebbe 404)
+	// an unknown id returns null, like the 404 of the real web api, to try the "not found" page
 	public async Task<Studio?> GetStudioAsync(int id, CancellationToken cancellationToken = default)
 	{
 		await DelayAsync(cancellationToken);
@@ -397,7 +397,7 @@ public class FakeGameApiClient : IGameApiClient
 		};
 	}
 
-	// Senza ordinamento i giochi restano nell'ordine dell'elenco, come quando la Web API non riceve un ordinamento
+	// no ordering keeps the list order, like the real web api when it receives none
 	public async Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, string? ordering, CancellationToken cancellationToken = default)
 	{
 		await DelayAsync(cancellationToken);
@@ -441,11 +441,11 @@ public class FakeGameApiClient : IGameApiClient
 		};
 	}
 
-	// Iniziali delle parole del nome: "Grand Theft Auto V" → "GTAV", così "gta" trova il gioco
+	// people search by abbreviation: "gta" has to find "Grand Theft Auto V" through its initials
 	private static string Initials(string name) =>
 		string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(word => word[0]));
 
-	// Attesa finta della rete e, se richiesto, errore simulato: comuni a tutti i metodi
+	// a fake network wait so skeletons and cancellations can be seen, plus the simulated error, in one place for every method
 	private async Task DelayAsync(CancellationToken cancellationToken)
 	{
 		await Task.Delay(800, cancellationToken);

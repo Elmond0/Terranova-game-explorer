@@ -1,16 +1,16 @@
-/* La riga che scorre (usata anche dallo scheletro di caricamento) */
+/* the scrolling row (the loading skeleton uses it too, so nothing jumps when the games arrive) */
 .game-row {
 	display: flex;
 	gap: 16px;
-	overflow-x: auto;                 /* serve anche senza barra: è lo scorrimento che usa il JavaScript */
-	scroll-snap-type: x mandatory;    /* dopo uno scorrimento col dito la riga si aggancia a una card */
-	scroll-padding-inline: 4px;       /* le card si agganciano dentro il padding, così il bordo del focus non viene tagliato */
-	padding: 8px 4px 12px;            /* sopra: spazio per la card che si alza al :hover */
-	scrollbar-width: none;            /* niente barra (Firefox, Chrome recenti) */
-	overscroll-behavior-x: contain;   /* sul trackpad, arrivati al bordo, il browser non torna alla pagina precedente */
+	overflow-x: auto;                 /* needed even without a scrollbar: carousel.js scrolls this element */
+	scroll-snap-type: x mandatory;    /* after a finger swipe the row stops on a card, not halfway */
+	scroll-padding-inline: 4px;       /* cards snap inside the padding, so the focus outline is not cut */
+	padding: 8px 4px 12px;            /* top: room for the card that rises on :hover */
+	scrollbar-width: none;            /* the row is dragged or swiped, a scrollbar would only take space */
+	overscroll-behavior-x: contain;   /* on a trackpad, reaching the edge must not trigger the browser's Back */
 }
 
-/* Niente barra (Safari, Chrome meno recenti) */
+/* same as scrollbar-width: none, for Safari and older Chrome */
 .game-row::-webkit-scrollbar {
 	display: none;
 }
@@ -19,45 +19,46 @@ section{
 	margin-bottom: 2rem;
 }
 
+/* the last section sits on the page bottom: its margin left an empty band above the footer */
 section:last-child{
 	margin-bottom: 0;
 }
 
-/* 4 card per riga: la larghezza meno i 3 spazi da 16px, divisa per 4 */
+/* 4 cards per row: the width minus the 3 gaps of 16px, divided by 4 */
 .game-row-item {
 	flex: 0 0 calc((100% - 3 * 16px) / 4);
-	min-width: 0;                     /* di base un elemento flex non si stringe sotto il suo contenuto: 5 icone o una
-	                                     parola lunga allargavano la card, e il carosello conta su card tutte uguali */
+	min-width: 0;                     /* a flex item does not shrink below its content by default: 5 icons or a
+	                                     long word widened the card, and the carousel relies on equal cards */
 	scroll-snap-align: start;
 }
 
-/* Schermi stretti: 2 card per riga, meno 1 spazio */
+/* narrow screens: 2 cards per row, minus 1 gap */
 @media (max-width: 600px) {
 	.game-row-item {
 		flex-basis: calc((100% - 16px) / 2);
 	}
 }
 
-/* Manina aperta: solo sulla riga che si trascina davvero (giro continuo, più di 4 giochi),
-   non sullo scheletro né su una riga di 4 giochi o meno, dove il JavaScript non parte */
+/* open hand only on a row that can really be dragged (endless loop, more than 4 games),
+   not on the skeleton or a row of 4 games or less, where carousel.js does not start */
 .carousel-loop .game-row {
 	cursor: grab;
 }
 
-/* Mentre si trascina col mouse (la classe la mette e la toglie il JavaScript) */
+/* while dragging with the mouse (carousel.js adds and removes the class) */
 .game-row.dragging {
-	cursor: grabbing;                 /* manina chiusa */
-	scroll-snap-type: none;           /* altrimenti lo snap "tira" la riga a ogni movimento */
-	user-select: none;                /* non seleziona i titoli */
+	cursor: grabbing;
+	scroll-snap-type: none;           /* otherwise the snap pulls the row back at every move */
+	user-select: none;                /* otherwise dragging selects the titles */
 }
 
-/* Le copertine non partono col "drag" del browser (Chrome, Safari; per Firefox ci pensa il JavaScript) */
+/* covers must not start the browser's own image drag (Chrome, Safari; carousel.js handles Firefox) */
 .game-row ::deep img {
 	-webkit-user-drag: none;
 }
 
-/* Bordi sfumati quando c'è il giro continuo: fanno capire che la riga prosegue.
-   mask-image rende trasparenti i bordi, quindi funziona con qualsiasi colore di sfondo */
+/* faded edges on the endless loop show that the row goes on.
+   mask-image makes the edges transparent, so it works on any background color */
 .carousel-loop {
 	mask-image: linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent);
 }

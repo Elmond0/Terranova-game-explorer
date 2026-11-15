@@ -38,9 +38,9 @@
 		{
 			<div class="carousel @(Loop ? "carousel-loop" : "")">
 				<div class="game-row" @ref="_row">
-					@* Copie per il giro continuo. Non inert: a volte si vedono (es. ultimo gioco + primi tre)
-					   e devono aprirsi col click. Però i lettori di schermo non le leggono (aria-hidden)
-					   e il Tab le salta (IsClone) *@
+					@* copies for the endless loop. Not inert: sometimes they are on screen (last game + first three)
+					   and must open on click. Screen readers skip them (aria-hidden) and so does Tab (IsClone),
+					   or every game would be announced twice *@
 					@if (Loop)
 					{
 						foreach(var game in _games.TakeLast(Visible))
@@ -76,7 +76,7 @@
 	[Parameter, EditorRequired] public Func<CancellationToken, Task<List<Game>>> Load { get; set; } = default!;
 	[Parameter] public string? SeeAllHref { get; set; }
 	[Parameter] public bool HighlightDate { get; set; }
- // most studios have nothing announced: an empty "upcoming" row would only be noise
+	// most studios have nothing announced: an empty "upcoming" row would only be noise
 	[Parameter] public bool HideWhenEmpty { get; set; }
 	private List<Game>? _games;
 	private bool _error;

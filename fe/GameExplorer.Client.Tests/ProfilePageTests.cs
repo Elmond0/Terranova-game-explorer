@@ -1,8 +1,8 @@
 using Bunit;
-using GameExplorer.Client.Pages;                // esiste già: ProfilePage
-using GameExplorer.Client.Services.Auth;        // esiste già: CookieAuthenticationStateProvider
-using Microsoft.Extensions.DependencyInjection; // AddHttpClient
-using MudBlazor;                                // esiste già: MudPopoverProvider
+using GameExplorer.Client.Pages;
+using GameExplorer.Client.Services.Auth;
+using Microsoft.Extensions.DependencyInjection;
+using MudBlazor;
 
 namespace GameExplorer.Client.Tests;
 
@@ -10,7 +10,7 @@ public class ProfilePageTests : PageTestBase
 {
 	public ProfilePageTests()
 	{
-		// Come in RegisterPageTests: serve solo a creare la pagina, la Web API non viene chiamata
+		// as in RegisterPageTests: only needed to create the page, the web api is never called
 		Ctx.Services.AddHttpClient("Account", client => client.BaseAddress = new Uri("http://localhost/"));
 		Ctx.Services.AddScoped<CookieAuthenticationStateProvider>();
 	}
@@ -21,12 +21,12 @@ public class ProfilePageTests : PageTestBase
 		Ctx.Render<MudPopoverProvider>();
 		Auth.SetAuthorized("tester@example.com");
 		var cut = Ctx.Render<ProfilePage>();
-		// Il profilo finto arriva dopo 800 ms con il nickname "Tester"
+		// the fake profile arrives after 800ms with the nickname "Tester"
 		cut.WaitForAssertion(() => Assert.Equal("Tester", cut.Find("input").GetAttribute("value")));
 
-		// Chi si è appena registrato non ha il nickname: prima "Salva" non faceva niente
+		// a user who just registered has no nickname: "Salva" used to do nothing without saying why
 		cut.Find("input").Input("");
-		// InvokeAsync: il campo si aggiorna in modo asincrono e il pulsante va cercato dopo
+		// InvokeAsync: the field updates asynchronously, so the button must be looked up afterwards
 		cut.InvokeAsync(() => cut.FindAll("button").First(b => b.TextContent.Trim() == "Salva").Click());
 
 		cut.WaitForAssertion(() =>

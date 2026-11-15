@@ -1,29 +1,29 @@
 using Bunit;
-using Bunit.TestDoubles;              // esiste già (pacchetto bunit): BunitAuthorizationContext
-using GameExplorer.Client.Services;   // esiste già: IGameApiClient, FakeGameApiClient
+using Bunit.TestDoubles;
+using GameExplorer.Client.Services;
 using Microsoft.Extensions.DependencyInjection;
-using MudBlazor.Services;             // esiste già (pacchetto MudBlazor): AddMudServices
+using MudBlazor.Services;
 
 namespace GameExplorer.Client.Tests;
 
-// Base di tutti i test di pagina: bUnit + MudBlazor + client finto.
-// Il contesto è un campo e non la classe da cui ereditare: così xUnit non chiama il
-// Dispose() sincrono, che fallisce con i servizi di MudBlazor (si chiudono solo in modo asincrono).
+// base of every page test: bUnit + MudBlazor + fake client, set up once instead of in every test.
+// The context is a field and not the class to inherit from: this way xUnit does not call the
+// synchronous Dispose(), which fails with MudBlazor services (they only close asynchronously)
 public abstract class PageTestBase : IAsyncLifetime
 {
 	protected BunitContext Ctx { get; } = new();
-	// Lo stesso oggetto che riceve la pagina: il test può cambiarlo (es. SimulateError = true)
+	// the same object the page receives, so a test can change it (e.g. SimulateError = true)
 	protected FakeGameApiClient Api { get; } = new();
 	protected BunitAuthorizationContext Auth { get; }
 	protected PageTestBase()
 	{
 		Auth = Ctx.AddAuthorization();
-		// Il client finto risponde dopo 800 ms: 1 secondo di attesa (il valore di base) è troppo poco
+		// the fake client answers after 800ms: the default 1 second wait is too short and tests failed at random
 		BunitContext.DefaultWaitTimeout = TimeSpan.FromSeconds(5);
 		Ctx.Services.AddMudServices();
 		Ctx.Services.AddSingleton<IGameApiClient>(Api);
 		Ctx.Services.AddScoped<SearchFocusService>();
-		// Nessun browser: le chiamate JS di MudBlazor ricevono una risposta vuota invece di un errore
+		// no browser here: MudBlazor JS calls get an empty answer instead of failing the test
 		Ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 	}
 	public Task InitializeAsync() => Task.CompletedTask;
