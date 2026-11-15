@@ -8,15 +8,6 @@ namespace GameExplorer.Api.Controllers;
 [Route("api/home")]
 public class HomeController( GameService gameService ) : ControllerBase
 {
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<GameDetails>>	GetGameDetails( int id, CancellationToken ct )
-    {
-        GameDetails? gd = await gameService.GetGameDetailsAsync(id, ct);
-        if (gd is null)
-            return NotFound();
-        return Ok(gd);
-    }
-
     [HttpGet("top-rated")]
     public async Task<ActionResult<List<Game>>>	GetTopRated( CancellationToken ct ) => Ok(await gameService.GetHomeTopRatedAsync(ct));
 
