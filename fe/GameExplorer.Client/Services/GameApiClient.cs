@@ -79,6 +79,12 @@ public class GameApiClient : IGameApiClient
 		return games ?? new PagedResult<Game>();
 	}
 
+	public async Task<List<Game>> GetStudioUpcomingAsync(int id, CancellationToken cancellationToken = default)
+	{
+		var games = await GetAsync<List<Game>>($"api/studios/{id}/upcoming", false, cancellationToken);
+		return games ?? [];
+	}
+
 	private async Task SendAsync(HttpMethod method, string url, CancellationToken cancellationToken)
 	{
 		try

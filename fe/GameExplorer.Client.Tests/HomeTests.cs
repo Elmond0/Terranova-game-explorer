@@ -71,5 +71,6 @@ public class HomeTests : PageTestBase
 			_fake.RemoveFromWishlistAsync(id, cancellationToken);
 		public Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, string? ordering, CancellationToken cancellationToken = default) =>
 			_fake.GetStudioGamesAsync(id, page, ordering, cancellationToken);
+		public Task<List<Game>> GetStudioUpcomingAsync(int id, CancellationToken cancellationToken = default) => _fake.GetStudioUpcomingAsync(id, cancellationToken);
 	}
 }

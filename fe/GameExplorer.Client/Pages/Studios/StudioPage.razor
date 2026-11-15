@@ -79,6 +79,14 @@ else
 		</MudItem>
 	</MudGrid>
 
+	<div class="mt-8">
+		<GameSection
+			Title="In arrivo"
+			Load="ct => Api.GetStudioUpcomingAsync(Id, ct)"
+			HighlightDate="true"
+			HideWhenEmpty="true"
+		/>
+	</div>
 	<MudStack
 		Row="true"
 		Wrap="Wrap.Wrap"

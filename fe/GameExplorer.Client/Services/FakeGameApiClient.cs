@@ -387,6 +387,13 @@ public class FakeGameApiClient : IGameApiClient
 		return ToPage(Sort(games, ordering), page, StudioGamesPageSize);
 	}
 
+	public async Task<List<Game>> GetStudioUpcomingAsync(int id, CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		var gameIds = Studios.FirstOrDefault(s => s.Studio.Id == id).GameIds ?? [];
+		return Upcoming.Where(g => gameIds.Contains(g.Id)).ToList();
+	}
+
 	private static IEnumerable<Game> Sort(IEnumerable<Game> games, string? ordering) => ordering switch
 	{
 		"rating" => games.OrderBy(g => g.Rating),
