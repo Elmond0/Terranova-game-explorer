@@ -1,6 +1,0 @@
-$kind: http-request
-url: "{{apiUrl}}/games?query=wiufhwiufhiu"
-method: GET
-queryParams:
-  query: wiufhwiufhiu
-order: 15000

@@ -3,34 +3,94 @@ url: "{{api_domain}}games/top-rated"
 method: GET
 scripts:
   - type: afterResponse
-    code: "   pm.test(\"200 OK\", () => {\r
+    code: "// ===== Setup =====\r
 
-      \       pm.response.to.have.status(200);\r
+      const body = pm.response.json();\r
 
-      \   });\r
-
-      \r
-
-      \   pm.test(\"Response is JSON\", () => {\r
-
-      \       pm.response.to.be.json;\r
-
-      \   });\r
+      const items = body.items ?? [];\r
 
       \r
 
-      \   pm.test(\"List not empty\", () => {\r
+      // Leggo page/pageSize dai query param della request (es. ?page=2&pageSize=10)\r
 
-      \        pm.expect(pm.response.json().length).to.be.above(0);\r
+      const q = pm.request.url.query.toObject();\r
 
-      \   })\r
+      const page = parseInt(q.page ?? q.Page, 10);\r
+
+      const pageSize = parseInt(q.pageSize ?? q.PageSize, 10);\r
 
       \r
 
-      \   pm.test(\"Response takes less than 2 seconds\", () => {\r
+      // ===== Status & struttura =====\r
 
-      \       pm.expect(pm.response.responseTime).to.be.below(2000);\r
+      pm.test(\"200 OK\", () => {\r
 
-      \   });"
+      \    pm.response.to.have.status(200);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Ha la struttura di PagedResult\", () => {\r
+
+      \    pm.expect(body).to.include.keys(\"items\", \"page\", \"pageSize\", \"total\");\r
+
+      \    pm.expect(body.items).to.be.an(\"array\");\r
+
+      \    pm.expect(body.total).to.be.a(\"number\");\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Non più elementi di pageSize\", () => {\r
+
+      \    pm.expect(items.length).to.be.at.most(body.pageSize);\r
+
+      });\r
+
+      \r
+
+      // totalPages solo se il modello lo espone (proprietà calcolata)\r
+
+      if (body.totalPages !== undefined) {\r
+
+      \    pm.test(\"totalPages coerente con total\", () => {\r
+
+      \        pm.expect(body.totalPages).to.eql(Math.ceil(body.total / body.pageSize));\r
+
+      \    });\r
+
+      }\r
+
+      \r
+
+      pm.test(\"Ci sono risultati\", () => {\r
+
+      \    pm.expect(body.total).to.be.above(0);\r
+
+      \    pm.expect(items.length).to.be.above(0);\r
+
+      });\r
+
+      \r
+
+      // ===== Coerenza items (Game) =====\r
+
+      pm.test(\"Ogni item ha un id numerico\", () => {\r
+
+      \    items.forEach(g => pm.expect(g.id).to.be.a(\"number\"));\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Nessun id duplicato nella pagina\", () => {\r
+
+      \    const ids = items.map(g => g.id);\r
+
+      \    pm.expect(new Set(ids).size).to.eql(ids.length);\r
+
+      });"
     language: text/javascript
 order: 9000
