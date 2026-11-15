@@ -67,7 +67,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 {
 	options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention();
 
-	// Parameter values in logs: development only
 	if (builder.Environment.IsDevelopment())
 		options.EnableSensitiveDataLogging().EnableDetailedErrors();
 });
@@ -102,6 +101,7 @@ app.MapHealthChecks("/health");
 app.UseCors("Frontend");
 
 // Configure the HTTP request pipeline.
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -120,6 +120,6 @@ app.UseRateLimiter();
 app.MapControllers();
 
 app.MapAuthEndpoints();
-
 app.MapMeEndpoints();
 app.Run();
+
