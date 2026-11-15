@@ -70,7 +70,7 @@ Three developers, one area each. Everyone owns the folders of their area: work i
 - Endpoints `api/games`, `api/genres`, `api/platforms`, `api/studios`
 - Twitch token, in-memory cache, retries and timeouts towards IGDB
 - IGDB errors turned into a single `502` with `ProblemDetails`
-- API tests (cache, resilience, errors, CORS) and the Postman collection of the games
+- Postman collection of the games
 
 ### [@fmartini02](https://github.com/fmartini02) – Client and interface
 
@@ -87,7 +87,7 @@ Three developers, one area each. Everyone owns the folders of their area: work i
 - EF Core with Npgsql, the tables and all the migrations ([ADR-05](DOCS/adr/adr-05-database.md))
 - Login with cookie, password hashing and session stamp, instead of ASP.NET Core Identity ([ADR-04](DOCS/adr/adr-04-login-cookie.md))
 - Protected endpoints `api/me`: favorites, wishlist, profile, account delete ([ADR-06](DOCS/adr/adr-06-account-preferiti.md))
-- Database CI workflow, database tests and the Postman collection of the account
+- Database CI workflow and the Postman collection of the account
 
 ### Together
 

@@ -25,8 +25,6 @@ In Development the OpenAPI document is at `/openapi/v1.json`; `GET /health` answ
 | `Data/` | `AppDbContext`, entities, EF Core configurations and migrations, `/api/me` endpoints |
 | `Errors/` | IGDB failure → `502` |
 
-Tests are in `GameExplorer.Api.Tests/`.
-
 ## Configuration
 
 The connection string and the two IGDB keys come from `secrets/` as environment variables: `make dev` sets them, without `make` see [B3](../db/README.md#b3-set-the-backend-variables). The API stops at startup if one is missing.
@@ -130,4 +128,4 @@ The database stores only game ids: the cards of favorites and wishlist come from
 
 ## Tests
 
-`make test` ([db/README.md](../db/README.md#path-a-with-make)). IGDB and Twitch are faked, so no keys are needed; Docker must be running for the database tests.
+The Web API has no automated tests: it is checked by hand with the Postman collections, see [DOCS/test-postman.md](../DOCS/test-postman.md).
