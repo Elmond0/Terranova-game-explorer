@@ -1,0 +1,23 @@
+@* Messaggio "… non trovato/a" uguale per la pagina 404, la scheda gioco e la pagina dello studio *@
+<MudStack AlignItems="AlignItems.Center" Class="py-8">
+	<MudIcon
+		Icon="@Icons.Material.Filled.SearchOff"
+		Size="Size.Large"
+		Class="mud-text-secondary"
+	/>
+	<MudText Typo="Typo.h4" HtmlTag="h1" Align="Align.Center">
+		@Title
+	</MudText>
+	<MudText Align="Align.Center">@Text</MudText>
+	<MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary">
+		Torna alla home
+	</MudButton>
+</MudStack>
+
+@code {
+	[Parameter, EditorRequired]
+	public string Title { get; set; } = "";
+
+	[Parameter, EditorRequired]
+	public string Text { get; set; } = "";
+}

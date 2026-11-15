@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using  Microsoft.AspNetCore.Components.Authorization;
 using System.Net;
 using GameExplorer.Shared.Models;
+using System.Text.Json;
 
 namespace GameExplorer.Client.Services.Auth;
 
@@ -36,7 +37,7 @@ public class CookieAuthenticationStateProvider :  AuthenticationStateProvider
 			var identity = new ClaimsIdentity(claims, "Cookies");
 			return new AuthenticationState(new ClaimsPrincipal(identity));
 		}
-		catch (HttpRequestException)
+		catch(Exception ex) when (ex is HttpRequestException or JsonException)
 		{
 			return Anonymous;
 		}
@@ -56,8 +57,15 @@ public class CookieAuthenticationStateProvider :  AuthenticationStateProvider
 		var response = await _http.PostAsJsonAsync("api/account/register", new { email, password });
 		if (response.StatusCode == HttpStatusCode.BadRequest)
 		{
-			var problem = await response.Content.ReadFromJsonAsync<RegisterErrors>();
-			return problem?.Errors?.Keys.ToArray() ?? ["Unknown"];
+			try
+			{
+				var problem = await response.Content.ReadFromJsonAsync<RegisterErrors>();
+				return problem?.Errors?.Keys.ToArray() ?? ["Unknown"];
+			}
+			catch (JsonException)
+			{
+				return ["Unknown"];
+			}
 		}
 		response.EnsureSuccessStatusCode();
 		await LoginAsync(email, password);

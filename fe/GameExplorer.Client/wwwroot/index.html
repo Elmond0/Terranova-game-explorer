@@ -7,6 +7,17 @@
 	<title>Game Explorer</title>
 	<base href="/" />
 	<link rel="preload" id="webassembly" />
+	<script>
+		// Gira prima di Blazor e decide il tema: quello salvato, altrimenti quello del sistema.
+		// data-theme serve ai colori del caricamento (app.css) e a MainLayout, che parte con lo stesso tema:
+		// così non c'è nessun lampo di colore diverso.
+		(function () {
+			var saved = null;
+			try { saved = localStorage.getItem('theme'); } catch (e) { }
+			var dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+			document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+		})();
+	</script>
 	<link rel="stylesheet" href="css/app.css" />
 	<link rel="icon" type="image/png" href="favicon.png" />
 	<link href="GameExplorer.Client.styles.css" rel="stylesheet" />
