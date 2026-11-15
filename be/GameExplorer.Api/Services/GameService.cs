@@ -1,17 +1,6 @@
-﻿using System.Text.Json;
-using System.Net;
-using System.Linq;
-using GameExplorer.Api.Services.IgdbDtos;
+﻿using GameExplorer.Api.Services.IgdbDtos;
 using GameExplorer.Shared.Models;
-using Microsoft.Extensions.Options;
-using System.Runtime.CompilerServices;
-using GameExplorer.Api.Errors;
 using Microsoft.Extensions.Caching.Hybrid;
-using Microsoft.AspNetCore.DataProtection.KeyManagement.Internal;
-using Polly;
-using Polly.Timeout;
-using Microsoft.AspNetCore.Mvc.Diagnostics;
-using Microsoft.Net.Http.Headers;
 
 namespace GameExplorer.Api.Services;
 
@@ -97,13 +86,13 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 			options,
 			cancellationToken: ct);
 	
-	private async Task<List<T>>	GetCachedListAsync<TRaw, T>( string cacheKey, string query, Func<TRaw, T> convert, HybridCacheEntryOptions options, CancellationToken ct)
+	private async Task<List<T>>	GetCachedListAsync<TRaw, T>( string cacheKey, (string query, string pagination, string sort) body, Func<TRaw, T> convert, HybridCacheEntryOptions options, CancellationToken ct)
 		where TRaw: IIgdbEntity =>
 		await cache.GetOrCreateAsync(
 			cacheKey,
 			async cancel =>
 			{
-				var raw = await igdb.QueryAsync<TRaw>(TRaw.Fields + query, cancel);
+				var raw = await igdb.QueryAsync<TRaw>(TRaw.Fields + body.query + body.pagination + body.sort, cancel);
 				return raw.Select(convert).ToList();
 			},
 			options,
@@ -128,23 +117,44 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 	}
 	
 	internal async Task<List<Genre>?> GetGenresAsync( CancellationToken ct ) => 
-		await GetCachedListAsync<IgdbGenre, Genre>( "genres", "limit 500; sort name;", IgdbMapper.ToGenre, IgdbCache.Lookup, ct );
+		await GetCachedListAsync<IgdbGenre, Genre>( "genres", IgdbQueryFields.Genres(), IgdbMapper.ToGenre, IgdbCache.Lookup, ct );
 	
-	internal async Task<List<Platform>?> GetPlatformsAsync( CancellationToken ct ) => 
-		await GetCachedListAsync<IgdbPlatform, Platform>( "platforms", "limit 500; sort name;", IgdbMapper.ToPlatform, IgdbCache.Lookup, ct );
+	private static readonly int[] MainPlatformIds = { 6, 167, 169, 130, 48, 49 }; // PC, PS5, Xbox Series, Switch, PS4, Xbox One
+
+	internal async Task<List<Platform>?> GetPlatformsAsync(CancellationToken ct)
+	{
+		var platforms = await GetCachedListAsync<IgdbPlatform, Platform>( "platforms", IgdbQueryFields.Platforms(), IgdbMapper.ToPlatform, IgdbCache.Lookup, ct );
+		var rank = MainPlatformIds
+			.Select((id, index) => (id, index))
+			.ToDictionary(x => x.id, x => x.index);
+		
+		return platforms
+			.OrderBy(p => rank.TryGetValue(p.Id, out var i) ? i : int.MaxValue)
+			.ThenBy(p => p.Name)                                             
+			.ToList();
+	}
 
 	internal async Task<List<Game>> GetPlatformHighlightsAsync(int id, CancellationToken ct) =>
 		await GetCachedListAsync<IgdbGame, Game>(IgdbCache.PlatformHighlightsKey(id),
 			IgdbQueryFields.PlatformHighlights(id), IgdbMapper.ToGame, IgdbCache.Home, ct);
 	
-	internal async Task<List<Game>>	GetTopRatedAsync( CancellationToken ct ) =>
-		await GetCachedListAsync<IgdbGame, Game>( "top-rated", IgdbQueryFields.TopRated, IgdbMapper.ToGame, IgdbCache.Home, ct );
+	internal async Task<List<Game>>	GetHomeTopRatedAsync( CancellationToken ct ) =>
+		await GetCachedListAsync<IgdbGame, Game>( "home:top-rated", IgdbQueryFields.TopRated(), IgdbMapper.ToGame, IgdbCache.Home, ct );
+	
+	internal async Task<PagedResult<Game>>	GetTopRatedAsync( int page, int pageSize, CancellationToken ct ) =>
+		await GetCachedPagedResultAsync<IgdbGame, Game>( IgdbCache.TopRatedKey(page, pageSize), IgdbQueryFields.TopRated(page, pageSize), page, pageSize, IgdbMapper.ToGame, IgdbCache.Home, ct );
 
-	internal async Task<List<Game>>	GetRecentAsync( CancellationToken ct ) =>
-		await GetCachedListAsync<IgdbGame, Game>( "recent",  IgdbQueryFields.Recent, IgdbMapper.ToGame, IgdbCache.Home, ct );
+	internal async Task<List<Game>>	GetHomeRecentAsync( CancellationToken ct ) =>
+		await GetCachedListAsync<IgdbGame, Game>( "home:recent",  IgdbQueryFields.Recent(), IgdbMapper.ToGame, IgdbCache.Home, ct );
+	
+	internal async Task<PagedResult<Game>>	GetRecentAsync( int page, int pageSize, CancellationToken ct ) =>
+		await GetCachedPagedResultAsync<IgdbGame, Game>( IgdbCache.RecentKey(page, pageSize), IgdbQueryFields.Recent(page, pageSize, false), page, pageSize, IgdbMapper.ToGame, IgdbCache.Home, ct );
 
-	internal async Task<List<Game>>	GetUpcomingAsync( CancellationToken ct ) =>
-		await GetCachedListAsync<IgdbGame, Game>( "upcoming", IgdbQueryFields.Upcoming, IgdbMapper.ToGame, IgdbCache.Home, ct );
+	internal async Task<List<Game>>	GetHomeUpcomingAsync( CancellationToken ct ) =>
+		await GetCachedListAsync<IgdbGame, Game>( "home:upcoming", IgdbQueryFields.Upcoming(), IgdbMapper.ToGame, IgdbCache.Home, ct );
+	
+	internal async Task<PagedResult<Game>>	GetUpcomingAsync( int page, int pageSize, CancellationToken ct ) =>
+		await GetCachedPagedResultAsync<IgdbGame, Game>( IgdbCache.UpcomingKey(page, pageSize), IgdbQueryFields.Recent(page, pageSize, false), page, pageSize, IgdbMapper.ToGame, IgdbCache.Home, ct );
 
 	internal async Task<Studio?> GetStudioDetailsAsync(int id, CancellationToken ct) =>
 		await cache.GetOrCreateAsync(
@@ -163,6 +173,6 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 			IgdbQueryFields.StudioUpcoming(id), IgdbMapper.ToGame, IgdbCache.Details, ct);
 	
 	internal async Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, int pageSize, CancellationToken ct) =>
-		await GetCachedPagedResultAsync<IgdbGame, Game>(IgdbCache.StudioGamesKey(id, page),
+		await GetCachedPagedResultAsync<IgdbGame, Game>(IgdbCache.StudioGamesKey(id, page, pageSize),
 			IgdbQueryFields.StudioGames(id, page, pageSize), page, pageSize, IgdbMapper.ToGame, IgdbCache.Details, ct);
 }

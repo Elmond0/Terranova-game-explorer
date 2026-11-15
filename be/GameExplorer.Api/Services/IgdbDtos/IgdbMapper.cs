@@ -6,7 +6,7 @@ internal static class IgdbMapper
 {
 	public const string CoverSize = "t_cover_big";
 	public const string ScreenshotSize = "t_screenshot_big";
-	public const string LogoSize = "t_original";
+	public const string OriginalSize = "t_original";
 	
 	private static List<TOut> MapTo<TIn, TOut>(this IEnumerable<TIn>? source, Func<TIn, TOut> map) =>
 		source?
@@ -75,7 +75,7 @@ internal static class IgdbMapper
 		Id = r.Id,
 		Slug = r.Slug,
 		Name = r.Name,
-		Image = (r.Logo is not null ? r.Logo.ToImage(LogoSize) : null),
+		Image = (r.Logo is not null ? r.Logo.ToImage(OriginalSize) : null),
 		About = r.Description,
 		CountryId = r.CountryId,
 		StartDate = FromUnix(r.StartDate),
@@ -101,6 +101,8 @@ internal static class IgdbMapper
 	public static GameDetails		ToDetails( this IgdbGameDetails r )
 	{
 		var _base = r.ToGame();
+		var image = _base.Image;
+		image.Url = _base.Image.Url.ToImageUrl(OriginalSize);
 
 		return new GameDetails
 		{
@@ -117,9 +119,14 @@ internal static class IgdbMapper
 			Storyline = r.StoryLine,
 			Website = r.Websites?.FirstOrDefault(w => w.Type == 1)?.Url,
 			
-			Developers = r.Studios
+			Developers = (r.Studios ?? [])
 				.Where(c => c.Developer == true)
-				.Select(c => c.Studio.ToStudio() ?? null)
+				.Select(c => c.Studio.ToStudio())
+				.ToList(),
+			
+			Publishers = (r.Studios ?? [])
+				.Where(c => c.Publisher == true)
+				.Select(c => c.Studio.ToStudio())
 				.ToList(),
 
 			Screenshots = r.Screenshots.MapTo(s => s.ToImage(ScreenshotSize))

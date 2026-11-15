@@ -1,0 +1,8 @@
+$kind: http-request
+name: GET home/top-rated - 200
+url: "{{api_domain}}home/top-rated"
+method: GET
+body:
+  type: text
+  content: ""
+order: 26000
