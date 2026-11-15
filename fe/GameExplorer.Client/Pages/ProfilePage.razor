@@ -5,14 +5,26 @@
 @inject ISnackbar Snackbar
 @using System.Net
 
-<PageTitle>Profilo</PageTitle>
+<PageTitle>Profilo · Game Explorer</PageTitle>
 <MudText
 	Typo="Typo.h4"
 	HtmlTag="h1"
 	Class="mb-4">
 		Il mio profilo
 </MudText>
-@if (_error)
+@if (_needsLogin)
+{
+	@* Messaggio con pulsante invece di un redirect automatico: un redirect mentre la pagina si apre
+	   lascia /profile nella cronologia, e il tasto Indietro riporterebbe sempre all'accesso *@
+	<MudStack AlignItems="AlignItems.Center" Class="py-8">
+		<MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Class="mud-text-secondary" />
+		<MudText Align="Align.Center">Accedi per vedere il tuo profilo, i preferiti e la wishlist.</MudText>
+		<MudButton Href="@Navigation.LoginUrl()" Variant="Variant.Filled" Color="Color.Primary">
+			Accedi
+		</MudButton>
+	</MudStack>
+}
+else if (_error)
 {
 	<ErrorMessage OnRetry="LoadAsync"/>
 }
@@ -42,6 +54,7 @@ else
 		Immediate="true"
 		MaxLength="30"
 		Class="mb-4"
+		HelperText="Obbligatorio per salvare il profilo"
 	/>
 	<MudText Typo="Typo.subtitle2" Class="mb-2">Scegli il tuo avatar</MudText>
 	<MudStack
@@ -165,13 +178,15 @@ else
 	private string? _removeError;
 	private bool _saving;
 	private string? _saveError;
+	// Non entrato, o sessione scaduta mentre la pagina si apre: si mostra il pulsante "Accedi"
+	private bool _needsLogin;
 
 	protected override async Task OnInitializedAsync()
 	{
 		var state = AuthState is null ? null : await AuthState;
 		if (state?.User.Identity?.IsAuthenticated != true)
 		{
-			Navigation.NavigateTo("/account/login", replace: true);
+			_needsLogin = true;
 			return;
 		}
 		await LoadAsync();
@@ -190,6 +205,10 @@ else
 			_nickname = _profile.DisplayName ?? "";
 			_selectedAvatar = _profile.Avatar;
 		}
+		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			_needsLogin = true;
+		}
 		catch (ApiException)
 		{
 			_error = true;
@@ -203,6 +222,10 @@ else
 			await Api.RemoveFavoriteAsync(game.Id);
 			_favorites?.Remove(game);
 		}
+		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			Navigation.NavigateToLogin();
+		}
 		catch (ApiException)
 		{
 			_removeError = "Non è stato possibile togliere il gioco. Riprova.";
@@ -215,6 +238,10 @@ else
 		{
 			await Api.RemoveFromWishlistAsync(game.Id);
 			_wishlist?.Remove(game);
+		}
+		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			Navigation.NavigateToLogin();
 		}
 		catch (ApiException)
 		{
@@ -231,9 +258,12 @@ else
 	}
 	private async Task SaveProfileAsync()
 	{
-		if (ValidateNickname(_nickname) is not null)
-			return;
 		_saveError = null;
+		if (ValidateNickname(_nickname) is { } nicknameError)
+		{
+			_saveError = $"Nickname: {nicknameError}";
+			return;
+		}
 		_saving = true;
 		try
 		{
@@ -241,6 +271,10 @@ else
 			_profile = _profile! with { DisplayName = _nickname, Avatar = _selectedAvatar };
 			Auth.RefreshProfile();
 			Snackbar.Add("Profilo salvato", Severity.Success);
+		}
+		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			Navigation.NavigateToLogin();
 		}
 		catch (ApiException ex)
 		{

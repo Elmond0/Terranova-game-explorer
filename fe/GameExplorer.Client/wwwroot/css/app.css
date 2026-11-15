@@ -2,6 +2,50 @@ h1:focus {
     outline: none;
 }
 
+/* Colori mentre l'app si carica, prima che MudBlazor applichi il tema.
+   data-theme lo scrive lo script in index.html. Il body usa già var(--mud-palette-background)
+   (regola di MudBlazor): qui si dà solo un valore di riserva alle sue variabili.
+   :where() ha specificità zero, quindi appena MudBlazor scrive il tema (:root) vince il suo valore,
+   e il pulsante "Cambia tema" continua a funzionare. Colorare direttamente il body invece bloccherebbe
+   lo sfondo su quello dell'avvio. */
+:where(html[data-theme="dark"]) {
+    --mud-palette-background: #32333d;
+    --mud-palette-text-primary: rgba(255, 255, 255, 0.70);
+}
+
+:where(html[data-theme="light"]) {
+    --mud-palette-background: #ffffff;
+    --mud-palette-text-primary: #424242;
+}
+
+/* Contenuto della pagina (MainLayout): alto almeno quanto lo schermo, in colonna.
+   Il footer prende tutto lo spazio libero sopra di sé, quindi resta in fondo anche nelle pagine corte. */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-content > footer {
+    margin-top: auto;
+}
+
+/* Pulsante con avatar e nome nella navbar (MainLayout): il nome resta come è scritto,
+   invece del MAIUSCOLO che MudBlazor usa per i pulsanti.
+   Il maiuscolo MudBlazor lo mette sull'etichetta interna del pulsante (.mud-button-label), non sul pulsante */
+.navbar-user .mud-button-label {
+    text-transform: none;
+}
+
+/* Il nome (o l'email, se manca il nickname): se è troppo lungo viene tagliato con "…"
+   invece di andare a capo insieme a "Game Explorer" */
+.navbar-user-name {
+    max-width: 160px;
+    overflow: hidden;            /* quello che esce dai 160px non si vede */
+    text-overflow: ellipsis;     /* al posto del pezzo nascosto compare "…" */
+    white-space: nowrap;         /* tutto su una riga */
+}
+
 .valid.modified:not([type=checkbox]) {
     outline: 1px solid #26b050;
 }

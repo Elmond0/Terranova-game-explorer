@@ -50,6 +50,17 @@
 	overflow: hidden;
 }
 
+/* Nome della famiglia di piattaforme (PC, PlayStation, …): piccola etichetta con il bordo */
+.platform-tag {
+	font-size: 0.75rem;
+	line-height: 1.5;
+	padding: 0 6px;
+	border: 1px solid var(--mud-palette-lines-default);
+	border-radius: 4px;
+	color: var(--mud-palette-text-secondary);
+	white-space: nowrap;
+}
+
 /* Chi ha chiesto meno animazioni nelle impostazioni del sistema */
 @media (prefers-reduced-motion: reduce) {
 	.game-card {
