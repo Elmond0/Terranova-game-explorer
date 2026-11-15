@@ -213,7 +213,7 @@ public class FakeGameApiClient : IGameApiClient
 
 	// the studios of the GTA V page plus a test one without image or description and with enough games for two pages,
 	// to try the empty states and the pagination. Every studio has an unrated game (Rating 0) to try the average rating
-	private static readonly Studio TestStudio = new Studio { Id = 900400, Name = "Studio di prova", Slug = "studio-di-prova" };
+	private static readonly Studio TestStudio = new Studio { Id = 900400, Name = "Studio di prova", Slug = "studio-di-prova", StatusId = 1 };
 	private static readonly List<(Studio Studio, int[] GameIds)> Studios =
 	[
 		(new Studio

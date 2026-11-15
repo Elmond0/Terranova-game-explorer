@@ -172,13 +172,25 @@ else
 	private string? CountryName =>
 		_studio?.CountryId is int id && CountryNames.ByIsoNumeric.TryGetValue(id, out var name) ? name : null;
 
-	// joined in code so the "·" separator only appears when both parts exist
+	// IGDB company status: 0 active, 1 defunct, 2 merged, 3 renamed (read from real studios, the docs are not reachable).
+	// 0 is also IGDB's value when it knows nothing, so only the changes are shown: "In attività" would often be wrong
+	private static readonly Dictionary<int, string> StatusNames = new()
+	{
+		[1] = "Chiuso",
+		[2] = "Fuso in un'altra azienda",
+		[3] = "Rinominato",
+	};
+
+	private string? StatusName =>
+		_studio is not null && StatusNames.TryGetValue(_studio.StatusId, out var name) ? name : null;
+
+	// joined in code so the "·" separator only appears between the parts that exist
 	private string? StudioFacts
 	{
 		get
 		{
 			var founded = _studio?.StartDate is DateOnly date ? $"Fondato nel {date.Year}" : null;
-			var parts = new[] { CountryName, founded }.Where(p => p is not null);
+			var parts = new[] { CountryName, founded, StatusName }.Where(p => p is not null);
 			return parts.Any() ? string.Join(" · ", parts) : null;
 		}
 	}
