@@ -218,7 +218,7 @@ else
 	private const int AboutTolerance = 150;
 	// IGDB already sends its largest file (t_original): more than twice its real size would look blurred
 	private static string? CoverMaxWidth(Image image) => image.Width > 0
-		? $"max-width: {image.Width * 2}px"
+		? $"width: 100%; max-width: min(100%, {image.Width * 2}px)"
 		: null;
 	private CancellationTokenSource? _cts;
 	private bool _aboutExpanded;
