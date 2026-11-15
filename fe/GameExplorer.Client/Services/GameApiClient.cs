@@ -9,6 +9,7 @@ public class GameApiClient : IGameApiClient
 {
 	private readonly HttpClient _http;
 	private readonly CookieAuthenticationStateProvider _auth;
+	private const int ListPageSize = 24;
 
 	public GameApiClient(HttpClient http, CookieAuthenticationStateProvider auth)
 	{
@@ -46,7 +47,7 @@ public class GameApiClient : IGameApiClient
 	// the three "see all" lists differ only by name: one place decides how a page is asked to the web api
 	private async Task<PagedResult<Game>> GetGamesPageAsync(string list, int page, CancellationToken cancellationToken)
 	{
-		var games = await GetAsync<PagedResult<Game>>($"api/games/{list}?page={page}", false, cancellationToken);
+		var games = await GetAsync<PagedResult<Game>>($"api/games/{list}?page={page}&pageSize={ListPageSize}", false, cancellationToken);
 		return games ?? new PagedResult<Game>();
 	}
 

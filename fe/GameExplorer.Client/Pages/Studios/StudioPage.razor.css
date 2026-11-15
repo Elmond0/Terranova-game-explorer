@@ -1,20 +1,27 @@
-/* studio logos have no fixed shape (square, wide or narrow), so they keep their proportions
-   and shrink without cropping until they fit the column and 160px of height */
-.logo ::deep img {
-	max-width: 100%;
-	max-height: 160px;
-	object-fit: contain;
+/* one box for logo and placeholder: logos have any shape (square, wide, narrow),
+   so the box has a fixed height and the logo is centered in it */
+.logo-box {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 240px;
+		padding: 16px;
+		background: var(--mud-palette-background-gray);
+		color: var(--mud-palette-text-disabled);
 }
 
-/* placeholder for a studio without a logo: square and as tall as the largest logo,
-   so the page has the same shape with and without an image */
-.cover-placeholder {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background: var(--mud-palette-background-gray);
-	color: var(--mud-palette-text-disabled);
-	width: 160px;
-	aspect-ratio: 1 / 1;
-	max-width: 100%;
+/* the logo grows to fill the box without cropping; the max-width/max-height
+   written by MaxUpscale stop it at twice its real size */
+.logo-box ::deep img {
+		width: 100%;
+		height: 100%;
+}
+
+/* bigger text, and lines of about 70 characters: longer lines are hard to follow */
+.about {
+		margin: 16px 0 0;
+		max-width: 70ch;
+		font-size: 1.125rem;
+		line-height: 1.7;
+		white-space: pre-line
 }

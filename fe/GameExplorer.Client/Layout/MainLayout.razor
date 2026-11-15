@@ -5,7 +5,7 @@
 @inject SearchFocusService SearchFocus
 @inject IBrowserViewportService Viewport
 
-<MudThemeProvider @bind-IsDarkMode="_isDarkMode"/>
+<MudThemeProvider @bind-IsDarkMode="_isDarkMode" Theme="_theme"/>
 <MudPopoverProvider/>
 <MudDialogProvider />
 <MudSnackbarProvider/>
@@ -157,6 +157,41 @@
 
 @code {
 	private bool _isDarkMode = true;
+	// one theme for the whole site: pages use Color.Primary and the --mud-palette-* variables, never fixed colors.
+		// The loading colors in app.css (data-theme) must match Background and TextPrimary, or the old ones flash at startup
+	private readonly MudTheme _theme = new()
+	{
+		PaletteLight = new PaletteLight
+		{
+			Primary = "#BE185D",
+			Secondary = "#0E7490",
+			Background = "#FBF5FA",
+			BackgroundGray = "#F3E8F1",
+			Surface = "#FFFFFF",
+			DrawerBackground = "#FFFFFF",
+			AppbarBackground = "#BE185D",
+			AppbarText = "#FFFFFF",
+			TextPrimary = "#24131F",
+			TextSecondary = "#6B5566",
+			LinesDefault = "#EBDDE7",
+		},
+		PaletteDark = new PaletteDark
+		{
+			Primary = "#F472B6",
+			// the dark primaries are light colors: white text on them would be hard to read
+			PrimaryContrastText = "#120B1F",
+			Secondary = "#22D3EE",
+			SecondaryContrastText = "#120B1F",
+			Background = "#120B1F",
+			BackgroundGray = "#2A1F40",
+			Surface = "#1D1430",
+			DrawerBackground = "#1D1430",
+			AppbarBackground = "#1D1430",
+			TextPrimary = "#F5EEFF",
+			TextSecondary = "#B8A9D1",
+			LinesDefault = "#33264D",
+		},
+	};
 	private bool _drawerOpen = true;
 
 	private const string ThemeKey = "theme";

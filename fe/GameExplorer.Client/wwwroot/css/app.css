@@ -9,13 +9,13 @@ h1:focus {
    and the theme button keeps working. Coloring the body directly would lock the background
    to the startup one */
 :where(html[data-theme="dark"]) {
-    --mud-palette-background: #32333d;
-    --mud-palette-text-primary: rgba(255, 255, 255, 0.70);
+    --mud-palette-background: #120B1F;
+    --mud-palette-text-primary: #F5EEFF;
 }
 
 :where(html[data-theme="light"]) {
-    --mud-palette-background: #ffffff;
-    --mud-palette-text-primary: #424242;
+    --mud-palette-background: #FBF5FA;
+    --mud-palette-text-primary: #24131F;
 }
 
 /* page content (MainLayout): at least as tall as the screen, in a column.
@@ -95,7 +95,7 @@ h1:focus {
     }
 
         .loading-progress circle:last-child {
-            stroke: #1b6ec2;
+            stroke: #D9468A;
             stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
             transition: stroke-dasharray 0.05s ease-in-out;
         }
