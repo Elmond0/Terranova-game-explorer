@@ -106,7 +106,7 @@ then the [migrations](#migrations) (and the [backend secrets](#backend-secrets) 
 |---|---|---|
 | `terranova` | you: maintenance and backups | everything (superuser) |
 | `terranova_app` | `migrate.sh` and restore | create, alter and drop tables (owner of the database) |
-| `terranova_api` | the backend, at runtime | `SELECT`, `INSERT`, `UPDATE`, `DELETE` on rows; **not** `CREATE`, `ALTER`, `DROP`, `TRUNCATE` |
+| `terranova_api` | the backend, at runtime | `SELECT`, `INSERT`, `UPDATE`, `DELETE` on rows, only `SELECT` on `__EFMigrationsHistory`; **not** `CREATE`, `ALTER`, `DROP`, `TRUNCATE` |
 
 `db/init/01-app-user.sh` creates `terranova_app`, `db/init/02-api-user.sh` creates `terranova_api`. Both read the password from the secret files that Docker mounts in the container (`/run/secrets/`).
 Tables that `terranova_app` creates later (EF Core migrations) are readable and writable by `terranova_api` automatically (`ALTER DEFAULT PRIVILEGES`).

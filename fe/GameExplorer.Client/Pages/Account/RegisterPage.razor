@@ -3,61 +3,121 @@
 @inject NavigationManager Navigation
 
 
-<PageTitle>Registrati</PageTitle>
+<PageTitle>Registrati · Game Explorer</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Small">
 	<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">Registrati</MudText>
 
-	<MudPaper Class="pa-6">
-		<form @onsubmit="SubmitAsync">
-			<MudTextField
-				@bind-Value="_email"
-				Label="Email"
-				InputType="InputType.Email"
-				Class="mb-3"
-			/>
-			<MudTextField
-				@bind-Value="_password"
-				Label="Password"
-				InputType="InputType.Password"
-				HelperText="Almeno 6 caratteri, con maiuscola, minuscola, numero e simbolo"
-				Class="mb-3"
-			/>
+	@if (_alreadyLoggedIn)
+	{
+		@* Messaggio invece di un redirect automatico: un redirect mentre la pagina si apre resta
+		   nella cronologia e il tasto Indietro riporterebbe sempre qui *@
+		<MudAlert Severity="Severity.Info" Class="mb-4">Hai già un account e hai fatto l'accesso.</MudAlert>
+		<MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary">Vai alla home</MudButton>
+	}
+	else
+	{
+		<MudPaper Class="pa-6">
+			<form @onsubmit="SubmitAsync">
+				<MudTextField
+					@bind-Value="_email"
+					Label="Email"
+					InputType="InputType.Email"
+					Class="mb-3"
+					name="email"
+					autocomplete="username"
+				/>
+				<MudTextField
+					@bind-Value="_password"
+					Label="Password"
+					InputType="InputType.Password"
+					HelperText="Da 8 a 128 caratteri, con almeno una lettera maiuscola e un carattere speciale"
+					Class="mb-3"
+					Error="@(PasswordError is not null)"
+					ErrorText="@PasswordError"
+					name="new-password"
+					autocomplete="new-password"
+				/>
+				<MudTextField
+					@bind-Value="_passwordConfirmation"
+					Label="Conferma password"
+					InputType="InputType.Password"
+					Class="mb-3"
+					Error="@(ConfirmationError is not null)"
+					ErrorText="@ConfirmationError"
+					name="confirm-password"
+					autocomplete="new-password"
+				/>
 
-			@if (_error is not null)
-			{
-				<MudAlert
-					Severity="Severity.Error"
-					Class="mb-3">
-					@_error
-				</MudAlert>
-			}
+				@if (_error is not null)
+				{
+					<MudAlert
+						Severity="Severity.Error"
+						Class="mb-3">
+						@_error
+					</MudAlert>
+				}
 
-			<MudButton
-				ButtonType="ButtonType.Submit"
-				Disabled="_busy"
-				Variant="Variant.Filled"
-				Color="Color.Primary">
-				Registrati
-			</MudButton>
-		</form>
-	</MudPaper>
+				<MudButton
+					ButtonType="ButtonType.Submit"
+					Disabled="_busy"
+					Variant="Variant.Filled"
+					Color="Color.Primary">
+					Registrati
+				</MudButton>
+			</form>
+		</MudPaper>
 
-	<MudText Class="mt-4">
-		Hai già un account? <MudLink Href="/account/login">Accedi</MudLink>
-	</MudText>
+		<MudText Class="mt-4">
+			Hai già un account? <MudLink Href="/account/login">Accedi</MudLink>
+		</MudText>
+	}
 </MudContainer>
 
 @code{
+	[CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+	private const string PasswordDiffMessage = "Le password non coincidono";
+	private const string PasswordLengthMessage = "La password deve avere da 8 a 128 caratteri";
+	private const string PasswordUpperMessage = "La password deve contenere almeno una lettera maiuscola";
+	private const string PasswordSpecialMessage = "La password deve contenere almeno un carattere speciale";
+
 	private string _email = "";
 	private string _password = "";
+	private string _passwordConfirmation = "";
 	private string? _error;
 	private bool _busy;
+	private string? PasswordError => string.IsNullOrEmpty(_password) ? null : ValidatePassword(_password);
+	private string? ConfirmationError => !string.IsNullOrEmpty(_passwordConfirmation) && _password != _passwordConfirmation ? PasswordDiffMessage : null;
+
+	private bool _alreadyLoggedIn;
+
+	// Chi è già entrato non vede il form, ma un pulsante per tornare alla home
+	protected override async Task OnInitializedAsync()
+	{
+		var state = AuthState is null ? null : await AuthState;
+		_alreadyLoggedIn = state?.User.Identity?.IsAuthenticated == true;
+	}
 
 	private async Task SubmitAsync()
 	{
-		_busy = true;
 		_error = null;
+		// Senza email è inutile chiamare la Web API
+		if (string.IsNullOrWhiteSpace(_email))
+		{
+			_error = "Inserisci l'email";
+			return;
+		}
+		if (ValidatePassword(_password) is { } passwordError)
+		{
+			_error = passwordError;
+			return;
+		}
+		if (_password != _passwordConfirmation)
+		{
+			_error = PasswordDiffMessage;
+			return;
+		}
+		_busy = true;
 		try
 		{
 			var errors = await Auth.RegisterAsync(_email, _password);
@@ -81,10 +141,38 @@
 		{
 			return "Questa email è già registrata";
 		}
-		if (errors.Any(e => e.StartsWith("Password")))
+		if (errors.Contains("InvalidEmail"))
 		{
-			return "La password deve avere almeno 6 caratteri, una maiuscola, una minuscola, un numero e un simbolo";
+			return "Email non valida";
+		}
+		if (errors.Contains("PasswordLength"))
+		{
+			return PasswordLengthMessage;
+		}
+		if (errors.Contains("PasswordRequiresUpper"))
+		{
+			return PasswordUpperMessage;
+		}
+		if (errors.Contains("PasswordRequiresNonAlphanumeric"))
+		{
+			return PasswordSpecialMessage;
 		}
 		return "Registrazione non riuscita";
+	}
+	private static string? ValidatePassword(string password)
+	{
+		if (password.Length < 8 || password.Length > 128)
+		{
+			return PasswordLengthMessage;
+		}
+		if (!password.Any(char.IsUpper))
+		{
+			return PasswordUpperMessage;
+		}
+		if (!password.Any(c => !char.IsLetterOrDigit(c)))
+		{
+			return PasswordSpecialMessage;
+		}
+		return null;
 	}
 }

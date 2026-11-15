@@ -2,86 +2,205 @@
 @inject IJSRuntime JS
 @inject CookieAuthenticationStateProvider Auth
 @inject NavigationManager Navigation
+@inject SearchFocusService SearchFocus
+@inject IBrowserViewportService Viewport
+
 <MudThemeProvider @bind-IsDarkMode="_isDarkMode"/>
 <MudPopoverProvider/>
 <MudDialogProvider />
 <MudSnackbarProvider/>
 
 <MudLayout>
-    <MudAppBar Elevation="1">
-        <MudLink Href="/" Typo="Typo.h6" Color="Color.Inherit" Underline="Underline.None">
-            Game Explorer
-        </MudLink>
-        <MudSpacer />
-        <MudToggleIconButton
-            Toggled="_isDarkMode"
-            ToggledChanged="OnThemeToggled"
-            Icon="@Icons.Material.Filled.DarkMode"
-            ToggledIcon="@Icons.Material.Filled.LightMode"
-            Color="Color.Inherit"
-            aria-label="Cambia tema"
-        />
-        <AuthorizeView>
-            <Authorized>
-                <MudText Class="mr-2">@context.User.Identity?.Name</MudText>
-                <MudButton Href="/profile" Color="Color.Inherit">Profilo</MudButton>
-                <MudButton OnClick="LogoutAsync" Color="Color.Inherit">Esci</MudButton>
-            </Authorized>
-            <NotAuthorized>
-                <MudButton Href="/account/login" Color="Color.Inherit">Accedi</MudButton>
-                <MudButton Href="/account/register" Color="Color.Inherit">Registrati</MudButton>
-            </NotAuthorized>
-        </AuthorizeView>
-    </MudAppBar>
-    <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="py-6">
-            <ErrorBoundary @ref="_errorBoundary">
-                <ChildContent>
-                    @Body
-                </ChildContent>
-                <ErrorContent>
-                    <ErrorMessage
-                        Message="Si è verificato un errore imprevisto."
-                        OnRetry="() => _errorBoundary?.Recover()"
-                    />
-                </ErrorContent>
-            </ErrorBoundary>
-        </MudContainer>
-        <footer class="py-4">
-            <MudText Typo="Typo.body2" Align="Align.Center" Class="mud-text-secondary">
-                Dati forniti da
-                <MudLink Href="https://www.igdb.com" Target="_blank" rel="noopener">
-                    IGDB
-                </MudLink>
-            </MudText>
-        </footer>
-    </MudMainContent>
+	<MudAppBar Elevation="1">
+		<MudIconButton
+			Icon="@Icons.Material.Filled.Menu"
+			Color="Color.Inherit"
+			Edge="Edge.Start"
+			OnClick="ToggleDrawer"
+			aria-label="Apri il menù"
+		/>
+		<MudLink Href="/" Typo="Typo.h6" Color="Color.Inherit" Underline="Underline.None">
+			Game Explorer
+		</MudLink>
+		<MudSpacer />
+		<AuthorizeView>
+			<Authorized>
+				<MudButton
+					Class="navbar-user"
+					Href="/profile"
+					Color="Color.Inherit"
+					Variant="Variant.Text">
+						<UserAvatar
+							Avatar="@(context.User.FindFirst(CookieAuthenticationStateProvider.AvatarClaimType)?.Value)"
+							Size="Size.Small"
+						/>
+						<span class="ml-2 d-none d-sm-inline navbar-user-name">
+							@context.User.Identity?.Name
+						</span>
+				</MudButton>
+			</Authorized>
+			<NotAuthorized>
+				<MudButton
+					Href="/account/login"
+					Variant="Variant.Outlined"
+					Color="Color.Inherit">
+						Accedi
+				</MudButton>
+			</NotAuthorized>
+		</AuthorizeView>
+		<MudToggleIconButton
+			Toggled="_isDarkMode"
+			ToggledChanged="OnThemeToggled"
+			Icon="@Icons.Material.Filled.DarkMode"
+			ToggledIcon="@Icons.Material.Filled.LightMode"
+			Color="Color.Inherit"
+			aria-label="Cambia tema"
+		/>
+	</MudAppBar>
+	<MudDrawer
+		@bind-Open="_drawerOpen"
+		Variant="DrawerVariant.Responsive"
+		ClipMode="DrawerClipMode.Always"
+		Elevation="1"
+		Breakpoint="Breakpoint.Md">
+			<MudNavMenu>
+				<MudNavLink
+					Href="/"
+					Match="NavLinkMatch.All"
+					Icon="@Icons.Material.Filled.Home">
+						Home
+				</MudNavLink>
+				<MudNavLink
+					OnClick="FocusSearchAsync"
+					Icon="@Icons.Material.Filled.Search"
+					role="button"
+					@onkeydown="e => OnMenuKeyDown(e, FocusSearchAsync)">
+						Cerca
+				</MudNavLink>
+				<MudDivider
+					Class="my-2"
+				/>
+				<AuthorizeView>
+					<Authorized>
+						<MudStack
+							Row="true"
+							AlignItems="AlignItems.Center"
+							Class="px-4 py-2">
+								<UserAvatar
+									Avatar="@(context.User.FindFirst(CookieAuthenticationStateProvider.AvatarClaimType)?.Value)"
+									Size="Size.Small"
+								/>
+								<MudText
+									Typo="Typo.subtitle2">
+										@context.User.Identity?.Name
+								</MudText>
+						</MudStack>
+						<MudNavLink
+							Href="/profile"
+							Icon="@Icons.Material.Filled.Person">
+								Profilo
+						</MudNavLink>
+						<MudNavLink
+							OnClick="LogoutAsync"
+							Icon="@Icons.Material.Filled.Logout"
+							role="button"
+							@onkeydown="e => OnMenuKeyDown(e, LogoutAsync)">
+								Esci
+						</MudNavLink>
+					</Authorized>
+					<NotAuthorized>
+						<MudNavLink
+							Href="/account/login"
+							Icon="@Icons.Material.Filled.Login">
+								Accedi
+						</MudNavLink>
+						<MudNavLink
+							Href="/account/register"
+							Icon="@Icons.Material.Filled.PersonAdd">
+								Registrati
+						</MudNavLink>
+					</NotAuthorized>
+				</AuthorizeView>
+			</MudNavMenu>
+	</MudDrawer>
+	@* main-content (wwwroot/css/app.css): alta almeno quanto lo schermo, così il footer sta in fondo anche nelle pagine corte *@
+	<MudMainContent Class="main-content">
+		<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="py-6">
+			<ErrorBoundary @ref="_errorBoundary">
+				<ChildContent>
+					@Body
+				</ChildContent>
+				<ErrorContent>
+					<ErrorMessage
+						Message="Si è verificato un errore imprevisto."
+						OnRetry="() => _errorBoundary?.Recover()"
+					/>
+				</ErrorContent>
+			</ErrorBoundary>
+		</MudContainer>
+		<footer class="py-4">
+			<MudText Typo="Typo.body2" Align="Align.Center" Class="mud-text-secondary">
+				Dati forniti da
+				<MudLink Href="https://www.igdb.com" Target="_blank" rel="noopener">
+					IGDB
+				</MudLink>
+			</MudText>
+			<MudText Typo="Typo.body2" Align="Align.Center" Class="mud-text-secondary">
+				Icone degli avatar di Lorc, Delapouite, DarkZaitzev e Skoll da
+				<MudLink Href="https://game-icons.net" Target="_blank" rel="noopener">game-icons.net</MudLink>,
+				licenza
+				<MudLink Href="https://creativecommons.org/licenses/by/3.0/" Target="_blank" rel="noopener">CC BY 3.0</MudLink>
+			</MudText>
+		</footer>
+	</MudMainContent>
 </MudLayout>
 
 @code {
-    private bool _isDarkMode = true;
-    private const string ThemeKey = "theme";
-    private ErrorBoundary? _errorBoundary;
-    protected override async Task OnInitializedAsync()
-    {
-        var savedTheme = await JS.InvokeAsync<string?>("localStorage.getItem", ThemeKey);
-        if (savedTheme is not null)
-        {
-            _isDarkMode = savedTheme == "dark";
-        }
-    }
-    protected override void OnParametersSet()
-    {
-        _errorBoundary?.Recover();
-    }
-    private async Task OnThemeToggled(bool isDark)
-    {
-        _isDarkMode = isDark;
-        await JS.InvokeVoidAsync("localStorage.setItem", ThemeKey, isDark ? "dark" : "light");
-    }
-    private async Task LogoutAsync()
-    {
-        await Auth.LogoutAsync();
-        Navigation.NavigateTo("/");
-    }
+	private bool _isDarkMode = true;
+	private bool _drawerOpen = true;
+
+	private const string ThemeKey = "theme";
+	private ErrorBoundary? _errorBoundary;
+	// Il tema l'ha già deciso lo script in index.html prima dell'avvio (scelta salvata, altrimenti
+	// quella del sistema) e l'ha scritto in <html data-theme="…">: qui lo si legge e basta,
+	// così l'app parte con lo stesso colore usato durante il caricamento
+	protected override async Task OnInitializedAsync()
+	{
+		var theme = await JS.InvokeAsync<string?>("document.documentElement.getAttribute", "data-theme");
+		_isDarkMode = theme != "light";
+	}
+	protected override void OnParametersSet()
+	{
+		_errorBoundary?.Recover();
+	}
+	private async Task OnThemeToggled(bool isDark)
+	{
+		_isDarkMode = isDark;
+		await JS.InvokeVoidAsync("localStorage.setItem", ThemeKey, isDark ? "dark" : "light");
+	}
+	private async Task LogoutAsync()
+	{
+		await Auth.LogoutAsync();
+		Navigation.NavigateTo("/");
+	}
+	private void ToggleDrawer()
+	{
+		_drawerOpen = !_drawerOpen;
+	}
+
+	private async Task FocusSearchAsync()
+	{
+		if (await Viewport.IsBreakpointWithinWindowSizeAsync(Breakpoint.SmAndDown))
+			_drawerOpen = false;
+		await SearchFocus.RequestAsync();
+		if (!SearchFocus.HasSearchBar)
+			Navigation.NavigateTo("/");
+	}
+	private async Task OnMenuKeyDown(KeyboardEventArgs e, Func<Task> action)
+	{
+		if (e.Key is "Enter" or " ")
+		{
+			await action();
+		}
+	}
 }

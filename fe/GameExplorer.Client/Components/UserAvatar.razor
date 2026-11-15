@@ -1,0 +1,15 @@
+<MudAvatar Color="Color.Primary" Size="Size">
+	@if (Avatar is not null && Avatars.All.Contains(Avatar))
+	{
+		<MudImage Src="@($"avatars/{Avatar}.svg")" Alt="@($"Avatar {Avatar}")"/>
+	}
+	else
+	{
+		<MudIcon Icon="@Icons.Material.Filled.Person"/>
+	}
+</MudAvatar>
+
+@code {
+	[Parameter] public string? Avatar { get; set; }
+	[Parameter] public Size Size { get; set; } = Size.Medium;
+}

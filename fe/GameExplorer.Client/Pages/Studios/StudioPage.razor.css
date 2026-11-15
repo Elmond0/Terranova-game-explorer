@@ -1,16 +1,22 @@
-/* Riquadro grigio con l'icona al centro, al posto dell'immagine mancante: stessa forma 16:9 della scheda gioco */
-.cover {
-	display: block;
-	width: 100%;
-	aspect-ratio: 16 / 9;
+/* Logo dello studio: non ha una forma fissa (quadrato, largo o stretto), quindi tiene le sue proporzioni
+   e si rimpicciolisce senza tagli finché non sta nella colonna e in 160 px di altezza */
+.logo ::deep img {
+	max-width: 100%;
+	max-height: 160px;
+	object-fit: contain;
 }
 
+/* Riquadro grigio con l'icona al centro quando lo studio non ha un logo: quadrato e alto quanto il logo
+   più grande, così la pagina ha la stessa forma con e senza immagine */
 .cover-placeholder {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	background: var(--mud-palette-background-gray);
 	color: var(--mud-palette-text-disabled);
+	width: 160px;
+	aspect-ratio: 1 / 1;
+	max-width: 100%;
 }
 
 /* Il menu "Ordina per" non si allarga su tutta la riga, ma non esce dallo schermo a 375 px */

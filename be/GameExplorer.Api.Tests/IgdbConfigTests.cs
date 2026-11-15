@@ -1,4 +1,3 @@
-using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
@@ -7,21 +6,23 @@ namespace GameExplorer.Api.Tests;
 
 public class IgdbConfigTests
 {
-    [Fact]
-    public void App_does_not_start_without_Rawg_ApiKey()
+    [Theory]
+    [InlineData("ClientId")]
+    [InlineData("ClientSecret")]
+    public void App_does_not_start_without_Igdb_credentials( string missing )
     {
-        // Sovrascrive qualsiasi valore da appsettings / user secrets con una chiave vuota
         using var factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
-                builder.UseSetting("Rawg:ApiKey", "");
+                builder.UseEnvironment("Testing");
+                builder.UseSetting("Igdb:ClientId", missing == "ClientId" ? "" : "fake-client-id");
+                builder.UseSetting("Igdb:ClientSecret", missing == "ClientSecret" ? "" : "fake-client-secret");
                 builder.UseSetting("Cors:FrontendOrigin", "http://localhost:5100");
+                builder.UseSetting("ConnectionStrings:Default", "Host=localhost;Port=1;Database=not_used;Username=test;Password=test");
             });
-
-        // CreateClient avvia l'app: se la configurazione manca, deve lanciare
+        
         var ex = Assert.ThrowsAny<Exception>(() => factory.CreateClient());
-
-        // ToString() include anche le eventuali inner exception
-        Assert.Contains("ApiKey", ex.ToString());
+        
+        Assert.Contains(missing, ex.ToString());
     }
 }

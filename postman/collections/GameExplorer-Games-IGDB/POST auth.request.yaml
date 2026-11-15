@@ -1,5 +1,6 @@
 $kind: http-request
-url: "  https://id.twitch.tv/oauth2/token?client_id={{igdb_client_id}}&client_secret={{igdb_client_secret}}&grant_type=client_credentials"
+url: "  https://id.twitch.tv/oauth2/token?client_id={{igdb_client_id}}&client_s\
+  ecret={{igdb_client_secret}}&grant_type=client_credentials"
 method: POST
 queryParams:
   client_id: "{{igdb_client_id}}"

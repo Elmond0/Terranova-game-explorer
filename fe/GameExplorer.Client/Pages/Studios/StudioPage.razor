@@ -5,7 +5,7 @@
 @implements IDisposable
 @using System.Globalization
 
-<PageTitle>@(_studio?.Name ?? "Studio")</PageTitle>
+<PageTitle>@(_studio?.Name ?? "Studio") · Game Explorer</PageTitle>
 
 @if (_error)
 {
@@ -17,19 +17,10 @@ else if (_loading)
 }
 else if (_studio is null)
 {
-	<MudStack AlignItems="AlignItems.Center" Class="py-8">
-		<MudIcon
-			Icon="@Icons.Material.Filled.SearchOff"
-			Size="Size.Large"
-			Class="mud-text-secondary"
-		/>
-		<MudText Typo="Typo.h5" HtmlTag="h1">
-			Studio non trovato
-		</MudText>
-		<MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary">
-			Torna alla home
-		</MudButton>
-	</MudStack>
+	<NotFoundMessage
+		Title="Studio non trovato"
+		Text="Lo studio che cerchi non esiste o è stato rimosso."
+	/>
 }
 else
 {
@@ -37,16 +28,17 @@ else
 		<MudItem xs="12" md="4">
 			@if (_studio.Image is not null)
 			{
-				<MudImage
-					Fluid="true"
-					Class="rounded-lg"
-					Src="@_studio.Image"
-					Alt="@_studio.Name"
-				/>
+				<div class="logo">
+					<MudImage
+						Class="rounded-lg"
+						Src="@_studio.Image.Url"
+						Alt="@_studio.Name"
+					/>
+				</div>
 			}
 			else
 			{
-				<div class="cover cover-placeholder rounded-lg">
+				<div class="cover-placeholder rounded-lg">
 					<MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Large" />
 				</div>
 			}
@@ -56,7 +48,10 @@ else
 				@_studio.Name
 			</MudText>
 			<MudText Typo="Typo.body1" Class="mud-text-secondary">
-				@GamesWord(_studio.GamesCount)
+				@if (_games is not null)
+				{
+					@GamesWord(_games.Total)
+				}
 			</MudText>
 			@if (!string.IsNullOrWhiteSpace(_studio.Website))
 			{

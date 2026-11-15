@@ -1,39 +1,29 @@
 $kind: http-request
-url: "{{apiUrl}}/games?games?query=zelda&genreIds=4&genreIds=3&platformIds=7&fr\
-  omYear=2017&toYear=2024&minMetacritic=80&storeIds=6&ordering=-rating&page=1&p\
-  ageSize=20"
+url: "{{api_domain}}games?query=zelda&toYear=2024&ordering=-rating"
 method: GET
 queryParams:
-  - key: games?query
+  - key: query
     value: zelda
     disabled: false
     description: ""
   - key: genreIds
     value: "4"
-    disabled: false
+    disabled: true
     description: ""
   - key: genreIds
     value: "3"
-    disabled: false
+    disabled: true
     description: ""
   - key: platformIds
     value: "7"
-    disabled: false
+    disabled: true
     description: ""
   - key: fromYear
     value: "2017"
-    disabled: false
+    disabled: true
     description: ""
   - key: toYear
     value: "2024"
-    disabled: false
-    description: ""
-  - key: minMetacritic
-    value: "80"
-    disabled: false
-    description: ""
-  - key: storeIds
-    value: "6"
     disabled: false
     description: ""
   - key: ordering
@@ -42,11 +32,11 @@ queryParams:
     description: ""
   - key: page
     value: "1"
-    disabled: false
+    disabled: true
     description: ""
   - key: pageSize
     value: "20"
-    disabled: false
+    disabled: true
     description: ""
 scripts:
   - type: afterResponse
@@ -79,8 +69,6 @@ scripts:
       const fromYear      = Number(get(\"fromYear\"));\r
 
       const toYear        = Number(get(\"toYear\"));\r
-
-      const minMetacritic = Number(get(\"minMetacritic\"));\r
 
       const ordering      = get(\"ordering\");\r
 
@@ -322,4 +310,4 @@ scripts:
 
       }"
     language: text/javascript
-order: 12652
+order: 14000

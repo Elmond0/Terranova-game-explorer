@@ -1,24 +1,96 @@
 @page "/profile"
 @inject IGameApiClient Api
 @inject NavigationManager Navigation
+@inject CookieAuthenticationStateProvider Auth
+@inject ISnackbar Snackbar
+@using System.Net
 
-<PageTitle>Profilo</PageTitle>
+<PageTitle>Profilo · Game Explorer</PageTitle>
 <MudText
 	Typo="Typo.h4"
 	HtmlTag="h1"
 	Class="mb-4">
 		Il mio profilo
 </MudText>
-@if (_error)
+@if (_needsLogin)
+{
+	@* Messaggio con pulsante invece di un redirect automatico: un redirect mentre la pagina si apre
+	   lascia /profile nella cronologia, e il tasto Indietro riporterebbe sempre all'accesso *@
+	<MudStack AlignItems="AlignItems.Center" Class="py-8">
+		<MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Class="mud-text-secondary" />
+		<MudText Align="Align.Center">Accedi per vedere il tuo profilo, i preferiti e la wishlist.</MudText>
+		<MudButton Href="@Navigation.LoginUrl()" Variant="Variant.Filled" Color="Color.Primary">
+			Accedi
+		</MudButton>
+	</MudStack>
+}
+else if (_error)
 {
 	<ErrorMessage OnRetry="LoadAsync"/>
 }
-else if (_favorites is null || _wishlist is null)
+else if (_favorites is null || _wishlist is null || _profile is null)
 {
 	<Loading />
 }
 else
 {
+	<MudStack
+		Row="true"
+		AlignItems="AlignItems.Center"
+		Class="mb-4">
+			<UserAvatar
+				Avatar="@_selectedAvatar"
+				Size="Size.Large"
+			/>
+			<div>
+				<MudText Typo="Typo.h6">@(_profile.DisplayName ?? _profile.Email)</MudText>
+				<MudText Typo="Typo.body2" Class="mud-text-secondary">@_profile.Email</MudText>
+			</div>
+	</MudStack>
+	<MudTextField
+		@bind-Value="_nickname"
+		Label="Nickname"
+		Validation="@(new Func<string, string?>(ValidateNickname))"
+		Immediate="true"
+		MaxLength="30"
+		Class="mb-4"
+		HelperText="Obbligatorio per salvare il profilo"
+	/>
+	<MudText Typo="Typo.subtitle2" Class="mb-2">Scegli il tuo avatar</MudText>
+	<MudStack
+		Row="true"
+		Wrap="Wrap.Wrap"
+		Spacing="2"
+		Class="mb-4">
+			@foreach (var avatar in Avatars.All)
+			{
+				<button
+					type="button"
+					class="avatar-option @(avatar == _selectedAvatar ? "selected" : "")"
+					aria-label="@($"Avatar {avatar}")"
+					aria-pressed="@(avatar == _selectedAvatar ? "true" : "false")"
+					@onclick="() => _selectedAvatar = avatar">
+						<UserAvatar Avatar="@avatar" />
+				</button>
+			}
+	</MudStack>
+	<MudButton
+		Variant="Variant.Filled"
+		Color="Color.Primary"
+		Class="mb-6"
+		OnClick="SaveProfileAsync"
+		Disabled="_saving">
+			Salva
+	</MudButton>
+	@if(_saveError is not null)
+	{
+		<MudAlert
+			Severity="Severity.Error"
+			Dense="true"
+			Class="mb-3">
+				@_saveError
+		</MudAlert>
+	}
 	@if(_removeError is not null)
 	{
 		<MudAlert
@@ -28,7 +100,7 @@ else
 				@_removeError
 		</MudAlert>
 	}
-	<MudTabs Elevation="0" Rounded="true" PanelClass="pt-4">
+	<MudTabs Elevation="0" Rounded="true" TabPanelsClass="pt-4">
 		<MudTabPanel Text="@($"Preferiti ({_favorites.Count})")">
 			@if(_favorites.Count == 0)
 			{
@@ -97,17 +169,24 @@ else
 @code {
 	[CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
 
+	private ProfileResponse? _profile;
+	private string _nickname = "";
+	private string? _selectedAvatar;
 	private List<Game>? _favorites;
 	private List<Game>? _wishlist;
 	private bool _error;
 	private string? _removeError;
+	private bool _saving;
+	private string? _saveError;
+	// Non entrato, o sessione scaduta mentre la pagina si apre: si mostra il pulsante "Accedi"
+	private bool _needsLogin;
 
 	protected override async Task OnInitializedAsync()
 	{
 		var state = AuthState is null ? null : await AuthState;
 		if (state?.User.Identity?.IsAuthenticated != true)
 		{
-			Navigation.NavigateTo("/account/login", replace: true);
+			_needsLogin = true;
 			return;
 		}
 		await LoadAsync();
@@ -117,10 +196,18 @@ else
 		_error = false;
 		_favorites = null;
 		_wishlist = null;
+		_profile = null;
 		try
 		{
 			_favorites = await Api.GetFavoritesAsync();
 			_wishlist = await Api.GetWishlistAsync();
+			_profile = await Api.GetProfileAsync();
+			_nickname = _profile.DisplayName ?? "";
+			_selectedAvatar = _profile.Avatar;
+		}
+		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			_needsLogin = true;
 		}
 		catch (ApiException)
 		{
@@ -135,6 +222,10 @@ else
 			await Api.RemoveFavoriteAsync(game.Id);
 			_favorites?.Remove(game);
 		}
+		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			Navigation.NavigateToLogin();
+		}
 		catch (ApiException)
 		{
 			_removeError = "Non è stato possibile togliere il gioco. Riprova.";
@@ -148,9 +239,56 @@ else
 			await Api.RemoveFromWishlistAsync(game.Id);
 			_wishlist?.Remove(game);
 		}
+		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			Navigation.NavigateToLogin();
+		}
 		catch (ApiException)
 		{
 			_removeError = "Non è stato possibile togliere il gioco. Riprova.";
+		}
+	}
+	private static string? ValidateNickname(string nick)
+	{
+		if (nick.Length is >= 3 and <= 30 && nick.All(c => char.IsAsciiLetterOrDigit(c) || c == '_'))
+		{
+			return null;
+		}
+		return "Da 3 a 30 caratteri: lettere, numeri e _";
+	}
+	private async Task SaveProfileAsync()
+	{
+		_saveError = null;
+		if (ValidateNickname(_nickname) is { } nicknameError)
+		{
+			_saveError = $"Nickname: {nicknameError}";
+			return;
+		}
+		_saving = true;
+		try
+		{
+			await Api.UpdateProfileAsync(new UpdateProfileRequest(_nickname, _selectedAvatar));
+			_profile = _profile! with { DisplayName = _nickname, Avatar = _selectedAvatar };
+			Auth.RefreshProfile();
+			Snackbar.Add("Profilo salvato", Severity.Success);
+		}
+		catch (ApiException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			Navigation.NavigateToLogin();
+		}
+		catch (ApiException ex)
+		{
+			_saveError = ex.StatusCode switch
+			{
+				HttpStatusCode.Conflict => "Nickname già usato",
+				HttpStatusCode.BadRequest => "Nickname o avatar non validi",
+				null => "Richiesta non arrivata, controlla la tua connessione ad internet",
+				_ => "Non è stato possibile salvare il profilo. Riprova.",
+			};
+		}
+		finally
+		{
+			_saving = false;
 		}
 	}
 }

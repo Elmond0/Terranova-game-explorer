@@ -11,7 +11,7 @@ public class HealthTest
 	[Fact]
 	public async Task Health_responds200whenHealthy()
 	{
-		await using var app = new ApiFactory(FakeRawgHandler.Status(HttpStatusCode.OK));
+		await using var app = new ApiFactory(FakeIgdbHandler.Status(HttpStatusCode.OK));
 		var res = await app.CreateClient().GetAsync(url);
 
 		Assert.Equal(HttpStatusCode.OK, res.StatusCode);
@@ -21,12 +21,13 @@ public class HealthTest
 	[Fact]
 	public async Task Health_responds200whenRawgIsDown()
 	{
-		var fakeRawg = FakeRawgHandler.Throws(new HttpRequestException("FakeRawg is down"));
-		await using var app = new ApiFactory(fakeRawg);
+		var fakeIgdb = FakeIgdbHandler.Throws(new HttpRequestException("FakeIgdb is down"));
+		await using var app = new ApiFactory(fakeIgdb);
 
 		var res = await app.CreateClient().GetAsync(url);
 
 		Assert.Equal(HttpStatusCode.OK, res.StatusCode);
-		Assert.Equal(0, fakeRawg.Calls);
+		Assert.Equal(0, fakeIgdb.Calls);
+		Assert.Equal(0, app.Twitch.Calls);
 	}
 }

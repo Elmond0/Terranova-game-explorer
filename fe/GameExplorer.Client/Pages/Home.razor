@@ -1,23 +1,38 @@
 ﻿@page "/"
 @inject IGameApiClient Api
 @inject NavigationManager Navigation
+@inject SearchFocusService SearchFocus
 
-<PageTitle>Home</PageTitle>
-<MudText Typo="Typo.h3" HtmlTag="h1" Align="Align.Center">
-	Ricerca giochi
+@implements IDisposable
+
+<PageTitle>Home · Game Explorer</PageTitle>
+<MudText
+	Typo="Typo.h3"
+	HtmlTag="h1"
+	Align="Align.Center">
+		Game Explorer
 </MudText>
-<div class="search-box">
-	<MudTextField
-		@bind-Value="_query"
-		Immediate="true"
-		OnKeyDown="OnSearchKeyDown"
-		Placeholder="Cerca un gioco..."
-		Variant="Variant.Outlined"
-		Adornment="Adornment.End"
-		AdornmentIcon="@Icons.Material.Filled.Search"
-		OnAdornmentClick="Search"
-		AdornmentAriaLabel="Cerca"
-	/>
+<MudText
+	Typo="Typo.body1"
+	Align="Align.Center"
+	Class="mud-text-secondary mb-4">
+		Cerca tra migliaia di videogiochi, filtra per genere, piattaforma e anno, leggi schede, voti e studi di sviluppo, e salva i tuoi preferiti.
+</MudText>
+<div class="search-bar-sticky">
+	<div class="search-box">
+		<MudTextField
+			@bind-Value="_query"
+			Immediate="true"
+			OnKeyDown="OnSearchKeyDown"
+			Placeholder="Cerca un gioco..."
+			Variant="Variant.Outlined"
+			Adornment="Adornment.End"
+			AdornmentIcon="@Icons.Material.Filled.Search"
+			OnAdornmentClick="Search"
+			AdornmentAriaLabel="Cerca"
+			@ref="_searchField"
+		/>
+	</div>
 </div>
 <GameSection
 	Title="Più apprezzati"
@@ -37,8 +52,33 @@
 	HighlightDate="true"
 />
 
+<MudText
+	Typo="Typo.h4"
+	HtmlTag="h2"
+	Align="Align.Center"
+	Class="mt-8 mb-4">
+		Per Piattaforme
+</MudText>
+
+@foreach (var platform in PlatformSections)
+{
+	<GameSection
+		Title="@(platform.Title)"
+		Load="ct => Api.GetPlatformHighlightsAsync(platform.PlatformId, ct)"
+		SeeAllHref="@($"search?platforms={platform.PlatformId}&ordering=-rating")"
+	/>
+}
+
 @code {
+	private static readonly (string Title, int PlatformId)[] PlatformSections =
+	[
+		("PlayStation", 167),
+		("Xbox", 169),
+		("Nintendo", 130),
+		("Pc", 6)
+	];
 	private string? _query;
+	private MudTextField<string>? _searchField;
 
 	private void Search()
 	{
@@ -51,5 +91,26 @@
 	{
 		if (e.Key == "Enter")
 			Search();
+	}
+
+	private async Task FocusSearchFieldAsync()
+	{
+		if (_searchField is not null)
+			await _searchField.FocusAsync();
+	}
+	protected override void OnInitialized()
+	{
+		SearchFocus.Requested += FocusSearchFieldAsync;
+	}
+
+	public void Dispose()
+	{
+		SearchFocus.Requested -= FocusSearchFieldAsync;
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender && SearchFocus.ConsumePending())
+			await FocusSearchFieldAsync();
 	}
 }

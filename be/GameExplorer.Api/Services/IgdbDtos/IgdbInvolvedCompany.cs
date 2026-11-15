@@ -2,12 +2,12 @@
 
 namespace GameExplorer.Api.Services.IgdbDtos;
 
-public class IgdbInvolvedCompany
+internal class IgdbInvolvedCompany
 {
     [JsonPropertyName("id")]
     public int Id { get; set; }
     [JsonPropertyName("company")]
-    public IgdbStudio? Studio { get; set; }
+    public IgdbStudio Studio { get; set; } = new IgdbStudio();
     [JsonPropertyName("developer")]
     public bool Developer { get; set; }
     [JsonPropertyName("publisher")]

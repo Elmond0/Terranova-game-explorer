@@ -1,36 +1,45 @@
 @page "/search"
 @inject IGameApiClient Api
 @inject NavigationManager Navigation
+@inject SearchFocusService SearchFocus
 @inject IJSRuntime JS
 @implements IDisposable
 @using System.Globalization
+@using System.Net
 
-<PageTitle>Ricerca</PageTitle>
+<PageTitle>Ricerca · Game Explorer</PageTitle>
 
 <MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">
 	Cerca giochi
 </MudText>
 
-<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-4">
-	<MudTextField
-		T="string"
-		Value="_query"
-		ValueChanged="OnQueryChanged"
-		DebounceInterval="300"
-		Clearable="true"
-		Placeholder="Cerca un gioco..."
-		Variant="Variant.Outlined"
-		Adornment="Adornment.End"
-		AdornmentIcon="@Icons.Material.Filled.Search"
-	/>
-	@* Solo su schermi piccoli: lì i filtri stanno nel MudDrawer *@
-	<MudButton
-		Class="d-md-none"
-		OnClick="() => _filtersOpen = true"
-		Variant="Variant.Outlined"
-		StartIcon="@Icons.Material.Filled.FilterList">
-		Filtri@(ActiveFilterCount > 0 ? $" ({ActiveFilterCount})" : "")
-	</MudButton>
+<MudStack
+	Row="true"
+	AlignItems="AlignItems.Center"
+	Spacing="2"
+	Class="mb-4">
+		<MudTextField
+			T="string"
+			Value="_query"
+			ValueChanged="OnQueryChanged"
+			DebounceInterval="300"
+			Clearable="true"
+			Placeholder="Cerca un gioco..."
+			Variant="Variant.Outlined"
+			Adornment="Adornment.End"
+			AdornmentIcon="@Icons.Material.Filled.Search"
+			@ref="_searchField"
+		/>
+		@* Solo su schermi piccoli: lì i filtri stanno nel MudDrawer *@
+		@* nowrap e flex-shrink 0: "Filtri (1)" resta su una riga, è il campo di ricerca a stringersi *@
+		<MudButton
+			Class="d-md-none flex-shrink-0"
+			Style="white-space: nowrap"
+			OnClick="() => _filtersOpen = true"
+			Variant="Variant.Outlined"
+			StartIcon="@Icons.Material.Filled.FilterList">
+			Filtri@(ActiveFilterCount > 0 ? $" ({ActiveFilterCount})" : "")
+		</MudButton>
 </MudStack>
 
 <MudDrawer
@@ -59,7 +68,18 @@
 	</MudItem>
 
 	<MudItem xs="12" md="9">
-		@if (_error)
+		@* Anni sbagliati: la Web API non viene chiamata, quindi si spiega il motivo invece di "Nessun gioco trovato" *@
+		@if (YearsInvalid)
+		{
+			<MudAlert Severity="Severity.Warning">
+				Controlla gli anni: «Dal» deve venire prima di «Al», ed entrambi devono essere tra @MinYear e @MaxYear.
+			</MudAlert>
+		}
+		else if (_badRequest)
+		{
+			<ErrorMessage Message="La ricerca contiene caratteri che non possiamo cercare: prova a toglierli."/>
+		}
+		else if (_error)
 		{
 			<ErrorMessage OnRetry="LoadAsync"/>
 		}
@@ -68,7 +88,7 @@
 			<MudGrid Spacing="3">
 				@for (var i = 0; i < 6; i++)
 				{
-					<MudItem xs="12" sm="6" lg="4">
+					<MudItem xs="6" lg="4">
 						<SkeletonCard/>
 					</MudItem>
 				}
@@ -84,9 +104,10 @@
 				@TotalText
 			</MudText>
 			<MudGrid Spacing="3">
+				@* Anche sul telefono 2 card per riga: con 1 sola, 20 risultati occupavano circa 20 schermate *@
 				@foreach (var game in _result.Items)
 				{
-					<MudItem xs="12" sm="6" lg="4">
+					<MudItem xs="6" lg="4">
 						<GameCard Game="game"/>
 					</MudItem>
 				}
@@ -108,6 +129,39 @@
 
 @code {
 	private const int PageSize = 20;
+	// La Web API rifiuta le pagine oltre la 500 (400 Bad Request)
+	private const int MaxPage = 500;
+	private const int MinYear = 1950;
+	private static readonly int MaxYear = DateTime.Today.Year + 5;
+	private bool IsYearOutOfRange(int? year) => year is not null && (year < MinYear || year > MaxYear);
+	private bool YearsInvalid => IsYearOutOfRange(FromYear) || IsYearOutOfRange(ToYear) || YearsInverted;
+	private static IEnumerable<int?> YearsStartingWith(int firstYear, string? text)
+	{
+		return Enumerable.Range(firstYear, MaxYear - firstYear + 1)
+			.Where(y => y.ToString().StartsWith(text ?? ""))
+			.Reverse()
+			.Select(y => (int?) y);
+	}
+	private Task<IEnumerable<int?>> SearchFromYears(string? text, CancellationToken token)
+	{
+		return Task.FromResult(YearsStartingWith(MinYear, text));
+	}
+	private static int? ParseInt(string? text)
+	{
+		return int.TryParse(text, out var n) ? n : null;
+	}
+	private static int[]? ParseInts(string[]? texts)
+	{
+		if (texts is null)
+			return null;
+		return texts.Select(ParseInt).Where(n => n is not null).Select(n => n!.Value).ToArray();
+	}
+	private Task<IEnumerable<int?>> SearchToYears(string? text, CancellationToken token)
+	{
+		 var firstYear = Math.Clamp(FromYear ?? MinYear, MinYear, MaxYear);
+		return Task.FromResult(YearsStartingWith(firstYear, text));
+	}
+	private MudTextField<string>? _searchField;
 
 	// Le voci del menu "Ordina per": valore accettato dalla Web API (SearchFilter.Ordering) senza "-" e testo da mostrare
 	private static readonly (string Value, string Label)[] OrderFields =
@@ -118,25 +172,35 @@
 	];
 
 	[SupplyParameterFromQuery(Name = "q")] string? Query { get; set; }
-	[SupplyParameterFromQuery] int[]? Genres { get; set; }
-	[SupplyParameterFromQuery] int[]? Platforms { get; set; }
-	[SupplyParameterFromQuery] int? FromYear { get; set; }
-	[SupplyParameterFromQuery] int? ToYear { get; set; }
-	[SupplyParameterFromQuery] string? Ordering { get; set; }
-	[SupplyParameterFromQuery] int? Page { get; set; }
+	[SupplyParameterFromQuery(Name = "genres")] string[]? GenresText { get; set; }
+	private int[]? Genres => ParseInts(GenresText);
+	[SupplyParameterFromQuery(Name = "platforms")] string[]? PlatformsText { get; set; }
+	private int[]? Platforms => ParseInts(PlatformsText);
+	[SupplyParameterFromQuery(Name = "fromYear")] string? FromYearText { get; set; }
+	private int? FromYear => ParseInt(FromYearText);
+	[SupplyParameterFromQuery(Name = "toYear")] string? ToYearText { get; set; }
+	private int? ToYear => ParseInt(ToYearText);
+	[SupplyParameterFromQuery(Name = "ordering")] string? OrderingText { get; set; }
+	private string? Ordering => OrderFields.Any(o => o.Value == OrderingText || "-" + o.Value == OrderingText) ? OrderingText : null;
+	[SupplyParameterFromQuery(Name = "page")] string? PageText { get; set; }
+	private int? Page => ParseInt(PageText);
 	private PagedResult<Game>? _result;
+	private bool _badRequest;
 	private bool _error;
 	private CancellationTokenSource? _cts;
 	private string? _query;
 	private List<Genre> _genres = [];
 	private List<Platform> _platforms = [];
+	private bool _loadingFilterLists;
+	private int _platformPickerKey;
 	private bool _filtersOpen;
 
-	// ?page=0 o negativo scritto a mano nell'indirizzo vale come pagina 1
-	private int CurrentPage => Math.Max(Page ?? 1, 1);
+	// ?page=0 o negativo scritto a mano nell'indirizzo vale come pagina 1, oltre la 500 come pagina 500
+	private int CurrentPage => Math.Clamp(Page ?? 1, 1, MaxPage);
 	// SearchFilter.Validate rifiuta "Dal" dopo "Al": la Web API risponderebbe 400
 	private bool YearsInverted => FromYear > ToYear;
-	private int PageCount => _result is null ? 0 : (int)Math.Ceiling(_result.Total / (double)PageSize);
+	// Con 357.000 giochi sarebbero 17.000 pagine: la paginazione si ferma a quelle che la Web API accetta
+	private int PageCount => _result is null ? 0 : Math.Min((int)Math.Ceiling(_result.Total / (double)PageSize), MaxPage);
 	private string TotalText => _result?.Total == 1
 		? "1 gioco trovato"
 		: $"{_result?.Total.ToString("N0", CultureInfo.GetCultureInfo("it-IT"))} giochi trovati";
@@ -168,45 +232,66 @@
 				<MudSelectItem T="int" Value="genre.Id">@genre.Name</MudSelectItem>
 			}
 		</MudSelect>
-		<MudSelect
-			@key="@($"platforms-{_platforms.Count}")"
-			T="int"
+		@* Le piattaforme sono più di 200: si cercano scrivendo, invece di scorrere un menu.
+		   Quelle scelte compaiono sotto come chip, con la ✕ per toglierle.
+		   @key cambia dopo ogni scelta, così il campo si ricrea vuoto e pronto per la prossima *@
+		<MudAutocomplete
+			@key="@($"platform-picker-{_platformPickerKey}")"
+			T="Platform"
 			Label="Piattaforme"
-			MultiSelection="true"
-			SelectedValues="Platforms"
-			SelectedValuesChanged="OnPlatformsChanged"
-			ToStringFunc="PlatformName"
-			Clearable="true"
-			Variant="Variant.Outlined">
-			@foreach (var platform in _platforms)
-			{
-				<MudSelectItem T="int" Value="platform.Id">@platform.Name</MudSelectItem>
-			}
-		</MudSelect>
+			Placeholder="Cerca una piattaforma..."
+			SearchFunc="SearchPlatforms"
+			ToStringFunc="@(p => p?.Name)"
+			ValueChanged="AddPlatform"
+			MaxItems="null"
+			Variant="Variant.Outlined"
+		/>
+		@if (Platforms?.Length > 0)
+		{
+			<div class="d-flex flex-wrap gap-1">
+				@foreach (var id in Platforms)
+				{
+					<MudChip
+						T="int"
+						Value="id"
+						Size="Size.Small"
+						Color="Color.Primary"
+						OnClose="@(() => RemovePlatform(id))">
+						@PlatformName(id)
+					</MudChip>
+				}
+			</div>
+		}
 		<MudStack Row="true" Spacing="2">
-			<MudNumericField
+			<MudAutocomplete
 				T="int?"
 				Label="Dal"
 				Value="FromYear"
 				ValueChanged="@((int? v) => NavigateWith("fromYear", v))"
-				Min="1950"
-				Max="2100"
-				DebounceInterval="500"
-				HideSpinButtons="true"
+				Error="@IsYearOutOfRange(FromYear)"
+				ErrorText="@($"Tra {MinYear} e {MaxYear}")"
 				Variant="Variant.Outlined"
+				SearchFunc="SearchFromYears"
+				MaxItems="null"
+				Clearable="true"
+				ResetValueOnEmptyText="true"
+				Strict="false"
+				Placeholder="2000"
 			/>
-			<MudNumericField
+			<MudAutocomplete
 				T="int?"
 				Label="Al"
 				Value="ToYear"
 				ValueChanged="@((int? v) => NavigateWith("toYear", v))"
-				Error="YearsInverted"
-				ErrorText="Prima di «Dal»"
-				Min="1950"
-				Max="2100"
-				DebounceInterval="500"
-				HideSpinButtons="true"
+				Error="@(IsYearOutOfRange(ToYear) || YearsInverted)"
+				ErrorText="@(IsYearOutOfRange(ToYear) ? $"Tra {MinYear} e {MaxYear}" : "Prima di «Dal»")"
 				Variant="Variant.Outlined"
+				SearchFunc="SearchToYears"
+				MaxItems="null"
+				Clearable="true"
+				ResetValueOnEmptyText="true"
+				Strict="false"
+				Placeholder="2026"
 			/>
 		</MudStack>
 		<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
@@ -242,10 +327,6 @@
 			</MudButton>
 		}
 	</MudStack>;
-
-	// Generi e piattaforme non dipendono dall'indirizzo: si caricano una volta sola, senza far aspettare la ricerca
-	protected override void OnInitialized() => _ = LoadFilterListsAsync();
-
 	protected override Task OnParametersSetAsync()
 	{
 		_query = Query;
@@ -254,6 +335,9 @@
 
 	private async Task LoadFilterListsAsync()
 	{
+		if (_loadingFilterLists || (_genres.Count > 0 && _platforms.Count > 0))
+			return;
+		_loadingFilterLists = true;
 		try
 		{
 			var genres = Api.GetGenresAsync();
@@ -264,19 +348,26 @@
 		}
 		catch (ApiException)
 		{
-			// Senza elenchi i due menu restano vuoti, ma la ricerca funziona lo stesso
+			// Senza elenchi i menu restano vuoti: si riprova alla prossima ricerca
+		}
+		finally
+		{
+			_loadingFilterLists = false;
 		}
 	}
 
 	private async Task LoadAsync()
 	{
+		// Gli elenchi dei filtri si ritentano a ogni ricerca finché non arrivano, senza far aspettare la ricerca
+		_ = LoadFilterListsAsync();
 		_cts?.Cancel();
 		_cts?.Dispose();
 		_cts = new CancellationTokenSource();
 		var token = _cts.Token;
 		_error = false;
+		_badRequest = false;
 		_result = null;
-		if (YearsInverted)
+		if (YearsInvalid)
 		{
 			_result = new PagedResult<Game>();
 			return;
@@ -296,6 +387,10 @@
 		{
 			_result = await Api.SearchAsync(filter, token);
 		}
+		catch (ApiException ex) when(ex.StatusCode == HttpStatusCode.BadRequest)
+		{
+			_badRequest = true;
+		}
 		catch (ApiException)
 		{
 			_error = true;
@@ -303,10 +398,22 @@
 		catch (OperationCanceledException) { }
 	}
 
+	private async Task FocusSearchFieldAsync()
+	{
+		if (_searchField is not null)
+			await _searchField.FocusAsync();
+	}
+
+	protected override void OnInitialized()
+	{
+		SearchFocus.Requested += FocusSearchFieldAsync;
+	}
+
 	public void Dispose()
 	{
 		_cts?.Cancel();
 		_cts?.Dispose();
+		SearchFocus.Requested -= FocusSearchFieldAsync;
 	}
 
 	private string GenreName(int id) => _genres.FirstOrDefault(g => g.Id == id)?.Name ?? id.ToString();
@@ -318,14 +425,34 @@
 	private void OnQueryChanged(string? value)
 	{
 		_query = value;
-		NavigateWith("q", string.IsNullOrWhiteSpace(value) ? null : value);
+		NavigateWith("q", string.IsNullOrWhiteSpace(value) ? null : value, replace: true);
 	}
 
 	private void OnGenresChanged(IEnumerable<int> values) =>
 		NavigateWith("genres", values.Any() ? values.ToArray() : null);
 
-	private void OnPlatformsChanged(IEnumerable<int> values) =>
-		NavigateWith("platforms", values.Any() ? values.ToArray() : null);
+	// Elenco del campo Piattaforme: quelle che contengono il testo scritto, senza quelle già scelte
+	private Task<IEnumerable<Platform>> SearchPlatforms(string? text, CancellationToken token)
+	{
+		var selected = Platforms ?? [];
+		var matches = _platforms.Where(p => !selected.Contains(p.Id)
+			&& (string.IsNullOrWhiteSpace(text) || p.Name.Contains(text.Trim(), StringComparison.OrdinalIgnoreCase)));
+		return Task.FromResult(matches);
+	}
+
+	private void AddPlatform(Platform? platform)
+	{
+		if (platform is null)
+			return;
+		_platformPickerKey++;
+		NavigateWith("platforms", (Platforms ?? []).Append(platform.Id).ToArray());
+	}
+
+	private void RemovePlatform(int id)
+	{
+		var rest = (Platforms ?? []).Where(p => p != id).ToArray();
+		NavigateWith("platforms", rest.Length > 0 ? rest : null);
+	}
 
 	// Un campo nuovo tiene il verso scelto prima; senza un ordinamento precedente,
 	// il nome va dalla A alla Z e gli altri dal valore più alto
@@ -369,18 +496,18 @@
 	}
 
 	// Un filtro nuovo riporta sempre a pagina 1
-	private void NavigateWith(string key, object? value)
+	private void NavigateWith(string key, object? value, bool replace = false)
 	{
 		Navigate(new Dictionary<string, object?>
 		{
 			[key] = value,
 			["page"] = null,
-		});
+		}, replace);
 	}
 
 	// Cambia solo l'indirizzo: la ricerca la fa partire OnParametersSetAsync
-	private void Navigate(Dictionary<string, object?> changes)
+	private void Navigate(Dictionary<string, object?> changes, bool replace = false)
 	{
-		Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(changes));
+		Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(changes), replace: replace);
 	}
 }

@@ -7,8 +7,7 @@ internal static class IgdbMapper
 {
 	public const string CoverSize = "t_cover_big";
 	public const string ScreenshotSize = "t_screenshot_big";
-	public const string LogoSize = "t_logo_big";
-	
+	public const string OriginalSize = "t_original";
 	
 	private static List<TOut> MapTo<TIn, TOut>(this IEnumerable<TIn>? source, Func<TIn, TOut> map) =>
 		source?
@@ -50,36 +49,41 @@ internal static class IgdbMapper
 		})
 	};
 
-	private static string? ToImageUrl(this string? url, string size)
+	private static string? ToImageUrl(this string? url, string oldSize, string newSize, bool png = false)
 	{
 		if (string.IsNullOrWhiteSpace(url))
 			return null;
-		var result = url.Replace("t_thumb", size);
+		var result = url.Replace(oldSize, newSize);
+		if (png && result.EndsWith(".jpg"))
+			result = result[..^4] + ".png";
 		if (result.StartsWith("//"))
 			result = "https:" + result;
 		return result;
 	}
-	
-	public static Image ToImage( this IgdbImage r, string size ) => new()
+
+	public static Image ToImage(this IgdbImage r, string size, bool png = false) => new()
 	{
 		Id = r.Id,
-		Url = r.Path.ToImageUrl(size),
+		Url = r.Path.ToImageUrl("t_thumb", size, png),
 		Height = r.Height,
 		Width = r.Width
 	};
+	
+	public static Studio? ToCompany( this IgdbInvolvedCompany r ) => r.Studio?.ToStudio() ?? null;
 
 	public static Studio ToStudio( this IgdbStudio r ) => new()
 	{
 		Id = r.Id,
 		Slug = r.Slug,
 		Name = r.Name,
-		Image = r.Logo.ToImage(LogoSize),
+		Image = (r.Logo is not null ? r.Logo.ToImage(OriginalSize) : null),
 		About = r.Description,
-		CountrId = r.CountryId,
+		CountryId = r.CountryId,
 		StartDate = FromUnix(r.StartDate),
 		StatusId = r.Status,
 		Website = r.Websites?.FirstOrDefault(w => w.Type == 1)?.Url
 	};
+
 	
 	public static Genre ToGenre( this IgdbGenre r ) => new()
 	{
@@ -97,24 +101,35 @@ internal static class IgdbMapper
 
 	public static GameDetails		ToDetails( this IgdbGameDetails r )
 	{
-		var _base = r.ToGame();
+		var g = r.ToGame();
+		var image = g.Image;
+		if (image is not null)
+			image.Url = g.Image!.Url.ToImageUrl(CoverSize, OriginalSize);
 
 		return new GameDetails
 		{
-			Id = _base.Id,
-			Slug = _base.Slug,
-			Name = _base.Name,
-			Rating = _base.Rating,
-			Image = _base.Image,
-			ReleaseDate = _base.ReleaseDate,
-			Platforms = _base.Platforms,
-			Genres = _base.Genres,
+			Id = g.Id,
+			Slug = g.Slug,
+			Name = g.Name,
+			Rating = g.Rating,
+			Image = image,
+			ReleaseDate = g.ReleaseDate,
+			Platforms = g.Platforms,
+			Genres = g.Genres,
 
 			Description = r.Description,
 			Storyline = r.StoryLine,
 			Website = r.Websites?.FirstOrDefault(w => w.Type == 1)?.Url,
 			
-			Developers = r.Studios.MapTo(ToStudio),
+			Developers = (r.Studios ?? [])
+				.Where(c => c.Developer == true)
+				.Select(c => c.Studio.ToStudio())
+				.ToList(),
+			
+			Publishers = (r.Studios ?? [])
+				.Where(c => c.Publisher == true)
+				.Select(c => c.Studio.ToStudio())
+				.ToList(),
 
 			Screenshots = r.Screenshots.MapTo(s => s.ToImage(ScreenshotSize))
 		};

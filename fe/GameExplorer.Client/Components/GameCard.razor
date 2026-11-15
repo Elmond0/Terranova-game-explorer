@@ -1,6 +1,6 @@
 @using System.Globalization
 
-<a href="games/@Game.Id" class="game-card">
+<a href="games/@Game.Id" class="game-card" tabindex="@(IsClone ? "-1" : null)">
 	<MudCard Elevation="2" Class="full-height">
 		@if (Game.Image?.Url is not null)
 		{
@@ -18,7 +18,7 @@
 			</MudText>
 			@if (HighlightDate)
 			{
-				<MudText Typo="Typo.h6" Color="Color.Primary">
+				<MudText Typo="Typo.h6" Color="Color.Primary" HtmlTag="p">
 					@ReleaseDateText
 				</MudText>
 			}
@@ -45,12 +45,12 @@
 			}
 			@if (PlatformFamilies.Count > 0)
 			{
-				<MudStack Row="true" Spacing="1" Class="mt-2">
+				@* Nomi scritti invece di icone: le icone erano quasi uguali e sul telefono non c'è il tooltip.
+				   Wrap: con tante piattaforme i nomi vanno a capo invece di allargare la card *@
+				<MudStack Row="true" Spacing="1" Class="mt-2" Wrap="Wrap.Wrap">
 					@foreach (var family in PlatformFamilies)
 					{
-						<MudTooltip Text="@family">
-							<MudIcon Icon="@GetFamilyIcon(family)" Size="Size.Small" Class="mud-text-secondary" aria-label="@family" />
-						</MudTooltip>
+						<span class="platform-tag">@family</span>
 					}
 				</MudStack>
 			}
@@ -65,54 +65,39 @@
 	[Parameter]
 	public bool HighlightDate { get; set; }
 
+	// Copia del carosello di GameSection: si vede e si clicca, ma il Tab la salta (tabindex -1)
+	[Parameter]
+	public bool IsClone { get; set; }
+
+	private static readonly string[] PcSlugs = ["win", "mac", "linux"];
+	private static readonly string[] NintendoSlugs = ["switch", "switch-2", "wii", "wiiu", "3ds", "nds", "ngc", "n64", "nes", "snes", "gb", "gba", "gbc"];
+	private static readonly string[] MobileSlugs = ["ios", "android"];
+
 	private string ReleaseDateText => Game.ReleaseDate is null
 		? "Data da annunciare"
 		: Game.ReleaseDate.Value.ToString("d MMM yyyy", CultureInfo.GetCultureInfo("it-IT"));
 
+	// Ordine fisso, uguale in tutte le card (prima dipendeva dall'ordine delle piattaforme del gioco)
+	private static readonly string[] FamilyOrder = ["PC", "PlayStation", "Xbox", "Nintendo", "Mobile", "Altro"];
+
 	private List<string> PlatformFamilies => Game.Platforms
 		.Select(platform => GetPlatformFamily(platform.Slug))
 		.Distinct()
+		.OrderBy(family => Array.IndexOf(FamilyOrder, family))
 		.ToList();
 
 	private static string GetPlatformFamily(string slug)
 	{
-		if (slug.StartsWith("win"))
-			return "PC";
-		if (slug.StartsWith("mac"))
-			return "PC";
-		if (slug.StartsWith("linux"))
+		if (PcSlugs.Contains(slug))
 			return "PC";
 		if (slug.StartsWith("ps"))
 			return "PlayStation";
-		if (slug.StartsWith("xbox"))
+		if (slug.StartsWith("xbox") || slug.StartsWith("series-x-s"))
 			return "Xbox";
-		if (slug.StartsWith("series-x-s"))
-			return "Xbox";
-		if (slug.StartsWith("switch"))
+		if (NintendoSlugs.Contains(slug))
 			return "Nintendo";
-		if (slug.StartsWith("wii"))
-			return "Nintendo";
-		if (slug.StartsWith("3ds"))
-			return "Nintendo";
-		if (slug.StartsWith("n64"))
-			return "Nintendo";
-		if (slug.StartsWith("ios") || slug.StartsWith("android"))
+		if (MobileSlugs.Contains(slug))
 			return "Mobile";
 		return "Altro";
-	}
-
-	private static string GetFamilyIcon(string family)
-	{
-		if (family == "PC")
-			return Icons.Material.Filled.DesktopWindows;
-		if (family == "PlayStation")
-			return Icons.Material.Filled.SportsEsports;
-		if (family == "Xbox")
-			return Icons.Material.Filled.VideogameAsset;
-		if (family == "Nintendo")
-			return Icons.Material.Filled.Gamepad;
-		if (family == "Mobile")
-			return Icons.Material.Filled.PhoneAndroid;
-		return Icons.Material.Filled.Games;
 	}
 }

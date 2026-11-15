@@ -19,9 +19,8 @@ builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<CookieAuthenticationStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<CookieAuthenticationStateProvider>());
-// true: dati finti, finché gli endpoint della Home non sono su main.
-// false: Web API vera all'indirizzo Api:BaseUrl.
-var useFakeApi = false;
+builder.Services.AddScoped<SearchFocusService>();
+var useFakeApi = builder.Configuration.GetValue<bool>("Api:UseFake");
 if (useFakeApi)
 {
 	builder.Services.AddScoped<IGameApiClient, FakeGameApiClient>();
@@ -37,7 +36,9 @@ else
 
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
-builder.Services.AddMudServices();
+// Gli avvisi (es. "Profilo salvato") in basso: in alto a destra coprivano il nome e il pulsante del tema
+builder.Services.AddMudServices(config =>
+	config.SnackbarConfiguration.PositionClass = MudBlazor.Defaults.Classes.Position.BottomCenter);
 
 await builder.Build().RunAsync();
 

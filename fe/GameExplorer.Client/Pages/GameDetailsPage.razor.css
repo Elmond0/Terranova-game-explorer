@@ -52,3 +52,36 @@
 		transform: none;
 	}
 }
+
+/* Visore degli screenshot: le frecce stanno sopra l'immagine, ai lati,
+   così l'immagine prende tutta la larghezza anche sul telefono */
+.viewer {
+	position: relative;           /* le frecce si posizionano rispetto a questo riquadro */
+	text-align: center;
+}
+
+.viewer img {
+	display: block;
+	max-width: 100%;
+	max-height: 75vh;             /* non più alta di 3/4 dello schermo */
+	margin: 0 auto;               /* centrata */
+	object-fit: contain;          /* intera, non ritagliata */
+}
+
+/* Le frecce sono MudIconButton (componente Mud → serve ::deep) */
+.viewer ::deep .viewer-prev,
+.viewer ::deep .viewer-next {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);  /* centrate in verticale */
+	background: rgba(0, 0, 0, 0.4); /* sfondo scuro: si vedono su qualsiasi immagine */
+	color: white;
+}
+
+.viewer ::deep .viewer-prev {
+	left: 4px;
+}
+
+.viewer ::deep .viewer-next {
+	right: 4px;
+}

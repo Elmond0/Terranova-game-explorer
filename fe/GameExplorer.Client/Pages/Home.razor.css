@@ -1,4 +1,30 @@
+/* Fascia della ricerca: scorrendo la pagina si ferma sotto la navbar e resta visibile.
+   È larga quanto la pagina, così le card che le scorrono sotto non si vedono ai lati del campo */
+.search-bar-sticky {
+	position: sticky;
+	top: calc(var(--mud-appbar-height) - var(--mud-appbar-height) / 8);   /* sotto la navbar, non dietro: sul telefono è alta 56px */
+	z-index: 10;                              /* sopra le card (anche quella che si alza al :hover), sotto navbar e menù */
+	background: var(--mud-palette-background); /* senza sfondo le card si vedrebbero attraverso; va bene con tema chiaro e scuro */
+	padding: 12px 0;
+	margin-bottom: 20px;
+}
+
+/* Stesse altezze che MudBlazor dà alla navbar (MudBlazor.min.css, .mud-toolbar-appbar):
+   telefono in orizzontale 48px, da 600px in su 64px. L'ordine conta: l'ultima regola vince */
+@media (orientation: landscape) {
+	.search-bar-sticky {
+		top: calc(var(--mud-appbar-height) - var(--mud-appbar-height) / 4);
+	}
+}
+
+@media (min-width: 600px) {
+	.search-bar-sticky {
+		top: var(--mud-appbar-height);
+	}
+}
+
+/* Il campo di ricerca: largo al massimo 640px e centrato dentro la fascia */
 .search-box {
 	max-width: 640px;
-	margin: 0 auto 32px;
+	margin: 0 auto;
 }

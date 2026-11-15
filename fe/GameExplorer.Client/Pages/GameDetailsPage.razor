@@ -4,7 +4,7 @@
 @inject IGameApiClient Api
 @implements IDisposable
 
-<PageTitle>@(_game?.Name ?? "Gioco")</PageTitle>
+<PageTitle>@(_game?.Name ?? "Gioco") · Game Explorer</PageTitle>
 @if (_error)
 {
 	<ErrorMessage OnRetry="LoadAsync"/>
@@ -15,10 +15,10 @@ else if (_loading)
 }
 else if (_game is null)
 {
-	<MudText Typo="Typo.h5" HtmlTag="h1">Gioco non trovato</MudText>
-	<MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary">
-		Torna alla home
-	</MudButton>
+	<NotFoundMessage
+		Title="Gioco non trovato"
+		Text="Il gioco che cerchi non esiste o è stato rimosso."
+	/>
 }
 else
 {
@@ -91,13 +91,13 @@ else
 					}
 				</MudStack>
 			}
-			@if (_game.Developers.Count > 0)
+			@if (NamedDevelopers.Count > 0)
 			{
 				<MudText Typo="Typo.subtitle2" Class="mt-4">
 					Sviluppatori
 				</MudText>
 				<MudStack Row="true" Wrap="Wrap.Wrap">
-					@foreach (var studio in _game.Developers)
+					@foreach (var studio in NamedDevelopers)
 					{
 						<MudChip T="string" Href="@($"/studios/{studio.Id}")" Color="Color.Primary">
 							@studio.Name
@@ -163,41 +163,47 @@ else
 				</MudItem>
 			}
 		</MudGrid>
-		<MudDialog @bind-Visible="_viewerOpen" Options="_viewerOptions">
+		<MudDialog @bind-Visible="_viewerOpen" Options="_viewerOptions" DefaultFocus="DefaultFocus.LastChild">
 			<TitleContent>
 				@if (_viewerOpen)
 				{
-					<MudText Typo="Typo.h6">
-						Screenshot @(_viewerIndex + 1) di @ScreenshotUrls.Count
-					</MudText>
+					<MudStack Row="true" AlignItems="AlignItems.Center">
+						<MudText Typo="Typo.h6">
+							Screenshot @(_viewerIndex + 1) di @ScreenshotUrls.Count
+						</MudText>
+						<MudSpacer/>
+						<MudIconButton
+							Icon="@Icons.Material.Filled.Close"
+							aria-label="Chiudi"
+							OnClick="() => _viewerOpen = false"
+							@onkeydown="OnViewerKeyDown"
+						/>
+					</MudStack>
 				}
 			</TitleContent>
 			<DialogContent>
 				@if (_viewerOpen)
 				{
-					<MudStack
-						Row="true"
-						AlignItems="AlignItems.Center"
-						Justify="Justify.Center">
+					<div class="viewer" @onkeydown="OnViewerKeyDown">
 						<MudIconButton
 							Icon="@Icons.Material.Filled.ChevronLeft"
 							aria-label="Precedente"
 							OnClick="Previous"
+							Class="viewer-prev"
 						>
 						</MudIconButton>
 						<img
 							src="@ScreenshotUrls[_viewerIndex]"
 							alt="Screenshot @(_viewerIndex + 1) di @_game.Name"
-							style="max-width: 100%; max-height: 75vh;
-							object-fit: contain; min-width: 0;"
 						/>
 						<MudIconButton
 							Icon="@Icons.Material.Filled.ChevronRight"
 							aria-label="Successivo"
 							OnClick="Next"
+							Class="viewer-next"
 						>
 						</MudIconButton>
-					</MudStack>
+					</div>
 				}
 			</DialogContent>
 		</MudDialog>
@@ -207,9 +213,12 @@ else
 @code {
 	[Parameter] public int Id { get; set; }
 	private const int AboutPreviewLength = 500;
+	// "Leggi tutto" solo se il testo nascosto è abbastanza lungo: per poche parole in più si mostra tutto
+	private const int AboutTolerance = 150;
 	private CancellationTokenSource? _cts;
 	private bool _aboutExpanded;
 	private GameDetails? _game;
+	private List<Studio> NamedDevelopers => _game?.Developers.Where(s => !string.IsNullOrWhiteSpace(s.Name)).ToList() ?? [];
 	private bool _viewerOpen;
 	private int _viewerIndex;
 	private bool _loading;
@@ -217,11 +226,11 @@ else
 	private readonly DialogOptions _viewerOptions = new()
 	{
 		CloseOnEscapeKey = true,
-		CloseButton = true,
+		CloseButton = false,
 		MaxWidth = MaxWidth.Large,
 		FullWidth = true,
 	};
-	private bool IsAboutLong => _game?.Description?.Length > AboutPreviewLength;
+	private bool IsAboutLong => _game?.Description?.Length > AboutPreviewLength + AboutTolerance;
 	private List<string> ScreenshotUrls => _game?.Screenshots.Select(s => s?.Url).OfType<string>().ToList() ?? [];
 	private void OpenViewer(int index)
 	{
@@ -235,6 +244,13 @@ else
 	private void Previous()
 	{
 		_viewerIndex = (_viewerIndex - 1 + ScreenshotUrls.Count) % ScreenshotUrls.Count;
+	}
+	private void OnViewerKeyDown(KeyboardEventArgs e)
+	{
+		if (e.Key == "ArrowRight")
+			Next();
+		if (e.Key == "ArrowLeft")
+			Previous();
 	}
 	// Testo da mostrare nella descrizione: intero, oppure tagliato all'ultimo spazio prima del limite
 	private string AboutText
