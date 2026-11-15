@@ -14,6 +14,21 @@
 	color: var(--mud-palette-text-disabled);
 }
 
+/* a small cover grows up to twice its size (CoverMaxWidth), then stays centered in the column */
+.cover-box {
+	display: flex;
+	justify-content: center;
+}
+
+/* bigger text, and lines of about 70 characters: longer lines are hard to follow */
+.about {
+	margin: 0;
+	max-width: 70ch;
+	font-size: 1.125rem;
+	line-height: 1.7;
+	white-space: pre-line;
+}
+
 .thumb {
 	display: block;
 	width: 100%;

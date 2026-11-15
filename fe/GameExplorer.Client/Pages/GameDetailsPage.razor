@@ -26,12 +26,15 @@ else
 		<MudItem xs="12" md="4">
 			@if (_game.Image?.Url is not null)
 			{
-				<MudImage
-					Fluid="true"
-					Class="rounded-lg"
-					Src="@_game.Image.Url"
-					Alt="@_game.Name"
-				/>
+				<div class="cover-box">
+					<MudImage
+						Fluid="true"
+						Class="rounded-lg"
+						Src="@_game.Image.Url"
+						Alt="@_game.Name"
+						Style="@CoverMaxWidth(_game.Image)"
+					/>
+				</div>
 			}
 			else
 			{
@@ -129,9 +132,7 @@ else
 			Class="mt-6 mb-2">
 			Descrizione
 		</MudText>
-		<MudText Style="white-space: pre-line">
-			@AboutText
-		</MudText>
+		<p class="about">@AboutText</p>
 		@if (IsAboutLong)
 		{
 			<MudButton Variant="Variant.Text" OnClick="() => _aboutExpanded = !_aboutExpanded">
@@ -215,6 +216,10 @@ else
 	private const int AboutPreviewLength = 500;
 	// "Leggi tutto" only when the hidden text is long enough: hiding just a few words would cost a click for nothing
 	private const int AboutTolerance = 150;
+	// IGDB already sends its largest file (t_original): more than twice its real size would look blurred
+	private static string? CoverMaxWidth(Image image) => image.Width > 0
+		? $"max-width: {image.Width * 2}px"
+		: null;
 	private CancellationTokenSource? _cts;
 	private bool _aboutExpanded;
 	private GameDetails? _game;
