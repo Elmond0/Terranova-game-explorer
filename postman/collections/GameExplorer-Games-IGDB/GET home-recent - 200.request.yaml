@@ -1,0 +1,8 @@
+$kind: http-request
+name: GET home/recent - 200
+url: "{{api_domain}}home/recent"
+method: GET
+body:
+  type: text
+  content: ""
+order: 28000
