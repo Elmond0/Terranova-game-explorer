@@ -179,7 +179,6 @@ public class GameApiClient : IGameApiClient
 		if (filter.ToYear is not null)
 			parts.Add($"toYear={filter.ToYear}");
 		AddList(parts, "developerIds", filter.DeveloperIds);
-		AddList(parts, "publisherIds", filter.PublisherIds);
 		if (!string.IsNullOrWhiteSpace(filter.Ordering))
 			parts.Add($"ordering={Uri.EscapeDataString(filter.Ordering)}");
 		parts.Add($"page={filter.Page}");
