@@ -16,8 +16,6 @@ public class HomeTests : PageTestBase
 		var cut = Ctx.Render<Home>();
 		cut.WaitForAssertion(() =>
 		{
-			// in page order: Più apprezzati, Usciti di recente, In arrivo,
-			// then the 4 platform sections (PlayStation, Xbox, Nintendo, Pc)
 			var sections = cut.FindAll("section");
 			Assert.Equal(7, sections.Count);
 			Assert.NotEmpty(sections[0].QuerySelectorAll("a.game-card"));

@@ -8,7 +8,6 @@ public class GameDetailsPageTests : PageTestBase
 	[Fact]
 	public void GiocoInesistente_MostraGiocoNonTrovato()
 	{
-		// an id missing from the fake data, like a deleted game
 		var cut = Ctx.Render<GameDetailsPage>(parameters => parameters
 			.Add(p => p.Id, 999999));
 		cut.WaitForAssertion(() =>
@@ -21,12 +20,10 @@ public class GameDetailsPageTests : PageTestBase
 	[Fact]
 	public void ApiGiu_MostraErrore_RiprovaCaricaIlGioco()
 	{
-		// the web api is down: every call of the fake client throws ApiException
 		Api.SimulateError = true;
 		var cut = Ctx.Render<GameDetailsPage>(parameters => parameters
 			.Add(p => p.Id, 3498));
 		cut.WaitForAssertion(() => Assert.Contains("Riprova", cut.Markup));
-		// the network comes back and the user clicks "Riprova"
 		Api.SimulateError = false;
 		cut.FindAll("button")
 			.Single(b => b.TextContent.Contains("Riprova"))

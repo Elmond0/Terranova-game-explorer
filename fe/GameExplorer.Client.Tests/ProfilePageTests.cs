@@ -21,7 +21,6 @@ public class ProfilePageTests : PageTestBase
 		Ctx.Render<MudPopoverProvider>();
 		Auth.SetAuthorized("tester@example.com");
 		var cut = Ctx.Render<ProfilePage>();
-		// the fake profile arrives after 800ms with the nickname "Tester"
 		cut.WaitForAssertion(() => Assert.Equal("Tester", cut.Find("input").GetAttribute("value")));
 
 		// a user who just registered has no nickname: "Salva" used to do nothing without saying why

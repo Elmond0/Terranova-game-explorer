@@ -8,7 +8,6 @@ namespace GameExplorer.Client.Tests;
 
 public class SaveButtonsTests : PageTestBase
 {
-	// GTA V: present in the fake client data
 	private const int GameId = 3498;
 
 	[Fact]
@@ -52,7 +51,6 @@ public class SaveButtonsTests : PageTestBase
 	[Fact]
 	public void NonCollegato_Clic_PortaAllAccesso()
 	{
-		// no SetAuthorized: by default the user is logged out
 		var cut = Ctx.Render<SaveButtons>(parameters => parameters
 			.Add(p => p.GameId, GameId));
 
