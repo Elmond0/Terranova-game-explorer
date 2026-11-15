@@ -105,20 +105,20 @@ else
 					}
 				</MudStack>
 			}
-			@* @if (_game.Publishers.Count > 0) *@
-			@* { *@
-			@* 	<MudText Typo="Typo.subtitle2" Class="mt-4"> *@
-			@* 		Publisher *@
-			@* 	</MudText> *@
-			@* 	<MudStack Row="true" Wrap="Wrap.Wrap"> *@
-			@* 		@foreach (var publisher in _game.Publishers) *@
-			@* 		{ *@
-			@* 			<MudChip T="string" Color="Color.Primary"> *@
-			@* 				@publisher.Name *@
-			@* 			</MudChip> *@
-			@* 		} *@
-			@* 	</MudStack> *@
-			@* } *@
+			@if (NamedPublishers.Count > 0)
+			{
+				<MudText Typo="Typo.subtitle2" Class="mt-4">
+					Publisher
+				</MudText>
+				<MudStack Row="true" Wrap="Wrap.Wrap">
+					@foreach (var publisher in NamedPublishers)
+					{
+						<MudChip T="string" Color="Color.Primary" Href="@($"/studios/{publisher.Id}")">
+							@publisher.Name
+						</MudChip>
+					}
+				</MudStack>
+			}
 		</MudItem>
 	</MudGrid>
 	@if (!string.IsNullOrWhiteSpace(_game.Description))
@@ -219,6 +219,7 @@ else
 	private bool _aboutExpanded;
 	private GameDetails? _game;
 	private List<Studio> NamedDevelopers => _game?.Developers.Where(s => !string.IsNullOrWhiteSpace(s.Name)).ToList() ?? [];
+	private List<Studio> NamedPublishers => _game?.Publishers.Where(s => !string.IsNullOrWhiteSpace(s.Name)).ToList() ?? [];
 	private bool _viewerOpen;
 	private int _viewerIndex;
 	private bool _loading;
