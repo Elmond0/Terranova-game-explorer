@@ -30,8 +30,8 @@
 			AdornmentIcon="@Icons.Material.Filled.Search"
 			@ref="_searchField"
 		/>
-		@* Solo su schermi piccoli: lì i filtri stanno nel MudDrawer *@
-		@* nowrap e flex-shrink 0: "Filtri (1)" resta su una riga, è il campo di ricerca a stringersi *@
+		@* small screens only: there a filter column would leave no room for the results, so they live in the MudDrawer *@
+		@* nowrap and flex-shrink 0: "Filtri (1)" stays on one line, the search field is the one that shrinks *@
 		<MudButton
 			Class="d-md-none flex-shrink-0"
 			Style="white-space: nowrap"
@@ -62,13 +62,13 @@
 </MudDrawer>
 
 <MudGrid>
-	@* Da md in su i filtri stanno in una colonna a sinistra *@
+	@* from md up there is room for the filters in a left column, always visible *@
 	<MudItem md="3" Class="d-none d-md-block">
 		@FiltersPanel
 	</MudItem>
 
 	<MudItem xs="12" md="9">
-		@* Anni sbagliati: la Web API non viene chiamata, quindi si spiega il motivo invece di "Nessun gioco trovato" *@
+		@* wrong years: the web api is not called, so the reason is explained instead of a misleading "Nessun gioco trovato" *@
 		@if (YearsInvalid)
 		{
 			<MudAlert Severity="Severity.Warning">
@@ -104,7 +104,7 @@
 				@TotalText
 			</MudText>
 			<MudGrid Spacing="3">
-				@* Anche sul telefono 2 card per riga: con 1 sola, 20 risultati occupavano circa 20 schermate *@
+				@* 2 cards per row on phones too: with 1, 20 results took about 20 screens *@
 				@foreach (var game in _result.Items)
 				{
 					<MudItem xs="6" lg="4">
@@ -129,7 +129,7 @@
 
 @code {
 	private const int PageSize = 20;
-	// La Web API rifiuta le pagine oltre la 500 (400 Bad Request)
+	// the web api rejects pages over 500 (400 Bad Request)
 	private const int MaxPage = 500;
 	private const int MinYear = 1950;
 	private static readonly int MaxYear = DateTime.Today.Year + 5;
@@ -163,7 +163,7 @@
 	}
 	private MudTextField<string>? _searchField;
 
-	// Le voci del menu "Ordina per": valore accettato dalla Web API (SearchFilter.Ordering) senza "-" e testo da mostrare
+	// fields only, without "-": the direction has its own button, so the menu does not list every field twice
 	private static readonly (string Value, string Label)[] OrderFields =
 	[
 		("name", "Nome"),
@@ -195,17 +195,17 @@
 	private int _platformPickerKey;
 	private bool _filtersOpen;
 
-	// ?page=0 o negativo scritto a mano nell'indirizzo vale come pagina 1, oltre la 500 come pagina 500
+	// ?page=0 or negative typed in the address counts as page 1, over 500 as page 500: a hand-written url never errors
 	private int CurrentPage => Math.Clamp(Page ?? 1, 1, MaxPage);
-	// SearchFilter.Validate rifiuta "Dal" dopo "Al": la Web API risponderebbe 400
+	// SearchFilter.Validate rejects "Dal" after "Al": checked here because the web api would answer 400
 	private bool YearsInverted => FromYear > ToYear;
-	// Con 357.000 giochi sarebbero 17.000 pagine: la paginazione si ferma a quelle che la Web API accetta
+	// 357,000 games would be 17,000 pages: the pagination stops at the ones the web api accepts
 	private int PageCount => _result is null ? 0 : Math.Min((int)Math.Ceiling(_result.Total / (double)PageSize), MaxPage);
 	private string TotalText => _result?.Total == 1
 		? "1 gioco trovato"
 		: $"{_result?.Total.ToString("N0", CultureInfo.GetCultureInfo("it-IT"))} giochi trovati";
 
-	// "-rating" → campo "rating", verso decrescente
+	// the address keeps field and direction in one value ("-rating"), the panel shows them as two controls
 	private string? OrderField => Ordering?.TrimStart('-');
 	private bool OrderDescending => Ordering?.StartsWith('-') ?? false;
 
@@ -214,8 +214,8 @@
 		+ (FromYear is not null ? 1 : 0) + (ToYear is not null ? 1 : 0)
 		+ (Ordering is not null ? 1 : 0);
 
-	// Lo stesso pannello compare due volte: nella colonna (schermi grandi) e nel MudDrawer (smartphone)
-	// @key: MudSelect calcola il testo ("Action, Adventure") una volta sola, quindi si ricrea quando arrivano gli elenchi
+	// one fragment because the same panel appears twice: in the column (large screens) and in the MudDrawer (phones).
+	// @key: MudSelect computes its text ("Action, Adventure") only once, so it is recreated when the lists arrive
 	private RenderFragment FiltersPanel => @<MudStack Spacing="3">
 		<MudSelect
 			@key="@($"genres-{_genres.Count}")"
@@ -232,9 +232,9 @@
 				<MudSelectItem T="int" Value="genre.Id">@genre.Name</MudSelectItem>
 			}
 		</MudSelect>
-		@* Le piattaforme sono più di 200: si cercano scrivendo, invece di scorrere un menu.
-		   Quelle scelte compaiono sotto come chip, con la ✕ per toglierle.
-		   @key cambia dopo ogni scelta, così il campo si ricrea vuoto e pronto per la prossima *@
+		@* more than 200 platforms: typing finds one faster than scrolling a menu.
+		   The chosen ones show below as chips, with ✕ to remove them.
+		   @key changes after every choice, so the field comes back empty and ready for the next one *@
 		<MudAutocomplete
 			@key="@($"platform-picker-{_platformPickerKey}")"
 			T="Platform"
@@ -348,7 +348,7 @@
 		}
 		catch (ApiException)
 		{
-			// Senza elenchi i menu restano vuoti: si riprova alla prossima ricerca
+			// the search still works without the lists: the menus stay empty and are retried at the next search
 		}
 		finally
 		{
@@ -358,7 +358,7 @@
 
 	private async Task LoadAsync()
 	{
-		// Gli elenchi dei filtri si ritentano a ogni ricerca finché non arrivano, senza far aspettare la ricerca
+		// the filter lists are retried at every search until they arrive, without making the search wait for them
 		_ = LoadFilterListsAsync();
 		_cts?.Cancel();
 		_cts?.Dispose();
@@ -431,7 +431,7 @@
 	private void OnGenresChanged(IEnumerable<int> values) =>
 		NavigateWith("genres", values.Any() ? values.ToArray() : null);
 
-	// Elenco del campo Piattaforme: quelle che contengono il testo scritto, senza quelle già scelte
+	// already chosen platforms are left out so the same one cannot be added twice
 	private Task<IEnumerable<Platform>> SearchPlatforms(string? text, CancellationToken token)
 	{
 		var selected = Platforms ?? [];
@@ -454,8 +454,8 @@
 		NavigateWith("platforms", rest.Length > 0 ? rest : null);
 	}
 
-	// Un campo nuovo tiene il verso scelto prima; senza un ordinamento precedente,
-	// il nome va dalla A alla Z e gli altri dal valore più alto
+	// a new field keeps the direction chosen before; with no previous ordering, names go A to Z
+	// and the others from the highest value, the order people expect for each
 	private void OnOrderFieldChanged(string? field)
 	{
 		if (field is null)
@@ -474,7 +474,7 @@
 		NavigateWith("ordering", OrderDescending ? OrderField : $"-{OrderField}");
 	}
 
-	// Il testo resta: "Azzera filtri" toglie solo i filtri e l'ordinamento
+	// the text stays: "Azzera filtri" clears filters and ordering, not what the user is looking for
 	private void ResetFilters()
 	{
 		Navigate(new Dictionary<string, object?>
@@ -488,14 +488,14 @@
 		});
 	}
 
-	// La pagina 1 non si scrive nell'indirizzo: /search?q=zelda e /search?q=zelda&page=1 sono la stessa ricerca
+	// page 1 stays out of the address: /search?q=zelda and /search?q=zelda&page=1 are the same search
 	private async Task OnPageChanged(int page)
 	{
 		Navigate(new Dictionary<string, object?> { ["page"] = page == 1 ? null : page });
 		await JS.InvokeVoidAsync("scrollTo", 0, 0);
 	}
 
-	// Un filtro nuovo riporta sempre a pagina 1
+	// a new filter always goes back to page 1: the old page number may not exist in the new results
 	private void NavigateWith(string key, object? value, bool replace = false)
 	{
 		Navigate(new Dictionary<string, object?>
@@ -505,7 +505,7 @@
 		}, replace);
 	}
 
-	// Cambia solo l'indirizzo: la ricerca la fa partire OnParametersSetAsync
+	// only the address changes and OnParametersSetAsync starts the search: this way Back and shared links work
 	private void Navigate(Dictionary<string, object?> changes, bool replace = false)
 	{
 		Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(changes), replace: replace);

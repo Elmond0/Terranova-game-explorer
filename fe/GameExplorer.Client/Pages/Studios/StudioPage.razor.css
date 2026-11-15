@@ -1,13 +1,13 @@
-/* Logo dello studio: non ha una forma fissa (quadrato, largo o stretto), quindi tiene le sue proporzioni
-   e si rimpicciolisce senza tagli finché non sta nella colonna e in 160 px di altezza */
+/* studio logos have no fixed shape (square, wide or narrow), so they keep their proportions
+   and shrink without cropping until they fit the column and 160px of height */
 .logo ::deep img {
 	max-width: 100%;
 	max-height: 160px;
 	object-fit: contain;
 }
 
-/* Riquadro grigio con l'icona al centro quando lo studio non ha un logo: quadrato e alto quanto il logo
-   più grande, così la pagina ha la stessa forma con e senza immagine */
+/* placeholder for a studio without a logo: square and as tall as the largest logo,
+   so the page has the same shape with and without an image */
 .cover-placeholder {
 	display: flex;
 	align-items: center;
@@ -16,11 +16,5 @@
 	color: var(--mud-palette-text-disabled);
 	width: 160px;
 	aspect-ratio: 1 / 1;
-	max-width: 100%;
-}
-
-/* Il menu "Ordina per" non si allarga su tutta la riga, ma non esce dallo schermo a 375 px */
-.order-select {
-	width: 220px;
 	max-width: 100%;
 }

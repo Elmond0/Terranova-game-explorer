@@ -1,8 +1,8 @@
 using Bunit;
-using GameExplorer.Client.Pages;                  // esiste già: Home
-using GameExplorer.Client.Services;               // esiste già: IGameApiClient, FakeGameApiClient, ApiException
-using GameExplorer.Shared.Models;                 // esiste già: Game, GameDetails, Genre, ...
-using Microsoft.Extensions.DependencyInjection;   // esiste già: AddSingleton
+using GameExplorer.Client.Pages;
+using GameExplorer.Client.Services;
+using GameExplorer.Shared.Models;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GameExplorer.Client.Tests;
 
@@ -11,13 +11,13 @@ public class HomeTests : PageTestBase
 	[Fact]
 	public void UnaSezioneInErrore_LeAltreMostranoIGiochi()
 	{
-		// Sostituisce il client della classe base: la pagina riceve l'ultimo registrato
+		// replaces the base class client: the page receives the last one registered
 		Ctx.Services.AddSingleton<IGameApiClient>(new UpcomingDownApiClient());
 		var cut = Ctx.Render<Home>();
 		cut.WaitForAssertion(() =>
 		{
-			// Nell'ordine della pagina: Più apprezzati, Usciti di recente, In arrivo,
-			// poi le 4 sezioni per piattaforma (PlayStation, Xbox, Nintendo, Pc)
+			// in page order: Più apprezzati, Usciti di recente, In arrivo,
+			// then the 4 platform sections (PlayStation, Xbox, Nintendo, Pc)
 			var sections = cut.FindAll("section");
 			Assert.Equal(7, sections.Count);
 			Assert.NotEmpty(sections[0].QuerySelectorAll("a.game-card"));
@@ -26,12 +26,12 @@ public class HomeTests : PageTestBase
 			Assert.DoesNotContain("Riprova", sections[1].TextContent);
 			Assert.Contains("Riprova", sections[2].TextContent);
 			Assert.Empty(sections[2].QuerySelectorAll("a.game-card"));
-			// L'errore di "In arrivo" non tocca le sezioni per piattaforma
+			// one failing section must not take the others down with it
 			for (var i = 3; i < 7; i++)
 				Assert.DoesNotContain("Riprova", sections[i].TextContent);
 		});
 	}
-	// Client finto con solo "In arrivo" giù: tutto il resto lo passa a FakeGameApiClient
+	// only "In arrivo" is down: SimulateError would break every section, so everything else goes to FakeGameApiClient
 	private sealed class UpcomingDownApiClient : IGameApiClient
 	{
 		private readonly FakeGameApiClient _fake = new();
@@ -69,7 +69,14 @@ public class HomeTests : PageTestBase
 			_fake.AddToWishlistAsync(id, cancellationToken);
 		public Task RemoveFromWishlistAsync(int id, CancellationToken cancellationToken = default) =>
 			_fake.RemoveFromWishlistAsync(id, cancellationToken);
-		public Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, string? ordering, CancellationToken cancellationToken = default) =>
-			_fake.GetStudioGamesAsync(id, page, ordering, cancellationToken);
+		public Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, CancellationToken cancellationToken = default) =>
+			_fake.GetStudioGamesAsync(id, page, cancellationToken);
+		public Task<List<Game>> GetStudioUpcomingAsync(int id, CancellationToken cancellationToken = default) => _fake.GetStudioUpcomingAsync(id, cancellationToken);
+		public Task<PagedResult<Game>> GetTopRatedPageAsync(int page, CancellationToken cancellationToken = default) =>
+			_fake.GetTopRatedPageAsync(page, cancellationToken);
+		public Task<PagedResult<Game>> GetRecentPageAsync(int page, CancellationToken cancellationToken = default) =>
+			_fake.GetRecentPageAsync(page, cancellationToken);
+		public Task<PagedResult<Game>> GetUpcomingPageAsync(int page, CancellationToken cancellationToken = default) =>
+			_fake.GetUpcomingPageAsync(page, cancellationToken);
 	}
 }

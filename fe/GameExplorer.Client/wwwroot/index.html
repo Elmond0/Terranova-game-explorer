@@ -8,9 +8,9 @@
 	<base href="/" />
 	<link rel="preload" id="webassembly" />
 	<script>
-		// Gira prima di Blazor e decide il tema: quello salvato, altrimenti quello del sistema.
-		// data-theme serve ai colori del caricamento (app.css) e a MainLayout, che parte con lo stesso tema:
-		// così non c'è nessun lampo di colore diverso.
+		// runs before Blazor and picks the theme: the saved one, else the system one.
+		// data-theme feeds the loading colors (app.css) and MainLayout, which starts with the same theme:
+		// deciding it here, once, is what avoids a flash of the wrong color
 		(function () {
 			var saved = null;
 			try { saved = localStorage.getItem('theme'); } catch (e) { }

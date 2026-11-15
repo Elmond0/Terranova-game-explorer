@@ -12,7 +12,12 @@ public interface IGameApiClient
 	Task<List<Genre>> GetGenresAsync(CancellationToken cancellationToken = default);
 	Task<List<Platform>> GetPlatformsAsync(CancellationToken cancellationToken = default);
 	Task<Studio?> GetStudioAsync(int id, CancellationToken cancellationToken = default);
-	Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, string? ordering, CancellationToken cancellationToken = default);
+	Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, CancellationToken cancellationToken = default);
+	Task<List<Game>> GetStudioUpcomingAsync(int id, CancellationToken cancellationToken = default);
+	// "see all" pages: a separate method from the home one because the home needs a short list, these need pages
+	Task<PagedResult<Game>> GetTopRatedPageAsync(int page, CancellationToken cancellationToken = default);
+	Task<PagedResult<Game>> GetRecentPageAsync(int page, CancellationToken cancellationToken = default);
+	Task<PagedResult<Game>> GetUpcomingPageAsync(int page, CancellationToken cancellationToken = default);
 	Task<List<Game>> GetFavoritesAsync(CancellationToken cancellationToken = default);
 	Task AddFavoriteAsync(int id, CancellationToken cancellationToken = default);
 	Task RemoveFavoriteAsync(int id, CancellationToken cancellationToken = default);

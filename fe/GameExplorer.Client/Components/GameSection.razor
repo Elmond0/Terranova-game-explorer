@@ -1,78 +1,83 @@
 @implements IDisposable
 @inject IJSRuntime JS
 
-<section class="mb-8">
-	<MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
-		<MudText Typo="Typo.h5" HtmlTag="h2">
-			@Title
-		</MudText>
-		@if (SeeAllHref is not null)
-		{
-			<MudLink Href="@SeeAllHref">
-				Vedi tutti
-			</MudLink>
-		}
-	</MudStack>
-	@if (_error)
-	{
-		<ErrorMessage OnRetry="LoadAsync"/>
-	}
-	else if (_games is null)
-	{
-		<div class="game-row">
-			@for(var i = 0; i < 4; i++)
+@if(!(HideWhenEmpty && _games is { Count: 0}))
+{
+	<section>
+		<MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
+			<MudText Typo="Typo.h5" HtmlTag="h2">
+				@Title
+			</MudText>
+			@if (SeeAllHref is not null)
 			{
-				<div class="game-row-item">
-					<SkeletonCard/>
-				</div>
+				<MudLink Href="@SeeAllHref">
+					Vedi tutti
+				</MudLink>
 			}
-		</div>
-	}
-	else if (_games.Count == 0)
-	{
-		<NoResults Message="Nessun gioco da mostrare."/>
-	}
-	else
-	{
-		<div class="carousel @(Loop ? "carousel-loop" : "")">
-			<div class="game-row" @ref="_row">
-				@* Copie per il giro continuo. Non inert: a volte si vedono (es. ultimo gioco + primi tre)
-				   e devono aprirsi col click. Però i lettori di schermo non le leggono (aria-hidden)
-				   e il Tab le salta (IsClone) *@
-				@if (Loop)
-				{
-					foreach(var game in _games.TakeLast(Visible))
-					{
-						<div class="game-row-item" aria-hidden="true">
-							<GameCard Game="game" HighlightDate="HighlightDate" IsClone="true"/>
-						</div>
-					}
-				}
-				@foreach(var game in _games)
+		</MudStack>
+		@if (_error)
+		{
+			<ErrorMessage OnRetry="LoadAsync"/>
+		}
+		else if (_games is null)
+		{
+			<div class="game-row">
+				@for(var i = 0; i < 4; i++)
 				{
 					<div class="game-row-item">
-						<GameCard Game="game" HighlightDate="HighlightDate"/>
+						<SkeletonCard/>
 					</div>
 				}
-				@if (Loop)
-				{
-					foreach(var game in _games.Take(Visible))
+			</div>
+		}
+		else if (_games.Count == 0)
+		{
+			<NoResults Message="Nessun gioco da mostrare."/>
+		}
+		else
+		{
+			<div class="carousel @(Loop ? "carousel-loop" : "")">
+				<div class="game-row" @ref="_row">
+					@* copies for the endless loop. Not inert: sometimes they are on screen (last game + first three)
+					   and must open on click. Screen readers skip them (aria-hidden) and so does Tab (IsClone),
+					   or every game would be announced twice *@
+					@if (Loop)
 					{
-						<div class="game-row-item" aria-hidden="true">
-							<GameCard Game="game" HighlightDate="HighlightDate" IsClone="true"/>
+						foreach(var game in _games.TakeLast(Visible))
+						{
+							<div class="game-row-item" aria-hidden="true">
+								<GameCard Game="game" HighlightDate="HighlightDate" IsClone="true"/>
+							</div>
+						}
+					}
+					@foreach(var game in _games)
+					{
+						<div class="game-row-item">
+							<GameCard Game="game" HighlightDate="HighlightDate"/>
 						</div>
 					}
-				}
+					@if (Loop)
+					{
+						foreach(var game in _games.Take(Visible))
+						{
+							<div class="game-row-item" aria-hidden="true">
+								<GameCard Game="game" HighlightDate="HighlightDate" IsClone="true"/>
+							</div>
+						}
+					}
+				</div>
 			</div>
-		</div>
-	}
-</section>
+		}
+	</section>
+}
 
 @code {
 	[Parameter, EditorRequired] public string Title { get; set; } = default!;
 	[Parameter, EditorRequired] public Func<CancellationToken, Task<List<Game>>> Load { get; set; } = default!;
 	[Parameter] public string? SeeAllHref { get; set; }
 	[Parameter] public bool HighlightDate { get; set; }
+	// most studios have nothing announced: an empty "upcoming" row would only be noise
+	[Parameter] public bool HideWhenEmpty { get; set; }
 	private List<Game>? _games;
 	private bool _error;
 	private readonly CancellationTokenSource _cts = new();

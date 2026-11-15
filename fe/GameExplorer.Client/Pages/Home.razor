@@ -1,9 +1,5 @@
 ﻿@page "/"
 @inject IGameApiClient Api
-@inject NavigationManager Navigation
-@inject SearchFocusService SearchFocus
-
-@implements IDisposable
 
 <PageTitle>Home · Game Explorer</PageTitle>
 <MudText
@@ -18,38 +14,25 @@
 	Class="mud-text-secondary mb-4">
 		Cerca tra migliaia di videogiochi, filtra per genere, piattaforma e anno, leggi schede, voti e studi di sviluppo, e salva i tuoi preferiti.
 </MudText>
-<div class="search-bar-sticky">
-	<div class="search-box">
-		<MudTextField
-			@bind-Value="_query"
-			Immediate="true"
-			OnKeyDown="OnSearchKeyDown"
-			Placeholder="Cerca un gioco..."
-			Variant="Variant.Outlined"
-			Adornment="Adornment.End"
-			AdornmentIcon="@Icons.Material.Filled.Search"
-			OnAdornmentClick="Search"
-			AdornmentAriaLabel="Cerca"
-			@ref="_searchField"
-		/>
-	</div>
-</div>
+<HomeSearchBar/>
+
 <GameSection
 	Title="Più apprezzati"
 	Load="Api.GetTopRatedAsync"
-	SeeAllHref="search?ordering=-rating"
+	SeeAllHref="games/top-rated"
 />
 <GameSection
 	Title="Usciti di recente"
 	Load="Api.GetRecentAsync"
-	SeeAllHref="search?ordering=-released"
 	HighlightDate="true"
+	SeeAllHref="games/recent"
 />
 
 <GameSection
 	Title="In arrivo"
 	Load="Api.GetUpcomingAsync"
 	HighlightDate="true"
+	SeeAllHref="games/upcoming"
 />
 
 <MudText
@@ -65,7 +48,7 @@
 	<GameSection
 		Title="@(platform.Title)"
 		Load="ct => Api.GetPlatformHighlightsAsync(platform.PlatformId, ct)"
-		SeeAllHref="@($"search?platforms={platform.PlatformId}&ordering=-rating")"
+		SeeAllHref="@($"search?platforms={platform.PlatformId}")"
 	/>
 }
 
@@ -77,40 +60,4 @@
 		("Nintendo", 130),
 		("Pc", 6)
 	];
-	private string? _query;
-	private MudTextField<string>? _searchField;
-
-	private void Search()
-	{
-		if (string.IsNullOrWhiteSpace(_query))
-			return ;
-		Navigation.NavigateTo($"search?q={Uri.EscapeDataString(_query.Trim())}");
-	}
-
-	private void OnSearchKeyDown(KeyboardEventArgs e)
-	{
-		if (e.Key == "Enter")
-			Search();
-	}
-
-	private async Task FocusSearchFieldAsync()
-	{
-		if (_searchField is not null)
-			await _searchField.FocusAsync();
-	}
-	protected override void OnInitialized()
-	{
-		SearchFocus.Requested += FocusSearchFieldAsync;
-	}
-
-	public void Dispose()
-	{
-		SearchFocus.Requested -= FocusSearchFieldAsync;
-	}
-
-	protected override async Task OnAfterRenderAsync(bool firstRender)
-	{
-		if (firstRender && SearchFocus.ConsumePending())
-			await FocusSearchFieldAsync();
-	}
 }

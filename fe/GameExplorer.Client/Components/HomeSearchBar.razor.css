@@ -1,0 +1,30 @@
+/* search band: while scrolling it stops under the navbar and stays visible, so searching never needs a scroll back up.
+   It is as wide as the page, so the cards scrolling under it do not show at the sides of the field */
+.search-bar-sticky {
+	position: sticky;
+	top: calc(var(--mud-appbar-height) - var(--mud-appbar-height) / 8);   /* under the navbar, not behind it: on phones it is 56px tall */
+	z-index: 10;                              /* above the cards (even the one rising on :hover), below navbar and menus */
+	background: var(--mud-palette-background); /* without a background the cards would show through; works in light and dark theme */
+	padding: 12px 0;
+	margin-bottom: 20px;
+}
+
+/* the same heights MudBlazor gives the navbar (MudBlazor.min.css, .mud-toolbar-appbar):
+   landscape phone 48px, from 600px up 64px. Order matters: the last matching rule wins */
+@media (orientation: landscape) {
+	.search-bar-sticky {
+		top: calc(var(--mud-appbar-height) - var(--mud-appbar-height) / 4);
+	}
+}
+
+@media (min-width: 600px) {
+	.search-bar-sticky {
+		top: var(--mud-appbar-height);
+	}
+}
+
+/* on wide screens a full-width field is hard to read: at most 640px, centered in the band */
+.search-box {
+	max-width: 640px;
+	margin: 0 auto;
+}

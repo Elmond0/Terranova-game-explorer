@@ -1,0 +1,123 @@
+@page "/games/{List}"
+@inject IGameApiClient Api
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@implements IDisposable
+
+@if (Current is null)
+{
+	<NotFoundMessage
+		Title="Lista non trovata"
+		Text="La lista che cerchi non esiste."
+	/>
+}
+else
+{
+	<PageTitle>@Current.Title · Game Explorer</PageTitle>
+	<MudText Typo="Typo.h4" HtmlTag="h1" Class="mb-4">
+		@Current.Title
+	</MudText>
+	@if (_error)
+	{
+		<ErrorMessage OnRetry="LoadAsync"/>
+	}
+	else if (_result is null)
+	{
+		<MudGrid Spacing="3">
+			@for (var i = 0; i < 8; i++)
+			{
+				<MudItem xs="6" md="4" lg="3">
+					<SkeletonCard/>
+				</MudItem>
+			}
+		</MudGrid>
+	}
+	else if (_result.Items is null or { Count: 0 })
+	{
+			<NoResults Message="Nessun gioco da mostrare."/>
+	}
+	else
+	{
+		<MudGrid Spacing="3">
+			@foreach (var game in _result.Items)
+			{
+				<MudItem xs="6" md="4" lg="3">
+					<GameCard Game="game" HighlightDate="Current.HighlightDate"/>
+				</MudItem>
+			}
+		</MudGrid>
+		@if (PageCount > 1)
+		{
+			<MudStack AlignItems="AlignItems.Center" Class="mt-6">
+				<MudPagination
+					Count="PageCount"
+					Selected="CurrentPage"
+					SelectedChanged="OnPageChanged"
+					Color="Color.Primary"
+				/>
+			</MudStack>
+		}
+	}
+}
+
+@code {
+	// one entry per list: the url name decides title, api call and whether the date is highlighted
+	private record GameList(string Title, Func<IGameApiClient, int, CancellationToken, Task<PagedResult<Game>>> Load, bool HighlightDate);
+	// IGDB can count thousands of pages: stop at the ones the web api accepts
+	private int PageCount => _result is null ? 0 : Math.Min(_result.TotalPages, MaxPage);
+	private static readonly Dictionary<string, GameList> Lists = new()
+	{
+		["top-rated"] = new("Più apprezzati", (api, page, ct) => api.GetTopRatedPageAsync(page, ct), false),
+		["recent"] = new("Usciti di recente", (api, page, ct) => api.GetRecentPageAsync(page, ct), true),
+		["upcoming"] = new("In arrivo", (api, page, ct) => api.GetUpcomingPageAsync(page, ct), true),
+	};
+	// the web api rejects pages over 500 (400 Bad Request)
+	private const int MaxPage = 500;
+	[Parameter] public string List { get; set; } = "";
+	[SupplyParameterFromQuery(Name = "page")] string? PageText { get; set; }
+	// null for an address like /games/foo: the page shows "not found" instead of calling the api
+	private GameList? Current => Lists.GetValueOrDefault(List);
+	// ?page=0, negative or not a number counts as page 1, over 500 as page 500
+	private int CurrentPage => Math.Clamp(ParseInt(PageText) ?? 1, 1, MaxPage);
+	private static int? ParseInt(string? text) => int.TryParse(text, out var n) ? n : null;
+
+	private PagedResult<Game>? _result;
+	private bool _error;
+	private CancellationTokenSource? _cts;
+
+	// the list name or the page in the address changed: load again
+	protected override Task OnParametersSetAsync() => LoadAsync();
+
+	private async Task LoadAsync()
+	{
+		// a newer request (another page clicked fast) makes the older answer useless
+		_cts?.Cancel();
+		_cts?.Dispose();
+		_cts = new CancellationTokenSource();
+		var token = _cts.Token;
+		_error = false;
+		_result = null;
+		if (Current is null)
+			return ;
+		try
+		{
+			_result = await Current.Load(Api, CurrentPage, token);
+		}
+		catch (ApiException)
+		{
+			_error = true;
+		}
+		catch (OperationCanceledException) { }
+	}
+	public void Dispose()
+	{
+		_cts?.Cancel();
+		_cts?.Dispose();
+	}
+	// page 1 stays out of the address: /games/recent and /games/recent?page=1 are the same list
+	private async Task OnPageChanged(int page)
+	{
+		Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("page", page == 1 ? null : page));
+		await JS.InvokeVoidAsync("scrollTo", 0, 0);
+	}
+}

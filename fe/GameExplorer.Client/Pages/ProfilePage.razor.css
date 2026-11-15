@@ -1,5 +1,5 @@
-/* Ogni avatar della griglia è un pulsante tondo: il bordo trasparente tiene il posto
-   a quello colorato della selezione, così le icone non si spostano quando cambia */
+/* every avatar in the grid is a round button: the transparent border keeps the room
+   of the colored selection border, so the icons do not move when the selection changes */
 .avatar-option {
 	padding: 2px;
 	border: 2px solid transparent;

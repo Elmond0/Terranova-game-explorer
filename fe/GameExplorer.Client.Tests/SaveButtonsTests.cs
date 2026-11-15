@@ -1,14 +1,14 @@
-using AngleSharp.Dom;                        // esiste già (dentro bUnit): IElement
+using AngleSharp.Dom;
 using Bunit;
-using GameExplorer.Client.Components;        // esiste già: SaveButtons
-using Microsoft.AspNetCore.Components;       // esiste già: NavigationManager
+using GameExplorer.Client.Components;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GameExplorer.Client.Tests;
 
 public class SaveButtonsTests : PageTestBase
 {
-	// GTA V: c'è nei dati del client finto
+	// GTA V: present in the fake client data
 	private const int GameId = 3498;
 
 	[Fact]
@@ -17,7 +17,7 @@ public class SaveButtonsTests : PageTestBase
 		Auth.SetAuthorized("prova@example.com");
 		var cut = Ctx.Render<SaveButtons>(parameters => parameters
 			.Add(p => p.GameId, GameId));
-		// Il pulsante si attiva solo quando la lettura delle due liste è finita
+		// the button turns on only when both lists are read: before that it cannot know the current state
 		cut.WaitForAssertion(() => Assert.False(FavoriteButton(cut).HasAttribute("disabled")));
 
 		FavoriteButton(cut).Click();
@@ -36,7 +36,7 @@ public class SaveButtonsTests : PageTestBase
 		var cut = Ctx.Render<SaveButtons>(parameters => parameters
 			.Add(p => p.GameId, GameId));
 		cut.WaitForAssertion(() => Assert.False(FavoriteButton(cut).HasAttribute("disabled")));
-		// Solo adesso la Web API va giù: la lettura iniziale deve essere andata bene
+		// only now the web api goes down: the initial read must have succeeded
 		Api.SimulateError = true;
 
 		FavoriteButton(cut).Click();
@@ -52,15 +52,15 @@ public class SaveButtonsTests : PageTestBase
 	[Fact]
 	public void NonCollegato_Clic_PortaAllAccesso()
 	{
-		// Nessun SetAuthorized: di base l'utente non è collegato
+		// no SetAuthorized: by default the user is logged out
 		var cut = Ctx.Render<SaveButtons>(parameters => parameters
 			.Add(p => p.GameId, GameId));
 
 		FavoriteButton(cut).Click();
 
-		// NavigateTo parte prima di qualsiasi await: non serve aspettare
+		// NavigateTo runs before any await, so there is nothing to wait for
 		var nav = Ctx.Services.GetRequiredService<NavigationManager>();
-		// Con l'indirizzo di ritorno: dopo l'accesso si torna alla pagina di partenza
+		// with the return address: after logging in the user is back on the starting page
 		Assert.Contains("/account/login?returnUrl=", nav.Uri);
 	}
 

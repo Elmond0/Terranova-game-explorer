@@ -1,26 +1,26 @@
-// Carosello di GameSection: [copie ultimi giochi] [giochi veri] [copie primi giochi].
-// Arrivati sulle copie si salta di un giro sui giochi veri: il salto non si vede.
+// endless carousel of GameSection: [copies of the last games] [real games] [copies of the first games].
+// Reaching the copies jumps one lap back onto the real games: the content is the same, so the jump is invisible
 window.carousel = {
 		init(el, clones) {
-			// 1. misure (ricalcolate: le card cambiano larghezza col ridimensionamento).
-			//    getBoundingClientRect e non offsetLeft: offsetLeft arrotonda all'intero, e con card
-			//    larghe ad es. 180,5 px la riga partiva sulle copie e lì restava bloccata.
-			//    realStart e realWidth si misurano, non si moltiplicano: anche mezzo pixel
-			//    di errore, moltiplicato per 20 giochi, diventa 10 px
+			// 1. measures, recomputed every time because cards change width on resize.
+			//    getBoundingClientRect, not offsetLeft: offsetLeft rounds to integers, and with cards
+			//    e.g. 180.5px wide the row started on the copies and got stuck there.
+			//    realStart and realWidth are measured, not multiplied: half a pixel
+			//    of error, multiplied by 20 games, becomes 10px
 			function metrics(){
-				const x = i => el.children[i].getBoundingClientRect().left;     // bordo sinistro della card i
-				const step = x(1) - x(0);                                        // una card + lo spazio
-				const realStart = x(clones) - x(0);                              // dove inizia il primo gioco vero
-				const realWidth = x(el.children.length - clones) - x(clones);    // un giro: tutti i giochi veri
+				const x = i => el.children[i].getBoundingClientRect().left;
+				const step = x(1) - x(0);                                        // one card + the gap
+				const realStart = x(clones) - x(0);                              // where the first real game starts
+				const realWidth = x(el.children.length - clones) - x(clones);    // one lap: all the real games
 				return {step, realStart, realWidth};
 			}
 
-			// 2. si parte dal primo gioco vero
+			// 2. start on the first real game, not on a copy
 			el.scrollLeft = metrics().realStart;
 
-			// 3. se la riga è sulle copie salta di un giro; restituisce lo spostamento fatto.
-			//    Margine di mezza card: il browser arrotonda scrollLeft ai pixel interi e un
-			//    confronto esatto può sbagliare di una frazione; così una riga ferma non è mai in bilico
+			// 3. on the copies, jump one lap; returns the offset applied so a drag can follow it.
+			//    Half a card of margin: the browser rounds scrollLeft to whole pixels and an
+			//    exact comparison can miss by a fraction; this way a resting row is never on the edge
 			function wrap() {
 				const { step, realStart, realWidth } = metrics();
 				if (el.scrollLeft < realStart - step / 2){
@@ -34,12 +34,12 @@ window.carousel = {
 				return 0;
 			}
 
-			// 4. fine scorrimento: si salta solo a riga ferma (120 ms senza scroll)
+			// 4. jump only when the row stops (120ms without scroll): jumping mid-swipe would break the swipe
 			let timer;
 			function onScrollEnd(){
 				wrap();
-				// dragging resta solo mentre si sta trascinando (tasto premuto e riga mossa):
-				// chi tiene premuto senza muovere non deve restare con la manina chiusa
+				// dragging stays only while really dragging (button pressed and row moved):
+				// holding the button without moving must not leave the closed hand cursor
 				if (!down || !moved)
 					el.classList.remove('dragging');
 			}
@@ -48,9 +48,9 @@ window.carousel = {
 				timer = setTimeout(onScrollEnd, 120);
 			});
 
-			// 5. trascinamento col mouse (il touch lo fa già il browser)
-			let down = false;      // tasto premuto
-			let moved = false;     // trascinamento, non click
+			// 5. mouse dragging (touch scrolling is already done by the browser)
+			let down = false;
+			let moved = false;     // a drag, not a click
 			let startX = 0;
 			let startScroll = 0;
 
@@ -68,23 +68,23 @@ window.carousel = {
 				if (!down){
 					return;
 				}
-				// tasto rilasciato fuori dalla riga: lì il pointerup non arriva, se ne accorge ora
+				// button released outside the row: pointerup never arrives there, so it is noticed here
 				if ((e.buttons & 1) === 0){
 					endDrag();
 					return;
 				}
 				const dx = e.clientX - startX;
 				if (!moved){
-					if (Math.abs(dx) < 5) return;   // sotto i 5 px è un click
+					if (Math.abs(dx) < 5) return;   // under 5px it is a click with a shaky hand, not a drag
 					moved = true;
 					el.classList.add('dragging');
-					el.setPointerCapture(e.pointerId);   // solo ora, o i click non arrivano alle card
+					el.setPointerCapture(e.pointerId);   // only now: capturing earlier keeps clicks from reaching the cards
 				}
 				el.scrollLeft = startScroll - dx;
-				startScroll += wrap();   // se la riga salta, salta anche il punto di partenza
+				startScroll += wrap();   // when the row jumps, the drag start point must jump with it
 			});
 
-			// al rilascio si aggancia alla card più vicina; dragging la toglie onScrollEnd
+			// on release snap to the nearest card; onScrollEnd removes dragging
 			function endDrag(){
 				if (!down){
 					return;
@@ -93,8 +93,8 @@ window.carousel = {
 				if (moved){
 					const { step } = metrics();
 					const target = Math.round(el.scrollLeft / step) * step;
-					if (Math.abs(target - el.scrollLeft) < 1)   // con i decimali, "uguale" è "a meno di 1 px"
-						el.classList.remove('dragging');   // già al suo posto: nessuno scroll
+					if (Math.abs(target - el.scrollLeft) < 1)   // with decimals, "equal" means "less than 1px apart"
+						el.classList.remove('dragging');   // already in place: no scroll, so onScrollEnd would never run
 					else
 						el.scrollTo({ left: target, behavior: 'smooth' });
 				}
@@ -102,7 +102,7 @@ window.carousel = {
 			el.addEventListener('pointerup', endDrag);
 			el.addEventListener('pointercancel', endDrag);
 
-			// 6. il rilascio dopo un trascinamento non apre il gioco (true: prima del link e di Blazor)
+			// 6. releasing after a drag must not open the game (true: runs before the link and Blazor)
 			el.addEventListener('click', e => {
 				if (moved){
 					e.preventDefault();
@@ -111,7 +111,7 @@ window.carousel = {
 				}
 			}, true);
 
-			// niente "trascina immagine" (Firefox)
+			// Firefox ignores -webkit-user-drag, so its image drag is blocked here
 			el.addEventListener('dragstart', e => e.preventDefault());
 		}
 };

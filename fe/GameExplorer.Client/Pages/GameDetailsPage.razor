@@ -105,20 +105,20 @@ else
 					}
 				</MudStack>
 			}
-			@* @if (_game.Publishers.Count > 0) *@
-			@* { *@
-			@* 	<MudText Typo="Typo.subtitle2" Class="mt-4"> *@
-			@* 		Publisher *@
-			@* 	</MudText> *@
-			@* 	<MudStack Row="true" Wrap="Wrap.Wrap"> *@
-			@* 		@foreach (var publisher in _game.Publishers) *@
-			@* 		{ *@
-			@* 			<MudChip T="string" Color="Color.Primary"> *@
-			@* 				@publisher.Name *@
-			@* 			</MudChip> *@
-			@* 		} *@
-			@* 	</MudStack> *@
-			@* } *@
+			@if (NamedPublishers.Count > 0)
+			{
+				<MudText Typo="Typo.subtitle2" Class="mt-4">
+					Publisher
+				</MudText>
+				<MudStack Row="true" Wrap="Wrap.Wrap">
+					@foreach (var publisher in NamedPublishers)
+					{
+						<MudChip T="string" Color="Color.Primary" Href="@($"/studios/{publisher.Id}")">
+							@publisher.Name
+						</MudChip>
+					}
+				</MudStack>
+			}
 		</MudItem>
 	</MudGrid>
 	@if (!string.IsNullOrWhiteSpace(_game.Description))
@@ -213,12 +213,13 @@ else
 @code {
 	[Parameter] public int Id { get; set; }
 	private const int AboutPreviewLength = 500;
-	// "Leggi tutto" solo se il testo nascosto è abbastanza lungo: per poche parole in più si mostra tutto
+	// "Leggi tutto" only when the hidden text is long enough: hiding just a few words would cost a click for nothing
 	private const int AboutTolerance = 150;
 	private CancellationTokenSource? _cts;
 	private bool _aboutExpanded;
 	private GameDetails? _game;
 	private List<Studio> NamedDevelopers => _game?.Developers.Where(s => !string.IsNullOrWhiteSpace(s.Name)).ToList() ?? [];
+	private List<Studio> NamedPublishers => _game?.Publishers.Where(s => !string.IsNullOrWhiteSpace(s.Name)).ToList() ?? [];
 	private bool _viewerOpen;
 	private int _viewerIndex;
 	private bool _loading;
@@ -252,7 +253,7 @@ else
 		if (e.Key == "ArrowLeft")
 			Previous();
 	}
-	// Testo da mostrare nella descrizione: intero, oppure tagliato all'ultimo spazio prima del limite
+	// cut at the last space before the limit, so a word is never split in half
 	private string AboutText
 	{
 		get
