@@ -233,6 +233,7 @@ public class FakeGameApiClient : IGameApiClient
 		(TestStudio, [.. Enumerable.Range(900301, 25), 900202]),
 	];
 	private const int StudioGamesPageSize = 20;
+	private const int ListPageSize = 5;
 
 	// true: ogni metodo lancia ApiException, per provare ErrorMessage e "Riprova".
 	// Si attiva in Program.cs: AddScoped<IGameApiClient>(_ => new FakeGameApiClient { SimulateError = true })
@@ -255,7 +256,21 @@ public class FakeGameApiClient : IGameApiClient
 		await DelayAsync(cancellationToken);
 		return Upcoming;
 	}
-
+	public async Task<PagedResult<Game>> GetTopRatedPageAsync(int page, CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		return ToPage(TopRated, page, ListPageSize);
+	}
+	public async Task<PagedResult<Game>> GetRecentPageAsync(int page, CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		return ToPage(Recent, page, ListPageSize);
+	}
+	public async Task<PagedResult<Game>> GetUpcomingPageAsync(int page, CancellationToken cancellationToken = default)
+	{
+		await DelayAsync(cancellationToken);
+		return ToPage(Upcoming, page, ListPageSize);
+	}
 	// I giochi della piattaforma, i più votati per primi. Il numero di voti non lo abbiamo,
 	// quindi il filtro "solo giochi noti" della Web API vera qui non si imita
 	public async Task<List<Game>> GetPlatformHighlightsAsync(int platformId, CancellationToken cancellationToken = default)

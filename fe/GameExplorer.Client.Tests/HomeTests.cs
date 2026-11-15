@@ -72,5 +72,11 @@ public class HomeTests : PageTestBase
 		public Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, string? ordering, CancellationToken cancellationToken = default) =>
 			_fake.GetStudioGamesAsync(id, page, ordering, cancellationToken);
 		public Task<List<Game>> GetStudioUpcomingAsync(int id, CancellationToken cancellationToken = default) => _fake.GetStudioUpcomingAsync(id, cancellationToken);
+		public Task<PagedResult<Game>> GetTopRatedPageAsync(int page, CancellationToken cancellationToken = default) =>
+			_fake.GetTopRatedPageAsync(page, cancellationToken);
+		public Task<PagedResult<Game>> GetRecentPageAsync(int page, CancellationToken cancellationToken = default) =>
+			_fake.GetRecentPageAsync(page, cancellationToken);
+		public Task<PagedResult<Game>> GetUpcomingPageAsync(int page, CancellationToken cancellationToken = default) =>
+			_fake.GetUpcomingPageAsync(page, cancellationToken);
 	}
 }

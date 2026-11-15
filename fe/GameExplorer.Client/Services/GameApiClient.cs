@@ -34,6 +34,20 @@ public class GameApiClient : IGameApiClient
 		return games ?? [];
 	}
 
+	public Task<PagedResult<Game>> GetTopRatedPageAsync(int page, CancellationToken cancellationToken = default) =>
+		GetGamesPageAsync("top-rated", page, cancellationToken);
+
+	public Task<PagedResult<Game>> GetRecentPageAsync(int page, CancellationToken cancellationToken = default) =>
+		GetGamesPageAsync("recent", page, cancellationToken);
+
+	public Task<PagedResult<Game>> GetUpcomingPageAsync(int page, CancellationToken cancellationToken = default) =>
+		GetGamesPageAsync("upcoming", page, cancellationToken);
+
+	private async Task<PagedResult<Game>> GetGamesPageAsync(string list, int page, CancellationToken cancellationToken)
+	{
+		var games = await GetAsync<PagedResult<Game>>($"api/games/{list}?page={page}", false, cancellationToken);
+		return games ?? new PagedResult<Game>();
+	}
 	public async Task<List<Game>> GetPlatformHighlightsAsync(int platformId, CancellationToken cancellationToken = default)
 	{
 		var games = await GetAsync<List<Game>>($"api/platforms/{platformId}/highlights", false, cancellationToken);
