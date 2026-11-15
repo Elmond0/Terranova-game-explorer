@@ -38,10 +38,8 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 			where.Add($"genres = [{string.Join(',', filter.GenreIds)}]");
 		if (filter.PlatformIds.Count > 0)
 			where.Add($"platforms = [{string.Join(',', filter.PlatformIds)}]");
-		if (filter.DeveloperIds.Count > 0)
-			where.Add($"involved_companies.company = [{string.Join(',', filter.DeveloperIds)}] & involved_companies.company.developer = true");
-		if (filter.PublisherIds.Count > 0)
-			where.Add($"involved_companies.company = [{string.Join(',', filter.PublisherIds)}] & involved_companies.company.publisher = true");
+		if (filter.StudioIds.Count > 0)
+			where.Add($"involved_companies.company = [{string.Join(',', filter.StudioIds)}]");
 		if (filter.FromYear is not null)
 		{
 			var from = filter.FromYear.Value;
@@ -79,7 +77,7 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 			};
 		}
 		var sort = $"sort {field} ";
-		sort += desc ? "desc;" : "asc";
+		sort += desc ? "desc;" : "asc;";
 
 		return (query, pagination, sort);
 	}

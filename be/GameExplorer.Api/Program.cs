@@ -42,10 +42,6 @@ builder.Services.AddHttpClient<TwitchTokenProvider>(c =>
 
 builder.Services.AddTransient<IgdbAuthHandler>();
 
-builder.Services.AddScoped<GameService>();
-
-builder.Services.AddTransient<IgdbAuthHandler>();
-
 // One limiter for the whole app: IGDB accepts 4 requests per second
 builder.Services.AddKeyedSingleton<RateLimiter>(IgdbRateLimitHandler.LimiterKey, (_, _) =>
 	new TokenBucketRateLimiter(new TokenBucketRateLimiterOptions
