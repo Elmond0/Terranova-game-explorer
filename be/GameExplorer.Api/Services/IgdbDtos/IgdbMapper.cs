@@ -30,7 +30,7 @@ internal static class IgdbMapper
 		Slug = r.Slug,
 		Name = r.Name,
 		Rating = r.Rating,
-		Image = r.Cover?.ToImage(CoverSize),
+		Image = r.Cover?.ToImage(LogoSize),
 		ReleaseDate = FromUnix(r.Released),
 
 		Platforms = r.Platforms.MapTo( p => new Platform

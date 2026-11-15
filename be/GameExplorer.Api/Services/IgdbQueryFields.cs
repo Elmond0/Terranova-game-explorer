@@ -3,8 +3,17 @@ namespace GameExplorer.Api.Services;
 
 public record IgdbQueryFields()
 {
-    public const string TopRated = "where rating_count > 100 & first_release_date > 1577836800;\n" +
-        $"sort rating desc;";
+    public static (string query, string pagination, string sort) TopRated( int page, int pageSize )
+    {
+        var query = $"where rating_count > 100" +
+                    $"& cover != null\n" +
+                    $"& version_parent = null;\n";
+        var sort = "sort rating desc;\n";
+        var offset = (page - 1) * pageSize;
+        var pagination = $"limit {pageSize};" +
+                         $"offset {offset};";
+        return (query, pagination, sort);
+    }
     
     public static string Recent
     {

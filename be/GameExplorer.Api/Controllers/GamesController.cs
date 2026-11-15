@@ -30,12 +30,12 @@ public class GamesController( GameService gameService ) : ControllerBase
 	}
 
 	[HttpGet("top-rated")]
-	public async Task<ActionResult<List<Game>>>	GetTopRated( CancellationToken ct ) => Ok(await gameService.GetTopRatedAsync(ct));
+	public async Task<ActionResult<PagedResult<Game>>>	GetTopRated( CancellationToken ct ) => Ok(await gameService.GetTopRatedAsync(ct));
 
 	[HttpGet("recent")]
-	public async Task<ActionResult<List<Game>>>	GetRecent( CancellationToken ct ) => Ok(await gameService.GetRecentAsync(ct));
+	public async Task<ActionResult<PagedResult<Game>>>	GetRecent( CancellationToken ct ) => Ok(await gameService.GetRecentAsync(ct));
 	
 	[HttpGet("upcoming")]
-	public async Task<ActionResult<List<Game>>>	GetUpcoming( CancellationToken ct ) => Ok(await gameService.GetUpcomingAsync(ct));
+	public async Task<ActionResult<PagedResult<Game>>>	GetUpcoming( CancellationToken ct ) => Ok(await gameService.GetUpcomingAsync(ct));
 	
 }

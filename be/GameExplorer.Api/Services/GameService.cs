@@ -137,14 +137,17 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 		await GetCachedListAsync<IgdbGame, Game>(IgdbCache.PlatformHighlightsKey(id),
 			IgdbQueryFields.PlatformHighlights(id), IgdbMapper.ToGame, IgdbCache.Home, ct);
 	
-	internal async Task<List<Game>>	GetTopRatedAsync( CancellationToken ct ) =>
-		await GetCachedListAsync<IgdbGame, Game>( "top-rated", IgdbQueryFields.TopRated, IgdbMapper.ToGame, IgdbCache.Home, ct );
+	internal async Task<List<Game>>	GetHomeTopRatedAsync( CancellationToken ct ) =>
+		await GetCachedListAsync<IgdbGame, Game>( "home:top-rated", IgdbQueryFields.TopRated(page: default, pageSize: default).query, IgdbMapper.ToGame, IgdbCache.Home, ct );
+	
+	internal async Task<PagedResult<Game>>	GetTopRatedAsync( int page, int pageSize, CancellationToken ct ) =>
+		await GetCachedPagedResultAsync<IgdbGame, Game>( IgdbCache.TopRatedKey(page), IgdbQueryFields.TopRated(page, pageSize), page, pageSize, IgdbMapper.ToGame, IgdbCache.Home, ct );
 
-	internal async Task<List<Game>>	GetRecentAsync( CancellationToken ct ) =>
-		await GetCachedListAsync<IgdbGame, Game>( "recent",  IgdbQueryFields.Recent, IgdbMapper.ToGame, IgdbCache.Home, ct );
+	internal async Task<List<Game>>	GetHomeRecentAsync( CancellationToken ct ) =>
+		await GetCachedListAsync<IgdbGame, Game>( "home:recent",  IgdbQueryFields.Recent, IgdbMapper.ToGame, IgdbCache.Home, ct );
 
-	internal async Task<List<Game>>	GetUpcomingAsync( CancellationToken ct ) =>
-		await GetCachedListAsync<IgdbGame, Game>( "upcoming", IgdbQueryFields.Upcoming, IgdbMapper.ToGame, IgdbCache.Home, ct );
+	internal async Task<List<Game>>	GetHomeUpcomingAsync( CancellationToken ct ) =>
+		await GetCachedListAsync<IgdbGame, Game>( "home:upcoming", IgdbQueryFields.Upcoming, IgdbMapper.ToGame, IgdbCache.Home, ct );
 
 	internal async Task<Studio?> GetStudioDetailsAsync(int id, CancellationToken ct) =>
 		await cache.GetOrCreateAsync(
