@@ -154,7 +154,6 @@ jobs:
           ./db/scripts/migrate.sh
           ./db/scripts/migrate.sh
 
-      # TRUNCATE needs a privilege, DROP needs ownership: two different errors, both checked
       - name: Runtime user reads favorites and wishlist but cannot truncate or drop them
         run: |
           for table in favorites wishlist; do

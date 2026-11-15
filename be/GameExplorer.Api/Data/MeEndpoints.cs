@@ -1,9 +1,9 @@
 using System.Security.Claims;
-using GameExplorer.Api.Data.Entities;
 using GameExplorer.Api.Services;
 using GameExplorer.Api.Services.IgdbDtos;
 using GameExplorer.Shared.Models;
 using GameExplorer.Api.Auth;
+using GameExplorer.Api.Data.Entities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
