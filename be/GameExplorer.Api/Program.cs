@@ -122,3 +122,4 @@ app.MapControllers();
 app.MapAuthEndpoints();
 app.MapMeEndpoints();
 app.Run();
+
