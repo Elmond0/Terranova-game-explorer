@@ -86,10 +86,10 @@ else
 					Piattaforme
 				</MudText>
 				<MudStack Row="true" Wrap="Wrap.Wrap">
-					@foreach (var piattaforme in _game.Platforms)
+					@foreach (var platform in _game.Platforms)
 					{
-						<MudChip T="string" Href="@($"/search?platforms={piattaforme.Id}")" Color="Color.Primary">
-							@piattaforme.Name
+						<MudChip T="string" Href="@($"/search?platforms={platform.Id}")" Color="Color.Primary">
+							@platform.Name
 						</MudChip>
 					}
 				</MudStack>
