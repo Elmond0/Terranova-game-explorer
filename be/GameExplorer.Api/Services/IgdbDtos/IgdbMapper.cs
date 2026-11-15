@@ -4,7 +4,7 @@ namespace GameExplorer.Api.Services.IgdbDtos;
 
 internal static class IgdbMapper
 {
-	public const string CoverSize = "t_cover_big";
+	public const string CoverSize = "t_cover_big_2x";
 	public const string ScreenshotSize = "t_screenshot_big";
 	public const string OriginalSize = "t_original";
 	
@@ -101,9 +101,6 @@ internal static class IgdbMapper
 	public static GameDetails		ToDetails( this IgdbGameDetails r )
 	{
 		var g = r.ToGame();
-		var image = g.Image;
-		if (image is not null)
-			image.Url = g.Image!.Url.ToImageUrl(CoverSize, OriginalSize);
 
 		return new GameDetails
 		{
@@ -111,7 +108,7 @@ internal static class IgdbMapper
 			Slug = g.Slug,
 			Name = g.Name,
 			Rating = g.Rating,
-			Image = image,
+			Image = g.Image,
 			ReleaseDate = g.ReleaseDate,
 			Platforms = g.Platforms,
 			Genres = g.Genres,

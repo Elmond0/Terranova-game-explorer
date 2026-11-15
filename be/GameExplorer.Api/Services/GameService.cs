@@ -40,6 +40,8 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 			where.Add($"platforms = [{string.Join(',', filter.PlatformIds)}]");
 		if (filter.DeveloperIds.Count > 0)
 			where.Add($"involved_companies.company = [{string.Join(',', filter.DeveloperIds)}] & involved_companies.developer = true");
+		if (filter.PublisherIds.Count > 0)
+			where.Add($"involved_companies.company = [{string.Join(',', filter.PublisherIds)}] & involved_companies.publisher = true");
 		if (filter.FromYear is not null)
 		{
 			var from = filter.FromYear.Value;
