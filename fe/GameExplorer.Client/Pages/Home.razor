@@ -37,12 +37,12 @@
 <GameSection
 	Title="Più apprezzati"
 	Load="Api.GetTopRatedAsync"
-	SeeAllHref="search?ordering=-rating"
+	@* SeeAllHref="search"da modificare *@
 />
 <GameSection
 	Title="Usciti di recente"
 	Load="Api.GetRecentAsync"
-	SeeAllHref="search?ordering=-released"
+	@* SeeAllHref="search"da modificare *@
 	HighlightDate="true"
 />
 
@@ -65,7 +65,7 @@
 	<GameSection
 		Title="@(platform.Title)"
 		Load="ct => Api.GetPlatformHighlightsAsync(platform.PlatformId, ct)"
-		SeeAllHref="@($"search?platforms={platform.PlatformId}&ordering=-rating")"
+		SeeAllHref="@($"search?platforms={platform.PlatformId}")"
 	/>
 }
 
