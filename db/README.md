@@ -165,7 +165,7 @@ All the targets:
 | `make secrets` | only checks that the five secret files exist and are not empty |
 | `make migrate` | applies the missing migrations |
 | `make dev` | Web API and client together, with the backend variables (`Ctrl+C` stops both) |
-| `make test` | all the tests (Docker must be running: they start their own temporary database) |
+| `make test` | the client tests (no Docker needed) |
 | `make adminer` | database and [Adminer](#adminer-web-ui) |
 | `make adminer-stop` | stops and removes only Adminer, the database keeps running |
 | `make ps` | status of the containers |
