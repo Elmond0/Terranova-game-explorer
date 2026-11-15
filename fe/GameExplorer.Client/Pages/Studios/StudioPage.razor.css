@@ -18,9 +18,3 @@
 	aspect-ratio: 1 / 1;
 	max-width: 100%;
 }
-
-/* the "Ordina per" menu does not stretch over the whole row, but never overflows a 375px screen */
-.order-select {
-	width: 220px;
-	max-width: 100%;
-}

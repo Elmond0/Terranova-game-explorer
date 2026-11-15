@@ -86,12 +86,9 @@ public class GameApiClient : IGameApiClient
 		return studio;
 	}
 
-	public async Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, string? ordering, CancellationToken cancellationToken = default)
+	public async Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, CancellationToken cancellationToken = default)
 	{
-		var url = $"api/studios/{id}/games?page={page}";
-		if (!string.IsNullOrWhiteSpace(ordering))
-			url += $"&ordering={Uri.EscapeDataString(ordering)}";
-		var games = await GetAsync<PagedResult<Game>>(url, false, cancellationToken);
+		var games = await GetAsync<PagedResult<Game>>($"api/studios/{id}/games?page={page}", false, cancellationToken);
 		return games ?? new PagedResult<Game>();
 	}
 

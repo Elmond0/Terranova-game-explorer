@@ -397,14 +397,13 @@ public class FakeGameApiClient : IGameApiClient
 		};
 	}
 
-	// no ordering keeps the list order, like the real web api when it receives none
-	public async Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, string? ordering, CancellationToken cancellationToken = default)
+	public async Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, CancellationToken cancellationToken = default)
 	{
 		await DelayAsync(cancellationToken);
 
 		var gameIds = Studios.FirstOrDefault(s => s.Studio.Id == id).GameIds ?? [];
 		var games = AllGames.Where(g => gameIds.Contains(g.Id));
-		return ToPage(Sort(games, ordering), page, StudioGamesPageSize);
+		return ToPage(games, page, StudioGamesPageSize);
 	}
 
 	public async Task<List<Game>> GetStudioUpcomingAsync(int id, CancellationToken cancellationToken = default)

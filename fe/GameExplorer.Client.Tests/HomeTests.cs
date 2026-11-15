@@ -69,8 +69,8 @@ public class HomeTests : PageTestBase
 			_fake.AddToWishlistAsync(id, cancellationToken);
 		public Task RemoveFromWishlistAsync(int id, CancellationToken cancellationToken = default) =>
 			_fake.RemoveFromWishlistAsync(id, cancellationToken);
-		public Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, string? ordering, CancellationToken cancellationToken = default) =>
-			_fake.GetStudioGamesAsync(id, page, ordering, cancellationToken);
+		public Task<PagedResult<Game>> GetStudioGamesAsync(int id, int page, CancellationToken cancellationToken = default) =>
+			_fake.GetStudioGamesAsync(id, page, cancellationToken);
 		public Task<List<Game>> GetStudioUpcomingAsync(int id, CancellationToken cancellationToken = default) => _fake.GetStudioUpcomingAsync(id, cancellationToken);
 		public Task<PagedResult<Game>> GetTopRatedPageAsync(int page, CancellationToken cancellationToken = default) =>
 			_fake.GetTopRatedPageAsync(page, cancellationToken);

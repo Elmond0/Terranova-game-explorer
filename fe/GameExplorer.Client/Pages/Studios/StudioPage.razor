@@ -93,31 +93,9 @@ else
 			HideWhenEmpty="true"
 		/>
 	</div>
-	<MudStack
-		Row="true"
-		Wrap="Wrap.Wrap"
-		AlignItems="AlignItems.Center"
-		Justify="Justify.SpaceBetween"
-		Class="mt-8 mb-4">
-		<MudText Typo="Typo.h5" HtmlTag="h2">
-			Giochi
-		</MudText>
-		<div class="order-select">
-			<MudSelect
-				T="string"
-				Label="Ordina per"
-				Value="CurrentOrdering"
-				ValueChanged="OnOrderingChanged"
-				ToStringFunc="OrderLabel"
-				Dense="true"
-				Variant="Variant.Outlined">
-				@foreach (var order in OrderOptions)
-				{
-					<MudSelectItem T="string" Value="order.Value">@order.Label</MudSelectItem>
-				}
-			</MudSelect>
-		</div>
-	</MudStack>
+	<MudText Typo="Typo.h5" HtmlTag="h2" Class="mt-8 mb-4">
+		Giochi
+	</MudText>
 
 	@if (_gamesError)
 	{
@@ -184,23 +162,12 @@ else
 
 @code {
 	[Parameter] public int Id { get; set; }
-	[SupplyParameterFromQuery] string? Ordering { get; set; }
 	[SupplyParameterFromQuery] int? Page { get; set; }
 
 	// fallback when the web api leaves PageSize empty, so the page count is never a division by zero
 	private const int DefaultPageSize = 20;
 	private const int AboutPreviewLength = 500;
 	private static readonly CultureInfo ItalianCulture = CultureInfo.GetCultureInfo("it-IT");
-
-	// "" means no ordering: MudSelect needs a real value for the "Rilevanza" item, and the web api then uses its own order
-	private static readonly (string Value, string Label)[] OrderOptions =
-	[
-		("", "Rilevanza"),
-		("-rating", "Voto più alto"),
-		("-released", "Più recenti"),
-		("released", "Meno recenti"),
-		("name", "Nome (A-Z)"),
-	];
 
 	private string? CountryName =>
 		_studio?.CountryId is int id && CountryNames.ByIsoNumeric.TryGetValue(id, out var name) ? name : null;
@@ -229,8 +196,6 @@ else
 
 	// ?page=0 or negative typed in the address counts as page 1: a hand-written url never errors
 	private int CurrentPage => Math.Max(Page ?? 1, 1);
-	// a hand-written ordering that is not in the menu is ignored: the web api would answer 400
-	private string CurrentOrdering => OrderOptions.Any(o => o.Value == Ordering) ? Ordering! : "";
 	private int PageCount
 	{
 		get
@@ -267,10 +232,7 @@ else
 		? "1 gioco"
 		: $"{count.ToString("N0", ItalianCulture)} giochi";
 
-	private static string? OrderLabel(string? value) =>
-		OrderOptions.FirstOrDefault(o => o.Value == value).Label ?? value;
-
-	// a new studio reloads everything; a new page or ordering reloads only the games, the studio did not change
+	// a new studio reloads everything; a new page reloads only the games, the studio did not change
 	protected override async Task OnParametersSetAsync()
 	{
 		if (Id != _loadedId)
@@ -324,10 +286,9 @@ else
 		var token = _gamesCts.Token;
 		_gamesError = false;
 		_games = null;
-		var ordering = CurrentOrdering == "" ? null : CurrentOrdering;
 		try
 		{
-			var games = await Api.GetStudioGamesAsync(Id, CurrentPage, ordering, token);
+			var games = await Api.GetStudioGamesAsync(Id, CurrentPage, token);
 			if (token.IsCancellationRequested)
 				return;
 			_games = games;
@@ -343,16 +304,6 @@ else
 			return;
 		}
 		StateHasChanged();
-	}
-
-	// a new ordering goes back to page 1: page 3 of another order shows unrelated games
-	private void OnOrderingChanged(string? value)
-	{
-		Navigate(new Dictionary<string, object?>
-		{
-			["ordering"] = string.IsNullOrEmpty(value) ? null : value,
-			["page"] = null,
-		});
 	}
 
 	// page 1 stays out of the address, as in the search: with or without ?page=1 it is the same page
