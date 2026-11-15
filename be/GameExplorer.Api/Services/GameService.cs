@@ -33,6 +33,7 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 			where.Add($"first_release_date < {IgdbMapper.ToUnix(new DateOnly(to + 1, 1, 1))}");
 		}
 		where.Add($"game_type = (0,1,2,4,8,9,10,11)");
+		where.Add($"version_parent = null");
 		query += $"where {string.Join(" & ", where)};";
 		
 		var offset = (filter.Page - 1) * filter.PageSize;
@@ -154,7 +155,7 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 		await GetCachedListAsync<IgdbGame, Game>( "home:upcoming", IgdbQueryFields.Upcoming(), IgdbMapper.ToGame, IgdbCache.Home, ct );
 	
 	internal async Task<PagedResult<Game>>	GetUpcomingAsync( int page, int pageSize, CancellationToken ct ) =>
-		await GetCachedPagedResultAsync<IgdbGame, Game>( IgdbCache.UpcomingKey(page, pageSize), IgdbQueryFields.Recent(page, pageSize, false), page, pageSize, IgdbMapper.ToGame, IgdbCache.Home, ct );
+		await GetCachedPagedResultAsync<IgdbGame, Game>( IgdbCache.UpcomingKey(page, pageSize), IgdbQueryFields.Upcoming(page, pageSize, false), page, pageSize, IgdbMapper.ToGame, IgdbCache.Home, ct );
 
 	internal async Task<Studio?> GetStudioDetailsAsync(int id, CancellationToken ct) =>
 		await cache.GetOrCreateAsync(

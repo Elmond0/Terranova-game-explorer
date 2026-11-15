@@ -44,17 +44,38 @@ builder.Services.AddTransient<IgdbAuthHandler>();
 
 builder.Services.AddScoped<GameService>();
 
-builder.Services.AddHttpClient<IgdbClient>(c =>
+builder.Services.AddTransient<IgdbAuthHandler>();
+
+// One limiter for the whole app: IGDB accepts 4 requests per second
+builder.Services.AddKeyedSingleton<RateLimiter>(IgdbRateLimitHandler.LimiterKey, (_, _) =>
+	new TokenBucketRateLimiter(new TokenBucketRateLimiterOptions
+	{
+		TokenLimit = 4,
+		TokensPerPeriod = 4,
+		ReplenishmentPeriod = TimeSpan.FromSeconds(1),
+		QueueLimit = 100,
+		QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+		AutoReplenishment = true,
+	}));
+builder.Services.AddTransient<IgdbRateLimitHandler>();
+
+builder.Services.AddScoped<GameService>();
+
+var igdbHttp = builder.Services.AddHttpClient<IgdbClient>(c =>
+	{
+		c.BaseAddress = new Uri("https://api.igdb.com/v4/");
+		c.Timeout = Timeout.InfiniteTimeSpan; // TotalRequestTimeout below handles timeouts now
+	})
+	.AddHttpMessageHandler<IgdbAuthHandler>();
+
+igdbHttp.AddStandardResilienceHandler(options =>
 {
-	c.BaseAddress = new Uri("https://api.igdb.com/v4/");
-	c.Timeout = TimeSpan.FromSeconds(10);
-})
-.AddHttpMessageHandler<IgdbAuthHandler>()
-.AddStandardResilienceHandler(options =>
- {
-	options.Retry.MaxRetryAttempts = 2;
-	options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(3);
- });
+	options.Retry.MaxRetryAttempts = 1;
+	options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(5);
+	options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(12);
+});
+
+igdbHttp.AddHttpMessageHandler<IgdbRateLimitHandler>(); // last = innermost, so retries are limited too
 
 // --- Database (Elmond0) ---
 // The connection string comes from config, not from code, so the password never ends up in git; without it the API stops at startup.
@@ -93,6 +114,30 @@ builder.Services.AddRateLimiter(o =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+	var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+	await db.Users.AnyAsync();
+
+	var games = scope.ServiceProvider.GetRequiredService<GameService>();
+	try
+	{
+		await Task.WhenAll(
+			games.GetHomeTopRatedAsync(default),
+			games.GetHomeRecentAsync(default),
+			games.GetHomeUpcomingAsync(default),
+			games.GetPlatformHighlightsAsync(167, default), // PlayStation
+			games.GetPlatformHighlightsAsync(169, default), // Xbox
+			games.GetPlatformHighlightsAsync(130, default), // Nintendo
+			games.GetPlatformHighlightsAsync(6, default));  // PC
+	}
+	catch (IgdbException e)
+	{
+		// IGDB down at startup is not a reason to stop the API: the home will load on first request
+		app.Logger.LogWarning(e, "Home cache warm-up failed");
+	}
+}
 
 app.UseExceptionHandler();
 
