@@ -101,7 +101,7 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 	public async Task<PagedResult<Game>> SearchAsync(SearchFilter filter, CancellationToken ct)
 	{
 		var body = BuildSearchQuery(filter);
-		return await GetCachedPagedResultAsync<IgdbGame, Game>($"search:{body}", body, filter.Page, filter.PageSize, IgdbMapper.ToGame, IgdbCache.Search, ct);
+		return await GetCachedPagedResultAsync<IgdbGame, Game>(IgdbCache.SearchKey(body), body, filter.Page, filter.PageSize, IgdbMapper.ToGame, IgdbCache.Search, ct);
 	}
 	
 	public async Task<GameDetails?> GetGameDetailsAsync( int id, CancellationToken ct ) =>

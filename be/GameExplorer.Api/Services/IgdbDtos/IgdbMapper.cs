@@ -1,5 +1,4 @@
 using GameExplorer.Shared.Models;
-using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace GameExplorer.Api.Services.IgdbDtos;
 
