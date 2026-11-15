@@ -119,7 +119,29 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 	internal async Task<List<Genre>?> GetGenresAsync( CancellationToken ct ) => 
 		await GetCachedListAsync<IgdbGenre, Genre>( "genres", IgdbQueryFields.Genres(), IgdbMapper.ToGenre, IgdbCache.Lookup, ct );
 	
-	private static readonly int[] MainPlatformIds = { 6, 167, 169, 130, 48, 49 }; // PC, PS5, Xbox Series, Switch, PS4, Xbox One
+	private static readonly int[] MainPlatformIds =
+	{
+		6,		// Windows
+		167,	// PS5
+		169,	// Xbox X|S
+		508,	// Switch 2
+		48,		// PS4
+		49,		// Xbox One
+		130,	// Switch
+		3,		// Linux
+		9,		// PS3
+		12,		// Xbox 360
+		5,		// Wii
+		41,		// Wii U
+		8,		// PS2
+		11,		// Xbox
+		21,		// GameCube
+		7,		// PS
+		38,		// PSP
+		46,		// PS Vita
+		165,	// PS VR
+		390		// PS VR 2
+	}; // PC, PS5, Xbox Series, Switch, PS4, Xbox One
 
 	internal async Task<List<Platform>?> GetPlatformsAsync(CancellationToken ct)
 	{
