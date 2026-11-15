@@ -53,6 +53,12 @@ else
 					@GamesWord(_games.Total)
 				}
 			</MudText>
+			@if (StudioFacts is not null)
+			{
+				<MudText Typo="Typo.body1" Class="mud-text-secondary">
+					@StudioFacts
+				</MudText>
+			}
 			@if (!string.IsNullOrWhiteSpace(_studio.Website))
 			{
 				<MudLink
@@ -195,6 +201,20 @@ else
 		("released", "Meno recenti"),
 		("name", "Nome (A-Z)"),
 	];
+
+	private string? CountryName =>
+		_studio?.CountryId is int id && CountryNames.ByIsoNumeric.TryGetValue(id, out var name) ? name : null;
+
+	// joined in code so the "·" separator only appears when both parts exist
+	private string? StudioFacts
+	{
+		get
+		{
+			var founded = _studio?.StartDate is DateOnly date ? $"Fondato nel {date.Year}" : null;
+			var parts = new[] { CountryName, founded }.Where(p => p is not null);
+			return parts.Any() ? string.Join(" · ", parts) : null;
+		}
+	}
 
 	private Studio? _studio;
 	private bool _loading;

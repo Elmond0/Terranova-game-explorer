@@ -226,6 +226,8 @@ public class FakeGameApiClient : IGameApiClient
 				"The company was founded in 1987 as DMA Design and is best known for the Grand Theft Auto series.\n" +
 				"Testo finto del FakeGameApiClient: serve a provare la descrizione dello studio.",
 			Website = "https://www.rockstarnorth.com",
+			CountryId = 826,
+			StartDate = new DateOnly(1987, 1, 1),
 		}, [3498, 900103]),
 		(new Studio { Id = 10, Name = "Rockstar Games", Slug = "rockstar-games", Image = Cover(SampleCover1)}, [3498, 900104, 900201]),
 		(TestStudio, [.. Enumerable.Range(900301, 25), 900202]),
@@ -374,6 +376,9 @@ public class FakeGameApiClient : IGameApiClient
 			Image = entry.Studio.Image,
 			About = entry.Studio.About,
 			Website = entry.Studio.Website,
+			CountryId = entry.Studio.CountryId,
+			StartDate = entry.Studio.StartDate,
+			StatusId = entry.Studio.StatusId
 		};
 	}
 
