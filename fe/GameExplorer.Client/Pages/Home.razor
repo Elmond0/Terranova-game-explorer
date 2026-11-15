@@ -15,22 +15,24 @@
 		Cerca tra migliaia di videogiochi, filtra per genere, piattaforma e anno, leggi schede, voti e studi di sviluppo, e salva i tuoi preferiti.
 </MudText>
 <HomeSearchBar/>
-@* TODO 1b: "Vedi tutti" for top rated and recent comes back when A's
-paginated /api/games/top-rated and /recent are on main *@
+
 <GameSection
 	Title="Più apprezzati"
 	Load="Api.GetTopRatedAsync"
+	SeeAllHref="games/top-rated"
 />
 <GameSection
 	Title="Usciti di recente"
 	Load="Api.GetRecentAsync"
 	HighlightDate="true"
+	SeeAllHref="games/recent"
 />
 
 <GameSection
 	Title="In arrivo"
 	Load="Api.GetUpcomingAsync"
 	HighlightDate="true"
+	SeeAllHref="games/upcoming"
 />
 
 <MudText
