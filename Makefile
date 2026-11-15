@@ -20,6 +20,8 @@ BACKEND_ENV = ConnectionStrings__Default="Host=localhost;Port=$(or $(POSTGRES_PO
 
 all: up migrate
 
+start: all dev
+
 .env:
 	@cp .env.example $@
 	@printf "$(YELLOW)Created .env from .env.example$(RESET)\n"
@@ -71,5 +73,5 @@ fclean:
 
 re: fclean all
 
-.PHONY: all secrets up migrate dev test adminer adminer-stop ps logs clean fclean re
+.PHONY: all start secrets up migrate dev test adminer adminer-stop ps logs clean fclean re
 .NOTPARALLEL:

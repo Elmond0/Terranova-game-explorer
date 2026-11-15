@@ -48,7 +48,7 @@ internal static class IgdbMapper
 			Name = g.Name,
 		})
 	};
-
+	
 	private static string? ToImageUrl(this string? url, string oldSize, string newSize, bool png = false)
 	{
 		if (string.IsNullOrWhiteSpace(url))
@@ -64,7 +64,7 @@ internal static class IgdbMapper
 	public static Image ToImage(this IgdbImage r, string size, bool png = false) => new()
 	{
 		Id = r.Id,
-		Url = r.Path.ToImageUrl("t_thumb", size, png),
+		Url = r.Path.ToImageUrl("t_thumb", size),
 		Height = r.Height,
 		Width = r.Width
 	};
@@ -83,7 +83,6 @@ internal static class IgdbMapper
 		StatusId = r.Status,
 		Website = r.Websites?.FirstOrDefault(w => w.Type == 1)?.Url
 	};
-
 	
 	public static Genre ToGenre( this IgdbGenre r ) => new()
 	{
