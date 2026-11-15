@@ -29,7 +29,7 @@
 	display: block;
 	width: 100%;
 	aspect-ratio: 3 / 4;         /* the shape of IGDB covers */
-	object-fit: cover;            /* cropped to fill, never stretched */
+	object-fit: cover;
 }
 
 .cover-placeholder {
@@ -59,7 +59,6 @@
 	white-space: nowrap;
 }
 
-/* people who asked their system for less motion get no movement */
 @media (prefers-reduced-motion: reduce) {
 	.game-card {
 		transition: none;

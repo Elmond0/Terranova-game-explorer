@@ -353,7 +353,6 @@ public class FakeGameApiClient : IGameApiClient
 				new Studio { Id = 10, Name = "Rockstar Games", Slug = "rockstar-games" },
 			];
 		}
-		// the "Gioco di prova" games link to the test studio, the one with two pages of games
 		else if (details.Name.StartsWith("Gioco di prova"))
 		{
 			details.Developers = [TestStudio];

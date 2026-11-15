@@ -2,25 +2,24 @@
 // Reaching the copies jumps one lap back onto the real games: the content is the same, so the jump is invisible
 window.carousel = {
 		init(el, clones) {
-			// 1. measures, recomputed every time because cards change width on resize.
-			//    getBoundingClientRect, not offsetLeft: offsetLeft rounds to integers, and with cards
-			//    e.g. 180.5px wide the row started on the copies and got stuck there.
-			//    realStart and realWidth are measured, not multiplied: half a pixel
-			//    of error, multiplied by 20 games, becomes 10px
+			// recomputed every time because cards change width on resize.
+			// getBoundingClientRect, not offsetLeft: offsetLeft rounds to integers, and with cards
+			// e.g. 180.5px wide the row started on the copies and got stuck there.
+			// realStart and realWidth are measured, not multiplied: half a pixel
+			// of error, multiplied by 20 games, becomes 10px
 			function metrics(){
 				const x = i => el.children[i].getBoundingClientRect().left;
-				const step = x(1) - x(0);                                        // one card + the gap
-				const realStart = x(clones) - x(0);                              // where the first real game starts
-				const realWidth = x(el.children.length - clones) - x(clones);    // one lap: all the real games
+				const step = x(1) - x(0);
+				const realStart = x(clones) - x(0);
+				const realWidth = x(el.children.length - clones) - x(clones);
 				return {step, realStart, realWidth};
 			}
 
-			// 2. start on the first real game, not on a copy
 			el.scrollLeft = metrics().realStart;
 
-			// 3. on the copies, jump one lap; returns the offset applied so a drag can follow it.
-			//    Half a card of margin: the browser rounds scrollLeft to whole pixels and an
-			//    exact comparison can miss by a fraction; this way a resting row is never on the edge
+			// returns the offset applied so a drag can follow it.
+			// Half a card of margin: the browser rounds scrollLeft to whole pixels and an
+			// exact comparison can miss by a fraction; this way a resting row is never on the edge
 			function wrap() {
 				const { step, realStart, realWidth } = metrics();
 				if (el.scrollLeft < realStart - step / 2){
@@ -34,7 +33,7 @@ window.carousel = {
 				return 0;
 			}
 
-			// 4. jump only when the row stops (120ms without scroll): jumping mid-swipe would break the swipe
+			// jump only when the row stops (120ms without scroll): jumping mid-swipe would break the swipe
 			let timer;
 			function onScrollEnd(){
 				wrap();
@@ -48,9 +47,9 @@ window.carousel = {
 				timer = setTimeout(onScrollEnd, 120);
 			});
 
-			// 5. mouse dragging (touch scrolling is already done by the browser)
+			// mouse only: touch scrolling is already done by the browser
 			let down = false;
-			let moved = false;     // a drag, not a click
+			let moved = false;
 			let startX = 0;
 			let startScroll = 0;
 
@@ -84,7 +83,6 @@ window.carousel = {
 				startScroll += wrap();   // when the row jumps, the drag start point must jump with it
 			});
 
-			// on release snap to the nearest card; onScrollEnd removes dragging
 			function endDrag(){
 				if (!down){
 					return;
@@ -102,7 +100,7 @@ window.carousel = {
 			el.addEventListener('pointerup', endDrag);
 			el.addEventListener('pointercancel', endDrag);
 
-			// 6. releasing after a drag must not open the game (true: runs before the link and Blazor)
+			// releasing after a drag must not open the game (true: runs before the link and Blazor)
 			el.addEventListener('click', e => {
 				if (moved){
 					e.preventDefault();

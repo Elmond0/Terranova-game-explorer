@@ -61,7 +61,6 @@ else
 }
 
 @code {
-	// one entry per list: the url name decides title, api call and whether the date is highlighted
 	private record GameList(string Title, Func<IGameApiClient, int, CancellationToken, Task<PagedResult<Game>>> Load, bool HighlightDate);
 	// IGDB can count thousands of pages: stop at the ones the web api accepts
 	private int PageCount => _result is null ? 0 : Math.Min(_result.TotalPages, MaxPage);
@@ -85,7 +84,6 @@ else
 	private bool _error;
 	private CancellationTokenSource? _cts;
 
-	// the list name or the page in the address changed: load again
 	protected override Task OnParametersSetAsync() => LoadAsync();
 
 	private async Task LoadAsync()
