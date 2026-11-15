@@ -18,19 +18,19 @@ public class GameApiClient : IGameApiClient
 
 	public async Task<List<Game>> GetTopRatedAsync(CancellationToken cancellationToken = default)
 	{
-		var games = await GetAsync<List<Game>>("api/games/top-rated", false, cancellationToken);
+		var games = await GetAsync<List<Game>>("api/home/top-rated", false, cancellationToken);
 		return games ?? [];
 	}
 
 	public async Task<List<Game>> GetRecentAsync(CancellationToken cancellationToken = default)
 	{
-		var games = await GetAsync<List<Game>>("api/games/recent", false, cancellationToken);
+		var games = await GetAsync<List<Game>>("api/home/recent", false, cancellationToken);
 		return games ?? [];
 	}
 
 	public async Task<List<Game>> GetUpcomingAsync(CancellationToken cancellationToken = default)
 	{
-		var games = await GetAsync<List<Game>>("api/games/upcoming", false, cancellationToken);
+		var games = await GetAsync<List<Game>>("api/home/upcoming", false, cancellationToken);
 		return games ?? [];
 	}
 
