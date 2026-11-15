@@ -15,6 +15,14 @@
 	display: none;
 }
 
+section{
+	margin-bottom: 2rem;
+}
+
+section:last-child{
+	margin-bottom: 0;
+}
+
 /* 4 card per riga: la larghezza meno i 3 spazi da 16px, divisa per 4 */
 .game-row-item {
 	flex: 0 0 calc((100% - 3 * 16px) / 4);
