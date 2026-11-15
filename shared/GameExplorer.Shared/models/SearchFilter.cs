@@ -19,9 +19,7 @@ public class SearchFilter : IValidatableObject
 	[Range(1950, 2100)]
 	public int? ToYear { get; set; }
 	[MaxLength(10)]
-	public List<int> DeveloperIds { get; set; } = [];
-	[MaxLength(10)]
-	public List<int> PublisherIds { get; set; } = [];
+	public List<int> StudioIds { get; set; } = [];
 	public string? Ordering { get; set; }
 	
 	[Range(1, int.MaxValue)]

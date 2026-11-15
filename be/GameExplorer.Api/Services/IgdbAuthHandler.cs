@@ -14,8 +14,6 @@ public class IgdbAuthHandler( TwitchTokenProvider tokenProvider , IOptions<IgdbO
                new AuthenticationHeaderValue("Bearer", await tokenProvider.GetTokenAsync(ct));
      }
      
-     // Overloads HttpResponseMessage.SendAsync not igdb.SendAsync
-     // is called by HttpResponseMessage.PostSync
      protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
      {
           await AddHeaderAsync(request, ct);

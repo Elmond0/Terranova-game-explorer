@@ -67,15 +67,13 @@ internal static class IgdbMapper
 		Height = r.Height,
 		Width = r.Width
 	};
-	
-	public static Studio? ToCompany( this IgdbInvolvedCompany r ) => r.Studio?.ToStudio() ?? null;
 
 	public static Studio ToStudio( this IgdbStudio r ) => new()
 	{
 		Id = r.Id,
 		Slug = r.Slug,
 		Name = r.Name,
-		Image = (r.Logo is not null ? r.Logo.ToImage(OriginalSize) : null),
+		Image = (r.Logo is not null ? r.Logo.ToImage(OriginalSize, true) : null),
 		About = r.Description,
 		CountryId = r.CountryId,
 		StartDate = FromUnix(r.StartDate),

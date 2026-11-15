@@ -12,7 +12,7 @@ Ognuno scrive solo nei suoi file. Fuori dal proprio territorio: PR piccola, rivi
 |---|---|---|---|
 | **A – backend** | [`@K0ff33Blu3`](https://github.com/K0ff33Blu3) | `be/` (tranne le righe di C) · `shared/` · `postman/` dei giochi · `GameExplorer.slnx` | `BE` · `API` |
 | **B – frontend** | [`@fmartini02`](https://github.com/fmartini02) | `fe/` (anche `Pages/Account` e `Services/Auth`) · `.github/workflows/frontend.yml` | `FE` |
-| **C – database e account** | [`@Elmond0`](https://github.com/Elmond0) | `db/` · `be/GameExplorer.Api/Data/` · `be/GameExplorer.Api/Auth/` · `be/GameExplorer.Api.Tests/Data/` · `postman/` dell'account · `compose.yaml` · `Makefile` · `.env.example` · `.github/workflows/database.yml` · `.github/dependabot.yml` | `DB` |
+| **C – database e account** | [`@Elmond0`](https://github.com/Elmond0) | `db/` · `be/GameExplorer.Api/Data/` · `be/GameExplorer.Api/Auth/` · `postman/` dell'account · `compose.yaml` · `Makefile` · `.env.example` · `.github/workflows/database.yml` · `.github/dependabot.yml` | `DB` |
 | **tutti** | | `DOCS/` · `README.md` · `.gitignore`, con modifiche piccole e avvisando gli altri | |
 
 File condivisi: in `Program.cs` e nel `.csproj` della Web API, C aggiunge solo le righe del login e del database, in un blocco commentato. `shared/` è il contratto tra le due app: ogni cambio si annuncia sul gruppo **prima** della PR.
@@ -107,8 +107,8 @@ comandi esatti (dotnet test, richieste Postman, pagina da aprire)
 ```
 
 - **Piccola**: una issue, poche decine di file. Una PR enorme non viene rivista davvero.
-- Prima di `gh pr ready`: `dotnet build` e `dotnet test GameExplorer.slnx` (o `make test`) in locale, con Docker acceso.
-- CI su GitHub Actions: `frontend.yml` (test del client su `fe/` e `shared/`) e `database.yml` (migrazioni su `db/` e `Data/`). Non c'è CI del backend: i test della Web API si lanciano in locale.
+- Prima di `gh pr ready`: `dotnet build` e `dotnet test GameExplorer.slnx` (o `make test`) in locale.
+- CI su GitHub Actions: `frontend.yml` (test del client su `fe/` e `shared/`) e `database.yml` (migrazioni su `db/` e `Data/`). Non c'è CI del backend e la Web API non ha test automatici: si prova a mano con Postman.
 - Le PR di **Dependabot** (azioni e immagini Docker) le rivede e mergia C.
 
 ### Revisione
