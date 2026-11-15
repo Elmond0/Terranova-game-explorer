@@ -1,4 +1,5 @@
-﻿using GameExplorer.Api.Services.IgdbDtos;
+﻿using System.Text;
+using GameExplorer.Api.Services.IgdbDtos;
 using GameExplorer.Shared.Models;
 using Microsoft.Extensions.Caching.Hybrid;
 
@@ -6,6 +7,22 @@ namespace GameExplorer.Api.Services;
 
 public class GameService( IgdbClient igdb,  HybridCache cache )
 {
+	private const int MaxQueryLength = 100;
+
+	private static string SanitizeSearchText(string input)
+	{
+		var sb = new StringBuilder(Math.Min(input.Length, MaxQueryLength));
+		foreach (var c in input.Trim())
+		{
+			if (c is '"' or '\\' or ';' || char.IsControl(c))
+				continue;
+			sb.Append(c);
+			if (sb.Length == MaxQueryLength)
+				break;
+		}
+		return sb.ToString().Trim();
+	}
+	
 	private static (string query, string pagination, string sort) BuildSearchQuery( SearchFilter filter )
 	{
 		var query = "";
@@ -13,8 +30,9 @@ public class GameService( IgdbClient igdb,  HybridCache cache )
 		var where = new List<string>();
 		if (!string.IsNullOrWhiteSpace(filter.Query))
 		{
-			var trimmed = filter.Query.Trim();
-			where.Add($"(name ~ *\"{trimmed}\"* | alternative_names.name ~ *\"{trimmed}\"*)");
+			var safe = SanitizeSearchText(filter.Query);
+			if (safe.Length > 0)
+				where.Add($"(name ~ *\"{safe}\"* | alternative_names.name ~ *\"{safe}\"*)");
 		}
 		if (filter.GenreIds.Count > 0)
 			where.Add($"genres = [{string.Join(',', filter.GenreIds)}]");
