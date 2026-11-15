@@ -31,7 +31,7 @@ Rules that follow from this split:
 | Interface and graphics (client) | [@fmartini02](https://github.com/fmartini02) |
 | Database and accounts | [@Elmond0](https://github.com/Elmond0) |
 
-Branch, commit and pull request rules: [DOCS/come_lavoriamo.md](DOCS/come_lavoriamo.md). Full role split: [DOCS/Suddivisione del lavoro.md](DOCS/Suddivisione%20del%20lavoro.md).
+Branch, commit and pull request rules: [DOCS/git-workflow.md](DOCS/git-workflow.md). Full role split: [DOCS/Suddivisione del lavoro.md](DOCS/Suddivisione%20del%20lavoro.md).
 
 ## Requirements
 
@@ -53,23 +53,19 @@ Branch, commit and pull request rules: [DOCS/come_lavoriamo.md](DOCS/come_lavori
    | `secrets/twitch_id.txt` | IGDB / Twitch Client ID |
    | `secrets/twitch_key.txt` | IGDB / Twitch Client Secret |
 
-   Commands for Linux, macOS and Windows: [db/README.md → Secret files](db/README.md#secret-files). `make secrets` checks that all five exist.
-2. Start the database and apply the migrations:
+   Commands for Linux, macOS and Windows: [db/README.md → Secret files](db/README.md#2-secret-files). `make secrets` checks that all five exist.
+2. Start everything (database, migrations, API and client):
 
    ```bash
-   make
-   ```
-
-3. Start the API and the client together:
-
-   ```bash
-   make dev
+   make start
    ```
 
    - Web API: http://localhost:5290
    - Client: http://localhost:5100
 
-   `Ctrl+C` stops both.
+   `Ctrl+C` stops the API and the client; the database keeps running (`make clean` stops it).
+
+The same steps one at a time: `make` starts the database and applies the migrations, then gives the terminal back; `make dev` starts only the API and the client (the database must already be running). All the targets: [db/README.md → Path A: with make](db/README.md#path-a-with-make).
 
 Without `make` (for example on Windows without it), the same steps are:
 
@@ -78,7 +74,7 @@ cp .env.example .env          # PowerShell: Copy-Item .env.example .env
 docker compose up -d --wait db
 ```
 
-then the migrations ([db/README.md → Migrations](db/README.md#migrations)) and, in two terminals, the API and the client with the variables described in [db/README.md → Backend secrets](db/README.md#backend-secrets) (bash and PowerShell commands included):
+then the migrations ([db/README.md → B4. Apply the migrations](db/README.md#b4-apply-the-migrations)) and, in two terminals, the API and the client with the variables described in [db/README.md → B3. Set the backend variables](db/README.md#b3-set-the-backend-variables) (bash and PowerShell commands included):
 
 ```bash
 dotnet run --launch-profile http --project be/GameExplorer.Api

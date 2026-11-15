@@ -57,6 +57,9 @@ builder.Services.AddHttpClient<IgdbClient>(c =>
  });
 
 // --- Database (Elmond0) ---
+// The connection string comes from config, not from code, so the password never ends up in git; without it the API stops at startup.
+// Snake case because PostgreSQL folds unquoted names to lowercase. Logging of query values only in development: they can contain emails and password hashes.
+
 var connectionString = builder.Configuration.GetConnectionString("Default")
 	?? throw new InvalidOperationException("Missing ConnectionStrings:Default (start the API with `make dev`, or export the variables described in db/README.md#backend-secrets)");
 
@@ -69,6 +72,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 
 // --- Login (Elmond0) ---
+// Each request checks the session stamp in the database, so changing the stamp logs the user out everywhere.
+
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
 	.AddCookie(o =>
 	{
@@ -96,12 +101,17 @@ app.MapHealthChecks("/health");
 app.UseCors("Frontend");
 
 // Configure the HTTP request pipeline.
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
 app.UseHttpsRedirection();
+
+// (Elmond0) Authentication before authorization: the cookie must be read before checking who can access what.
+// Rate limiter after routing, so it can read the "auth" policy of each endpoint. Login and favorites endpoints
+// live in Auth/ and Data/ and are mapped with one call each, so this file stays short.
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -112,3 +122,4 @@ app.MapControllers();
 app.MapAuthEndpoints();
 app.MapMeEndpoints();
 app.Run();
+

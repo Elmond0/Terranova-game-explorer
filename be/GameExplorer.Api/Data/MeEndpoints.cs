@@ -1,9 +1,9 @@
 using System.Security.Claims;
-using GameExplorer.Api.Data.Entities;
 using GameExplorer.Api.Services;
 using GameExplorer.Api.Services.IgdbDtos;
 using GameExplorer.Shared.Models;
 using GameExplorer.Api.Auth;
+using GameExplorer.Api.Data.Entities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -15,6 +15,8 @@ public static class MeEndpoints
 {
 	public static void MapMeEndpoints(this IEndpointRouteBuilder app)
 	{
+		// One group under /api/me with login required once for all. No user id in the URL: it comes from the cookie,
+		// so a user can only touch their own data. PUT/DELETE on /{gameId} can be repeated with the same result.
 		var me = app.MapGroup("/api/me").RequireAuthorization();
 
 		me.MapGet("/favorites", GetFavorites);
@@ -28,6 +30,7 @@ public static class MeEndpoints
 		me.MapDelete("", DeleteAccount);
 	}
 
+	// Checked here and not only in the Blazor form: anyone can call the API directly and skip the client.
 	static bool IsValidDisplayName(string? name) =>
 		name is { Length: >= 3 and <= 30 } && name.All(c => char.IsAsciiLetterOrDigit(c) || c == '_');
 
@@ -56,6 +59,7 @@ public static class MeEndpoints
 
 		appUser.DisplayName = request.DisplayName;
 		appUser.Avatar = request.Avatar;
+		// The unique index already rejects a taken nickname, so we just catch its error and return 409.
 		try
 		{
 			await db.SaveChangesAsync();
@@ -72,12 +76,15 @@ public static class MeEndpoints
 	{
 		int id = user.GetUserId();
 
+		// One DELETE without loading the user first; favorites and wishlist go away by cascade.
+		// SignOut removes the cookie, otherwise the browser would keep a login for an account that no longer exists.
 		await db.Users.Where(u => u.Id == id).ExecuteDeleteAsync();
 		await http.SignOutAsync();
 
 		return TypedResults.NoContent();
 	}
 
+	// Whitelist: an unknown value gets a 400 instead of being ignored in silence with the default order.
 	static readonly string[] ValidOrders = ["added", "name", "released", "rating"];
 
 	static bool IsValidOrdering(string? ordering) =>
@@ -85,6 +92,8 @@ public static class MeEndpoints
 
 	static async Task<List<Game>> GetCardsAsync(IEnumerable<int> ids, IgdbClient igdb, HybridCache cache, CancellationToken ct)
 	{
+		// The database stores only the ids, so names, covers and platforms come from IGDB: one query for all the games, not one per game.
+		// Ids are sorted so the same list always gives the same cache key. limit 500 because IGDB returns only 10 by default and 500 is its max.
 		string list = string.Join(",", ids.Order());
 
 		return await cache.GetOrCreateAsync(
@@ -104,6 +113,7 @@ public static class MeEndpoints
 		if (!IsValidOrdering(ordering))
 			return TypedResults.ValidationProblem(new Dictionary<string, string[]> { ["Ordering"] = ["Ordering not valid."] });
 
+		// Filter and sort are done in memory and not in SQL: the card data is not in our tables. Only the added date is ours, kept in the dictionary.
 		Dictionary<int, DateTime> addedAt = await entries.ToDictionaryAsync(e => e.GameId, e => e.AddedAt, ct);
 		if (addedAt.Count == 0)
 			return TypedResults.Ok(new List<Game>());
@@ -124,6 +134,7 @@ public static class MeEndpoints
 			_ => g => addedAt[g.Id],
 		};
 
+		// Games without a release date always go last, in both directions. Id as last key so ties keep the same order on every call.
 		IOrderedEnumerable<Game> sorted = filtered.OrderBy(g => field == "released" && g.ReleaseDate is null);
 		sorted = desc
 			? sorted.ThenByDescending(key).ThenByDescending(g => g.Id)
@@ -147,9 +158,12 @@ public static class MeEndpoints
 	{
 		int userId = user.GetUserId();
 
+		// No foreign key on GameId, so we ask IGDB if the game exists (cached, usually already loaded by the details page).
 		if (await games.GetGameDetailsAsync(gameId, ct) is null)
 			return TypedResults.NotFound();
 
+		// Raw SQL for ON CONFLICT DO NOTHING: adding twice is not an error and there is no check-then-insert race.
+		// The interpolated values become SQL parameters, not text, so no injection. Same for the wishlist below.
 		await db.Database.ExecuteSqlAsync($"INSERT INTO favorites (user_id, game_id, added_at) VALUES ({userId}, {gameId}, {DateTime.UtcNow}) ON CONFLICT DO NOTHING", ct);
 
 		return TypedResults.NoContent();
